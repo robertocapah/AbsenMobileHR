@@ -405,7 +405,7 @@ public class Login extends clsMainActivity {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        /*StringRequest req = new StringRequest(Request.Method.POST,strLinkAPI,
+        StringRequest req = new StringRequest(Request.Method.POST,strLinkAPI,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
@@ -458,7 +458,7 @@ public class Login extends clsMainActivity {
                 DefaultRetryPolicy(60000,
                 DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
                 DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
-        queue.add(req);*/
+        queue.add(req);
     }
     public void checkVersion(){
         final ProgressDialog Dialog = new ProgressDialog(Login.this);
@@ -473,8 +473,8 @@ public class Login extends clsMainActivity {
         }
 
         final String mRequestBody = "["+resJson.toString()+"]";
-        String result = new clsHelper().volleyImplement(getApplicationContext(),mRequestBody,strLinkAPI,Login.this);
-        String a = null;
+//        String result = new clsHelper().volleyImplement(getApplicationContext(),mRequestBody,strLinkAPI,Login.this);
+//        String a = null;
         /*try {
             JSONObject jsonObject1 = new JSONObject(result);
         } catch (JSONException e) {
