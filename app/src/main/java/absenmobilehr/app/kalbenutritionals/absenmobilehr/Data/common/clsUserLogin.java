@@ -20,6 +20,10 @@ public class clsUserLogin implements Serializable{
     public String txtNameApp;
     @DatabaseField(columnName = "employeeId")
     public String employeeId;
+    @DatabaseField(columnName = "jabatanId")
+    public String jabatanId;
+    @DatabaseField(columnName = "jabatanName")
+    public String jabatanName;
     @DatabaseField(columnName = "cabangId")
     public String cabangId;
     @DatabaseField(columnName = "txtKodeCabang")
@@ -42,9 +46,38 @@ public class clsUserLogin implements Serializable{
     public String txtDeviceId;
     @DatabaseField(columnName = "dtLogout")
     public String dtLogOut;
+    @DatabaseField(columnName = "txtInsertedBy")
+    public String txtInsertedBy;
+    @DatabaseField(columnName = "dtInserted")
+    public String dtInserted;
+
 
     public clsUserLogin(){
 
+    }
+
+    public String getTxtInsertedBy() {
+        return txtInsertedBy;
+    }
+
+    public void setTxtInsertedBy(String txtInsertedBy) {
+        this.txtInsertedBy = txtInsertedBy;
+    }
+
+    public String getJabatanId() {
+        return jabatanId;
+    }
+
+    public void setJabatanId(String jabatanId) {
+        this.jabatanId = jabatanId;
+    }
+
+    public String getJabatanName() {
+        return jabatanName;
+    }
+
+    public void setJabatanName(String jabatanName) {
+        this.jabatanName = jabatanName;
     }
 
     public String getTxtNameApp() {
@@ -165,6 +198,14 @@ public class clsUserLogin implements Serializable{
 
     public void setTxtDeviceId(String txtDeviceId) {
         this.txtDeviceId = txtDeviceId;
+    }
+
+    public String getDtInserted() {
+        return dtInserted;
+    }
+
+    public void setDtInserted(String dtInserted) {
+        this.dtInserted = dtInserted;
     }
 
     public String getDtLogOut() {

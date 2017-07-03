@@ -1,4 +1,4 @@
-package absenmobilehr.app.kalbenutritionals.absenmobilehr;
+package absenmobilehr.app.kalbenutritionals.absenmobilehr.Fragment;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -10,6 +10,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.R;
 
 
 public class FragmentHome extends Fragment {

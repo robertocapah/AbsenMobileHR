@@ -11,9 +11,6 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,6 +25,7 @@ public class VolleyUtils {
 
         final SweetAlertDialog Dialog = new SweetAlertDialog(activity);
         Dialog.setTitleText("Loading");
+        Dialog.setCancelable(false);
         Dialog.show();
 
         StringRequest req = new StringRequest(Request.Method.POST, strLinkAPI, new Response.Listener<String>() {
@@ -36,7 +34,7 @@ public class VolleyUtils {
                 Boolean status = false;
                 String errorMessage = null;
 
-                if (response != null) {
+                /*if (response != null) {
                     try {
                         JSONObject jsonObject1 = new JSONObject(response);
                         JSONObject jsonObject2 = jsonObject1.getJSONObject("validJson");
@@ -48,7 +46,7 @@ public class VolleyUtils {
 
                         errorMessage = txtWarn;
 
-                        /*if (result.equals("1")){
+                        *//*if (result.equals("1")){
                             JSONObject jsonObject3 = jsonObject2.getJSONObject("TxtData");
                             String txtGUI = jsonObject3.getString("TxtGUI");
                             String txtNameApp = jsonObject3.getString("TxtNameApp");
@@ -81,7 +79,7 @@ public class VolleyUtils {
                             }
                         }else{
                             Toast.makeText(context, txtWarn, Toast.LENGTH_SHORT).show();
-                        }*/
+                        }*//*
 
 
 //                        for (int i = 0; i < jsonArray.length(); i++) {
@@ -90,7 +88,7 @@ public class VolleyUtils {
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
-                }
+                }*/
                 Dialog.dismiss();
                 listener.onResponse(response, status, errorMessage);
             }

@@ -10,19 +10,23 @@ import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import java.sql.SQLException;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.DatabaseManager;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsDeviceInfoRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsUserLoginRepo;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsmConfigRepo;
 
 public class Splash extends AppCompatActivity {
     long delay = 5000;
@@ -126,6 +130,7 @@ public class Splash extends AppCompatActivity {
         TimerTask viewTask = new TimerTask() {
 
             public void run() {
+
                 Intent myIntent = new Intent(Splash.this, Login.class);
 //                clsHelper _clsHelper = new clsHelper();
 //                _clsHelper.createFolderApp();
@@ -146,8 +151,15 @@ public class Splash extends AppCompatActivity {
 //                } catch (ParseException e) {
 //                    e.printStackTrace();
 //                }
-                finish();
-                startActivity(myIntent);
+                try {
+                    new clsmConfigRepo(getApplicationContext()).InsertDefaultMconfig();
+                    finish();
+                    startActivity(myIntent);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                    Log.d("log error",e.getMessage());
+                    Toast.makeText(getApplicationContext(),"gagal menyimpan mConfig data",Toast.LENGTH_LONG);
+                }
             }
         };
         runProgress.schedule(viewTask, delay);

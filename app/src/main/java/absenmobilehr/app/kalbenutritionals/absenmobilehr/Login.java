@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -11,6 +12,7 @@ import android.os.Bundle;
 import android.telephony.TelephonyManager;
 import android.text.method.HideReturnsTransformationMethod;
 import android.text.method.PasswordTransformationMethod;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,14 +26,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.volley.AuthFailureError;
-import com.android.volley.DefaultRetryPolicy;
-import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.VolleyLog;
-import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -41,15 +36,19 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.VolleyResponseListener;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.VolleyUtils;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.clsHelper;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsDeviceInfo;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsUserLogin;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsDeviceInfoRepo;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsUserLoginRepo;
 
 //import bl.clsHelperBL;
 //import bl.clsMainBL;
@@ -88,7 +87,8 @@ public class Login extends clsMainActivity {
     private String[] arrdefaultBranch = new String[]{"-"};
     private String[] arrdefaultOutlet = new String[]{"-"};
     private static final String TAG = "MainActivity";
-    clsDeviceInfoRepo repo = null;
+    clsDeviceInfoRepo repoDeviceInfo = null;
+    clsUserLoginRepo repoLogin = null;
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -312,7 +312,7 @@ public class Login extends clsMainActivity {
                 //buat check isi table deviceInfo
                 List<clsDeviceInfo> items = null;
                 try {
-                    items = (List<clsDeviceInfo>) repo.findAll();
+                    items = (List<clsDeviceInfo>) repoDeviceInfo.findAll();
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
@@ -321,7 +321,7 @@ public class Login extends clsMainActivity {
 
                 //buat clear isi table
                 /*try {
-                    repo.clearTable();
+                    repoDeviceInfo.clearTable();
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }*/
@@ -382,7 +382,7 @@ public class Login extends clsMainActivity {
         JSONObject resJson = new JSONObject();
         List<clsDeviceInfo> dataInfo = null;
         try {
-            dataInfo = (List<clsDeviceInfo>) repo.findAll();
+            dataInfo = (List<clsDeviceInfo>) repoDeviceInfo.findAll();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -399,7 +399,83 @@ public class Login extends clsMainActivity {
         }
 
         final String mRequestBody = "[" + resJson.toString() + "]";
-        Dialog.show();
+
+        new VolleyUtils().makeJsonObjectRequest(Login.this, strLinkAPI, mRequestBody, new VolleyResponseListener() {
+            @Override
+            public void onError(String response) {
+                new clsMainActivity().showCustomToast(getApplicationContext(), response, false);
+            }
+
+            @Override
+            public void onResponse(String response, Boolean status, String strErrorMsg) {
+                if (response != null) {
+                    try {
+                        JSONObject jsonObject1 = new JSONObject(response);
+                        String result = jsonObject1.getString("TxtResult");
+                        String warn = jsonObject1.getString("TxtWarn");
+                        if (result.equals("1")) {
+                            JSONObject jsonObject2 = jsonObject1.getJSONObject("TxtData");
+                            JSONObject jsonDataUserLogin = jsonObject2.getJSONObject("UserLogin");
+                            String TxtNameApp = jsonDataUserLogin.getString("TxtNameApp");
+                            String TxtGUI = jsonDataUserLogin.getString("TxtGUI");
+                            String TxtUserID = jsonDataUserLogin.getString("TxtUserID");
+                            String TxtJabatanID = jsonDataUserLogin.getString("TxtJabatanID");
+                            String TxtJabatanName = jsonDataUserLogin.getString("TxtJabatanName");
+                            String TxtUserName = jsonDataUserLogin.getString("TxtUserName");
+                            String TxtName = jsonDataUserLogin.getString("TxtName");
+                            String TxtEmail = jsonDataUserLogin.getString("TxtEmail");
+                            String TxtEmpID = jsonDataUserLogin.getString("TxtEmpID");
+                            String IntCabangID = jsonDataUserLogin.getString("IntCabangID");
+                            String TxtKodeCabang = jsonDataUserLogin.getString("TxtKodeCabang");
+                            String TxtNamaCabang = jsonDataUserLogin.getString("TxtNamaCabang");
+                            String DtLastLogin = jsonDataUserLogin.getString("DtLastLogin");
+                            String TxtDeviceId = jsonDataUserLogin.getString("TxtDeviceId");
+                            String TxtInsertedBy = jsonDataUserLogin.getString("TxtInsertedBy");
+                            clsUserLogin data = new clsUserLogin();
+                            data.setTxtNameApp(TxtNameApp);
+                            data.setTxtGUI(TxtGUI);
+                            data.setTxtUserID(TxtUserID);
+                            data.setJabatanId(TxtJabatanID);
+                            data.setJabatanName(TxtJabatanName);
+                            data.setIdUserLogin(1);
+                            data.setTxtUserName(TxtUserName);
+                            data.setTxtName(TxtName);
+                            data.setTxtEmail(TxtEmail);
+                            data.setEmployeeId(TxtEmpID);
+                            data.setIntCabangID(IntCabangID);
+                            data.setTxtKodeCabang(TxtKodeCabang);
+                            data.setTxtNamaCabang(TxtNamaCabang);
+                            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                            Calendar cal = Calendar.getInstance();
+                            data.setDtLastLogin(DtLastLogin);
+                            data.setTxtDeviceId(TxtDeviceId);
+                            data.setTxtInsertedBy(TxtInsertedBy);
+                            data.setDtInserted(dateFormat.format(cal.getTime()));
+
+                            repoLogin =new clsUserLoginRepo(getApplicationContext());
+                            int i = 0;
+                            i = repoLogin.create(data);
+                            if(i > -1)
+                            {
+                                Log.d("Data info", "Data info berhasil di simpan");
+                                Intent myIntent = new Intent(Login.this, MainMenu.class);
+                                myIntent.putExtra("keyMainMenu", "main_menu");
+                                startActivity(myIntent);
+                            }else{
+                                new clsMainActivity().showCustomToast(getApplicationContext(),warn,false);
+                            }
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if(!status){
+                    new clsMainActivity().showCustomToast(getApplicationContext(), strErrorMsg, false);
+                }
+            }
+        });
+
+        /*Dialog.show();
         String result = new clsHelper().volleyImplement(getApplicationContext(), mRequestBody, strLinkAPI, Login.this);
         try {
             JSONObject jsonObject1 = new JSONObject(result);
@@ -459,7 +535,7 @@ public class Login extends clsMainActivity {
                 DefaultRetryPolicy(60000,
                 DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
                 DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
-        queue.add(req);
+        queue.add(req);*/
     }
 
     public void checkVersion() {
@@ -486,6 +562,56 @@ public class Login extends clsMainActivity {
 
             @Override
             public void onResponse(String response, Boolean status, String strErrorMsg) {
+                if (response != null){
+                    try {
+                        JSONObject jsonObject1 = new JSONObject(response);
+                        JSONObject jsonObject2 = jsonObject1.getJSONObject("validJson");
+
+                        String result = jsonObject2.getString("TxtResult");
+                        String txtWarn = jsonObject2.getString("TxtWarn");
+                        if (result.equals("1")){
+                            JSONObject jsonObject3 = jsonObject2.getJSONObject("TxtData");
+                            String txtGUI = jsonObject3.getString("TxtGUI");
+                            String txtNameApp = jsonObject3.getString("TxtNameApp");
+                            String txtVersion = jsonObject3.getString("TxtVersion");
+                            String txtFile = jsonObject3.getString("TxtFile");
+                            String bitActive = jsonObject3.getString("BitActive");
+                            String txtInsertedBy = jsonObject3.getString("TxtInsertedBy");
+                            TelephonyManager tm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+                            String imeiNumber = tm.getDeviceId();
+                            clsDeviceInfo data = new clsDeviceInfo();
+                            data.setTxtGUI(txtGUI);
+                            data.setTxtNameApp(txtNameApp);
+                            data.setTxtDevice(android.os.Build.DEVICE);
+                            data.setTxtFile(txtFile);
+                            data.setTxtVersion(txtVersion);
+                            data.setBitActive(bitActive);
+                            data.setTxtInsertedBy(txtInsertedBy);
+                            data.setIdDevice(imeiNumber);
+                            data.setTxtModel(android.os.Build.MANUFACTURER+" "+android.os.Build.MODEL);
+                            repoDeviceInfo =new clsDeviceInfoRepo(getApplicationContext());
+                            int i = 0;
+                            try {
+                                i = repoDeviceInfo.createOrUpdate(data);
+                            } catch (SQLException e) {
+                                e.printStackTrace();
+                            }
+                            if(i > -1)
+                            {
+                                Log.d("Data info", "Data info berhasil di simpan");
+                            }
+                        }else{
+                            Toast.makeText(getApplicationContext(), txtWarn, Toast.LENGTH_SHORT).show();
+                        }
+
+
+//                        for (int i = 0; i < jsonArray.length(); i++) {
+//                            JSONObject explrObject = jsonArray.getJSONObject(i);
+//                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
                 if(!status){
                     new clsMainActivity().showCustomToast(getApplicationContext(), strErrorMsg, false);
                 }
@@ -497,369 +623,48 @@ public class Login extends clsMainActivity {
         } catch (JSONException e) {
             e.printStackTrace();
         }*/
-//        Dialog.show();
-//        StringRequest req = new StringRequest(Request.Method.POST, strLinkAPI, new Response.Listener<String>(){
-//            @Override
-//            public void onResponse(String response) {
-//                if (response != null){
-//                    try {
-//                        JSONObject jsonObject1 = new JSONObject(response);
-//                        JSONObject jsonObject2 = jsonObject1.getJSONObject("validJson");
-//
-//                        String result = jsonObject2.getString("TxtResult");
-//                        String txtWarn = jsonObject2.getString("TxtWarn");
-//                        if (result.equals("1")){
-//                            JSONObject jsonObject3 = jsonObject2.getJSONObject("TxtData");
-//                            String txtGUI = jsonObject3.getString("TxtGUI");
-//                            String txtNameApp = jsonObject3.getString("TxtNameApp");
-//                            String txtVersion = jsonObject3.getString("TxtVersion");
-//                            String txtFile = jsonObject3.getString("TxtFile");
-//                            String bitActive = jsonObject3.getString("BitActive");
-//                            String txtInsertedBy = jsonObject3.getString("TxtInsertedBy");
-//                            TelephonyManager tm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-//                            String imeiNumber = tm.getDeviceId();
-//                            clsDeviceInfo data = new clsDeviceInfo();
-//                            data.setTxtGUI(txtGUI);
-//                            data.setTxtNameApp(txtNameApp);
-//                            data.setTxtDevice(android.os.Build.DEVICE);
-//                            data.setTxtFile(txtFile);
-//                            data.setTxtVersion(txtVersion);
-//                            data.setBitActive(bitActive);
-//                            data.setTxtInsertedBy(txtInsertedBy);
-//                            data.setIdDevice(imeiNumber);
-//                            data.setTxtModel(android.os.Build.MANUFACTURER+" "+android.os.Build.MODEL);
-//                            repo =new clsDeviceInfoRepo(getApplicationContext());
-//                            int i = 0;
-//                            try {
-//                                i = repo.createOrUpdate(data);
-//                            } catch (SQLException e) {
-//                                e.printStackTrace();
-//                            }
-//                            if(i > -1)
-//                            {
-//                                Log.d("Data info", "Data info berhasil di simpan");
-//                            }
-//                        }else{
-//                            Toast.makeText(getApplicationContext(), txtWarn, Toast.LENGTH_SHORT).show();
-//                        }
-//
-//
-////                        for (int i = 0; i < jsonArray.length(); i++) {
-////                            JSONObject explrObject = jsonArray.getJSONObject(i);
-////                        }
-//                    } catch (JSONException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//
-//                Dialog.dismiss();
-//            }
-//        }, new Response.ErrorListener() {
-//            @Override
-//            public void onErrorResponse(VolleyError error) {
-//                VolleyLog.d(TAG, "Error: " + error.getMessage());
-//                Toast.makeText(getApplicationContext(),
-//                        error.getMessage(), Toast.LENGTH_SHORT).show();
-//            }
-//        }){
-//            @Override
-//            protected Map<String, String> getParams() throws AuthFailureError {
-//                Map<String,String> params = new HashMap<String, String>();
-//                params.put("txtParam",mRequestBody);
-//                return params;
-//            }
-//        };
-//        req.setRetryPolicy(new
-//                DefaultRetryPolicy(60000,
-//                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-//                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
-//        queue.add(req);
     }
-
     int intProcesscancel = 0;
-
-    /*private class AsyncCallLogin extends AsyncTask<JSONArray, Void, JSONArray> {
-        *//*TelephonyManager tm = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
-        String imeiNumber2 = tm.getDeviceId();*//*
-        @Override
-        protected JSONArray doInBackground(JSONArray... params) {
-//            android.os.Debug.waitForDebugger();
-            JSONArray Json = null;
-            String nameRole = selectedRole;
-            String nameOutlet = selectedOutlet;
-            try {
-                Json = new tUserLoginBL().LoginNew(String.valueOf(txtEmail1), String.valueOf(txtPassword1), HMRole.get(nameRole), null, null, HMBranchCode.get(0), pInfo.versionName);
-            } catch (ParseException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-            return Json;
-        }
-
-        private ProgressDialog Dialog = new ProgressDialog(Login.this);
-
-        @Override
-        protected void onCancelled() {
-            Dialog.dismiss();
-            showCustomToast(Login.this, new clsHardCode().txtMessCancelRequest, false);
-        }
-
-        @Override
-        protected void onPostExecute(JSONArray roledata) {
-            if (roledata.size() > 0) {
-                Iterator i = roledata.iterator();
-                while (i.hasNext()) {
-                    JSONObject innerObj = (JSONObject) i.next();
-                    Long IntResult = (Long) innerObj.get("_pboolValid");
-                    String PstrMessage = (String) innerObj.get("_pstrMessage");
-
-                    if (IntResult == 1) {
-                        tUserLoginData _tUserLoginData = new tUserLoginData();
-                        new mCounterNumberBL().saveDateTimeServer((String) innerObj.get("DatetimeNow"));
-                        _tUserLoginData.set_intId(1);
-                        _tUserLoginData.set_txtCab((String) innerObj.get("TxtCab"));
-                        _tUserLoginData.set_txtDataId((String) innerObj.get("TxtDataId"));
-                        _tUserLoginData.set_txtDeviceId((String) innerObj.get("TxtDeviceId"));
-                        _tUserLoginData.set_TxtEmail((String) innerObj.get("TxtEmail"));
-                        _tUserLoginData.set_TxtEmpId((String) innerObj.get("TxtEmpId"));
-                        _tUserLoginData.set_txtName((String) innerObj.get("TxtName"));
-                        _tUserLoginData.set_txtPassword((String) innerObj.get("TxtPassword"));
-                        _tUserLoginData.set_txtPathImage((String) innerObj.get("TxtPathImage"));
-                        _tUserLoginData.set_txtRoleId((String) innerObj.get("TxtRoleId"));
-                        _tUserLoginData.set_txtRoleName((String) innerObj.get("TxtRoleName"));
-                        _tUserLoginData.set_txtUserId((String) innerObj.get("TxtUserId"));
-                        _tUserLoginData.set_txtUserName((String) innerObj.get("TxtUserName"));
-                        _tUserLoginData.set_dtLastLogin((String) innerObj.get("DtLastLogin"));
-                        _tUserLoginData.set_txtOutletCode((String) innerObj.get("TxtOutletCode"));
-                        _tUserLoginData.set_txtOutletName((String) innerObj.get("TxtOutletName"));
-                        _tUserLoginData.set_txtBranchCode((String) innerObj.get("TxtBranchCode"));
-                        _tUserLoginData.set_txtImei((String) innerObj.get("TxtImei"));
-                        _tUserLoginData.set_txtSubmissionID((String) innerObj.get("TxtSubmissonId"));
-//                        _tUserLoginData.set_txtCheckLocation((String) innerObj.get("TDeviceInfoUser_mobile"));
-
-                        new tDeviceInfoUserBL().SaveInfoDevice(_tUserLoginData.get_TxtEmpId(), _tUserLoginData.get_txtDeviceId(), _tUserLoginData.get_txtImei());
-                        new tUserLoginBL().saveData(_tUserLoginData);
-
-//                        String nameOutlet = spnOutlet.getSelectedItem().toString();
-//                        new mEmployeeAreaBL().DeleteEmployeeNotInId(HMOutletCode.get(nameOutlet));
-
-                        JSONArray JsonArrayDetail = (JSONArray) innerObj.get("ListOfMWebMenuAPI");
-                        if(JsonArrayDetail!=null){
-                            Iterator iDetail = JsonArrayDetail.iterator();
-                            List<mMenuData> listData = new ArrayList<mMenuData>();
-                            while (iDetail.hasNext()) {
-                                JSONObject innerObjDetail = (JSONObject) iDetail.next();
-                                mMenuData data = new mMenuData();
-                                data.set_IntMenuID(String.valueOf((Long) innerObjDetail.get("IntMenuID")));
-                                data.set_IntOrder((Long) innerObjDetail.get("IntOrder"));
-                                data.set_IntParentID((Long) innerObjDetail.get("IntParentID"));
-                                data.set_TxtDescription((String) innerObjDetail.get("TxtDescription"));
-                                data.set_TxtLink((String) innerObjDetail.get("TxtLink"));
-                                data.set_TxtMenuName((String) innerObjDetail.get("TxtMenuName"));
-                                listData.add(data);
-                            }
-                            new mMenuBL().SaveData(listData);
-                        }
-
-
-                        *//*JSONArray JsonArrayDetailmDownloadData=(JSONArray) innerObj.get("ListOftDownloadData_mobile");
-                        if(JsonArrayDetailmDownloadData !=null){
-                            Iterator iDetailmDownloadData = JsonArrayDetailmDownloadData.iterator();
-                            List<mDownloadMasterData_mobileData> listDatamDownloadData=new ArrayList<mDownloadMasterData_mobileData>();
-                            while (iDetailmDownloadData.hasNext()) {
-                                JSONObject innerObjDetail = (JSONObject) iDetailmDownloadData.next();
-                                mDownloadMasterData_mobileData data=new mDownloadMasterData_mobileData();
-                                data.set_intId((String) innerObjDetail.get("_intID"));
-                                data.set_intModule((String) innerObjDetail.get("_intModule"));
-                                data.set_txtModuleName((String) innerObjDetail.get("_txtModuleName"));
-                                data.set_txtMasterData((String) innerObjDetail.get("_txtMasterData"));
-                                data.set_intVersionApp((String) innerObjDetail.get("_intVersionApp"));
-                                data.set_txtTypeApp((String) innerObjDetail.get("_txtTypeApp"));
-                                data.set_txtVersion((String) innerObjDetail.get("_txtVersion"));
-                                listDatamDownloadData.add(data);
-                            }
-                            new mDownloadMasterData_mobileBL().SaveData(listDatamDownloadData);
-                        }
-                        startService(new Intent(Login.this, MyServiceNative.class));*//*
-//                        startService(new Intent(Login.this, MyTrackingLocationService.class));
-                        finish();
-                        Intent myIntent = new Intent(Login.this, MainMenu.class);
-                        myIntent.putExtra("keyMainMenu", "main_menu");
-                        startActivity(myIntent);
-                    } else {
-                        showCustomToast(Login.this, PstrMessage, false);
-                        txtLoginPassword.requestFocus();
-                    }
-                }
-
-            } else {
-                if (intProcesscancel == 1) {
-                    onCancelled();
-                } else {
-                    showCustomToast(Login.this, new clsHardCode().txtMessDataNotFound, false);
-                    txtLoginEmail.requestFocus();
-                }
-
-            }
-            Dialog.dismiss();
-        }
-
-        @Override
-        protected void onPreExecute() {
-            //Make ProgressBar invisible
-            //pg.setVisibility(View.VISIBLE);
-            Dialog.setMessage(new clsHardCode().txtMessLogin);
-            Dialog.setCancelable(false);
-            Dialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    intProcesscancel = 1;
-                    txtLoginEmail.requestFocus();
-                }
-            });
-            Dialog.show();
-        }
-
-        @Override
-        protected void onProgressUpdate(Void... values) {
-            Dialog.dismiss();
-        }
-
-    }*/
-
     ProgressDialog mProgressDialog;
 
-//    @Override
-//    public void onStart() {
-//        super.onStart();
-//
-//        // ATTENTION: This was auto-generated to implement the App Indexing API.
-//        // See https://g.co/AppIndexing/AndroidStudio for more information.
-//        client.connect();
-//        Action viewAction = Action.newAction(
-//                Action.TYPE_VIEW, // TODO: choose an action type.
-//                "Login Page", // TODO: Define a title for the content shown.
-//                // TODO: If you have web page content that matches this app activity's content,
-//                // make sure this auto-generated web page URL is correct.
-//                // Otherwise, set the URL to null.
-//                Uri.parse("http://host/path"),
-//                // TODO: Make sure this auto-generated app URL is correct.
-//                Uri.parse("android-app://spgmobile/http/host/path")
-//        );
-//        AppIndex.AppIndexApi.start(client, viewAction);
-//    }
-//
-//    @Override
-//    public void onStop() {
-//        super.onStop();
-//
-//        // ATTENTION: This was auto-generated to implement the App Indexing API.
-//        // See https://g.co/AppIndexing/AndroidStudio for more information.
-//        Action viewAction = Action.newAction(
-//                Action.TYPE_VIEW, // TODO: choose an action type.
-//                "Login Page", // TODO: Define a title for the content shown.
-//                // TODO: If you have web page content that matches this app activity's content,
-//                // make sure this auto-generated web page URL is correct.
-//                // Otherwise, set the URL to null.
-//                Uri.parse("http://host/path"),
-//                // TODO: Make sure this auto-generated app URL is correct.
-//                Uri.parse("android-app://spgmobile/http/host/path")
-//        );
-//        AppIndex.AppIndexApi.end(client, viewAction);
-//        client.disconnect();
-//    }
+   /* @Override
+    public void onStart() {
+        super.onStart();
 
-    /*private class AsyncCallRole extends AsyncTask<List<mUserRoleData>, Void, List<mUserRoleData>> {
-        @Override
-        protected List<mUserRoleData> doInBackground(List<mUserRoleData>... params) {
-//            android.os.Debug.waitForDebugger();
-            List<mUserRoleData> roledata = new ArrayList<mUserRoleData>();
-            try {
-                //EditText txt = (EditText) findViewById(R.id.txtLoginEmail);
-                roledata = new mUserRoleBL().getRoleAndOutlet(txtEmail1, pInfo.versionName, getApplicationContext());
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client.connect();
+        Action viewAction = Action.newAction(
+                Action.TYPE_VIEW, // TODO: choose an action type.
+                "Login Page", // TODO: Define a title for the content shown.
+                // TODO: If you have web page content that matches this app activity's content,
+                // make sure this auto-generated web page URL is correct.
+                // Otherwise, set the URL to null.
+                Uri.parse("http://host/path"),
+                // TODO: Make sure this auto-generated app URL is correct.
+                Uri.parse("android-app://spgmobile/http/host/path")
+        );
+        AppIndex.AppIndexApi.start(client, viewAction);
+    }
 
-            } catch (ParseException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
+    @Override
+    public void onStop() {
+        super.onStop();
 
-            return roledata;
-        }
-
-        private ProgressDialog Dialog = new ProgressDialog(Login.this);
-
-        @Override
-        protected void onCancelled() {
-            Dialog.dismiss();
-            showCustomToast(Login.this, new clsHardCode().txtMessCancelRequest, false);
-        }
-
-        @Override
-        protected void onPostExecute(List<mUserRoleData> roledata) {
-            if (roledata.size() > 0) {
-                arrrole = new ArrayList<String>();
-                for (mUserRoleData dt : roledata) {
-                    arrrole.add(dt.get_txtRoleName());
-                    HMRole.put(dt.get_txtRoleName(), dt.get_intRoleId());
-                }
-                spnRole.setAdapter(new MyAdapter(Login.this, R.layout.custom_spinner, arrrole));
-                spnRole.setEnabled(true);
-
-//                List<mEmployeeAreaData> dataOutlet = new mEmployeeAreaBL().GetAllData();
-//
-//                arroutlet = new ArrayList<String>();
-//                for (mEmployeeAreaData dtOutlet : dataOutlet) {
-//                    arroutlet.add(dtOutlet.get_txtOutletName());
-//                    HMOutletCode.put(dtOutlet.get_txtOutletName(), dtOutlet.get_txtOutletCode());
-//                    HMOutletName.put(dtOutlet.get_txtOutletName(), dtOutlet.get_txtOutletName());
-//                    HMBranchCode.put(dtOutlet.get_txtOutletName(), dtOutlet.get_txtBranchCode());
-//                }
-//
-//                spnOutlet.setAdapter(new MyAdapter2(getApplicationContext(), R.layout.custom_spinner, arroutlet));
-//                spnOutlet.setEnabled(true);
-            } else {
-                if (intProcesscancel == 1) {
-                    onCancelled();
-                } else {
-                    if (intProcesscancel == 1) {
-                        onCancelled();
-                    } else {
-                        showCustomToast(Login.this, clsHardcode.txtMessNetworkOffline, false);
-
-                        spnRole.setAdapter(null);
-                        spnOutlet.setAdapter(null);
-                        txtLoginEmail.requestFocus();
-                    }
-                    txtLoginEmail.requestFocus();
-                }
-
-            }
-            Dialog.dismiss();
-        }
-
-        int intProcesscancel = 0;
-
-        @Override
-        protected void onPreExecute() {
-            //Make ProgressBar invisible
-            //pg.setVisibility(View.VISIBLE);
-            Dialog.setMessage(new clsHardCode().txtMessGetUserRole);
-            Dialog.setCancelable(false);
-            Dialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    intProcesscancel = 1;
-                    txtLoginEmail.requestFocus();
-                }
-            });
-            Dialog.show();
-        }
-
-        @Override
-        protected void onProgressUpdate(Void... values) {
-            Dialog.dismiss();
-        }
-
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        Action viewAction = Action.newAction(
+                Action.TYPE_VIEW, // TODO: choose an action type.
+                "Login Page", // TODO: Define a title for the content shown.
+                // TODO: If you have web page content that matches this app activity's content,
+                // make sure this auto-generated web page URL is correct.
+                // Otherwise, set the URL to null.
+                Uri.parse("http://host/path"),
+                // TODO: Make sure this auto-generated app URL is correct.
+                Uri.parse("android-app://spgmobile/http/host/path")
+        );
+        AppIndex.AppIndexApi.end(client, viewAction);
+        client.disconnect();
     }*/
 
     public class MyAdapter extends ArrayAdapter<String> {
@@ -927,105 +732,6 @@ public class Login extends clsMainActivity {
         }
 
     }
-
-    /*private class AsyncCallAppVesion extends AsyncTask<JSONArray, Void, JSONArray> {
-        @Override
-        protected JSONArray doInBackground(JSONArray... params) {
-            JSONArray JsonData = null;
-            try {
-                JsonData = new clsHelperBL().GetDatamversionAppPostData(pInfo.versionName);
-
-            } catch (ParseException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (Exception e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-
-            return JsonData;
-        }
-
-        private ProgressDialog Dialog = new ProgressDialog(Login.this);
-
-        @Override
-        protected void onCancelled() {
-            Dialog.dismiss();
-            showCustomToast(Login.this, new clsHardCode().txtMessCancelRequest, false);
-        }
-
-        @Override
-        protected void onPostExecute(JSONArray JsonArry) {
-            if (JsonArry != null) {
-                arrrole = new ArrayList<String>();
-                clsHelperBL _clsHelper = new clsHelperBL();
-                // declare the dialog as a member field of your activity
-                Iterator i = JsonArry.iterator();
-                Boolean resUpdate = false;
-                String txtLink = "";
-                while (i.hasNext()) {
-                    JSONObject innerObj = (JSONObject) i.next();
-                    int boolValid = Integer.valueOf(String.valueOf(innerObj.get("_pboolValid")));
-                    if (boolValid == Integer.valueOf(new clsHardCode().intSuccess)) {
-                        if (pInfo.versionName.equals(innerObj.get("TxtVersion").toString())) {
-                            //TAND.2016.003
-                            //innerObj.get("TxtVersion").toString())
-                            resUpdate = false;
-                        } else {
-                            resUpdate = true;
-                            txtLink = String.valueOf(innerObj.get("TxtLinkApp"));
-                        }
-                    }
-                }
-                if (resUpdate) {
-                    // instantiate it within the onCreate method
-                    mProgressDialog = new ProgressDialog(Login.this);
-                    mProgressDialog.setMessage("Please Wait For Downloading File....");
-                    mProgressDialog.setIndeterminate(true);
-                    mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-                    mProgressDialog.setCancelable(false);
-
-                    // execute this when the downloader must be fired
-                    final DownloadTask downloadTask = new DownloadTask(Login.this);
-                    downloadTask.execute(txtLink);
-
-                    mProgressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
-                        @Override
-                        public void onCancel(DialogInterface dialog) {
-                            downloadTask.cancel(true);
-                        }
-                    });
-                }
-            } else {
-                showCustomToast(Login.this, clsHardcode.txtMessNetworkOffline, false);
-            }
-            Dialog.dismiss();
-        }
-
-        int intProcesscancel = 0;
-
-        @Override
-        protected void onPreExecute() {
-            //Make ProgressBar invisible
-            //pg.setVisibility(View.VISIBLE);
-            Dialog.setMessage("Checking Your SPG Mobile Version");
-            Dialog.setCancelable(false);
-            Dialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    intProcesscancel = 1;
-                    txtLoginEmail.requestFocus();
-                }
-            });
-            Dialog.show();
-        }
-
-        @Override
-        protected void onProgressUpdate(Void... values) {
-            Dialog.dismiss();
-        }
-
-    }*/
 
     /*private class DownloadTask extends AsyncTask<String, Integer, String> {
         private Context context;
