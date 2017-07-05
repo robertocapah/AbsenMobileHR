@@ -20,13 +20,17 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.sql.SQLException;
+import java.text.ParseException;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.DatabaseManager;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.bl.clsMainBL;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsStatusMenuStart;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsDeviceInfoRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsUserLoginRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsmConfigRepo;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.enumStatusMenuStart;
 
 public class Splash extends AppCompatActivity {
     long delay = 5000;
@@ -135,31 +139,32 @@ public class Splash extends AppCompatActivity {
 //                clsHelper _clsHelper = new clsHelper();
 //                _clsHelper.createFolderApp();
 //                _clsHelper.createFolderUserData();
-//                try {
-//                    clsStatusMenuStart _clsStatusMenuStart = new clsMainBL().checkUserActive();
-//                    if (_clsStatusMenuStart.get_intStatus() == enumStatusMenuStart.FormLogin) {
-//                        myIntent = new Intent(Splash.this, Login.class);
-//                    } else if (_clsStatusMenuStart.get_intStatus() == enumStatusMenuStart.PushDataSPGMobile) {
-//                        myIntent = new Intent(Splash.this, PushData.class);
-//                    } else if (_clsStatusMenuStart.get_intStatus() == enumStatusMenuStart.UserActiveLogin) {
-//                        myIntent = new Intent(ProgressBarActivity.this, Home.class);
-//                        myIntent = new Intent(Splash.this, MainMenu.class);
-                        //myIntent.putExtra("key_view", "main_menu");
+
+                clsStatusMenuStart _clsStatusMenuStart = null;
+                try {
+                    _clsStatusMenuStart = new clsMainBL().checkUserActive(getApplicationContext());
+                    if (_clsStatusMenuStart.get_intStatus() == enumStatusMenuStart.FormLogin) {
+                        myIntent = new Intent(Splash.this, Login.class);
+                    } else if (_clsStatusMenuStart.get_intStatus() == enumStatusMenuStart.UserActiveLogin) {
+                        myIntent = new Intent(Splash.this, MainMenu.class);
+                        myIntent.putExtra("key_view", "main_menu");
 //                        startService(new Intent(getApplicationContext(), MyServiceNative.class));
 //                        startService(new Intent(getApplicationContext(), MyTrackingLocationService.class));
-//                    }
-//                } catch (ParseException e) {
-//                    e.printStackTrace();
-//                }
+                    }
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+
                 try {
                     new clsmConfigRepo(getApplicationContext()).InsertDefaultMconfig();
-                    finish();
-                    startActivity(myIntent);
+
                 } catch (SQLException e) {
                     e.printStackTrace();
                     Log.d("log error",e.getMessage());
                     Toast.makeText(getApplicationContext(),"gagal menyimpan mConfig data",Toast.LENGTH_LONG);
                 }
+                finish();
+                startActivity(myIntent);
             }
         };
         runProgress.schedule(viewTask, delay);

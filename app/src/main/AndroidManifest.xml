@@ -54,6 +54,10 @@
         tools:overrideLibrary="com.google.android.gms.appindexing"
         tools:replace="android:icon">
         <activity
+            android:name=".MainMenu"
+            android:configChanges="orientation|screenSize"
+            android:label="" />
+        <activity
             android:name=".Splash"
             android:theme="@style/Theme.AppCompat.Translucent"
             android:screenOrientation="portrait">

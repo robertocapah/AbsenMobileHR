@@ -5,6 +5,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -12,10 +14,12 @@ import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
@@ -23,6 +27,7 @@ import android.widget.TextView;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
+import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.api.GoogleApiClient;
 
 import org.json.JSONException;
@@ -35,11 +40,12 @@ import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.DatabaseHelper;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.DatabaseManager;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.VolleyResponseListener;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.VolleyUtils;
-import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsDeviceInfo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsDisplayPicture;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsUserLogin;
-import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsDeviceInfoRepo;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsmVersionApp;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsDisplayPictureRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsUserLoginRepo;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsmVersionAppRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Fragment.FragmentInformation;
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -51,7 +57,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
 
     private TextView tvUsername, tvEmail;
     private CircleImageView ivProfile;
-    private clsDisplayPicture tDisplayPictureData;
+    private List<clsDisplayPicture> tDisplayPictureData;
 
     PackageInfo pInfo = null;
 
@@ -72,6 +78,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        selectedId = 0;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
             getWindow().setStatusBarColor(getResources().getColor(R.color.primary_color_theme));
@@ -89,7 +96,29 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         FragmentTransaction fragmentTransactionHome = getSupportFragmentManager().beginTransaction();
         fragmentTransactionHome.replace(R.id.frame, homeFragment);
         fragmentTransactionHome.commit();
-
+        navigationView = (NavigationView) findViewById(R.id.navigation_view);
+        View vwHeader = navigationView.getHeaderView(0);
+        ivProfile = (CircleImageView) vwHeader.findViewById(R.id.profile_image);
+        tvUsername = (TextView) vwHeader.findViewById(R.id.username);
+        tvEmail = (TextView) vwHeader.findViewById(R.id.email);
+        clsUserLoginRepo repo = new clsUserLoginRepo(getApplicationContext());
+        List<clsUserLogin> dataLogin= (List<clsUserLogin>) repo.findAll();
+        tvUsername.setText(_clsMainActivity.greetings() + dataLogin.get(0).getTxtName());
+        tvEmail.setText(dataLogin.get(0).getTxtEmail());
+        try {
+            tDisplayPictureData = (List<clsDisplayPicture>) new clsDisplayPictureRepo(getApplicationContext()).findAll();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        if (tDisplayPictureData.size() > 0 && tDisplayPictureData.get(0).getImage() != null) {
+            Bitmap bitmap = BitmapFactory.decodeByteArray(tDisplayPictureData.get(0).getImage(), 0, tDisplayPictureData.get(0).getImage().length);
+            ivProfile.setImageBitmap(bitmap);
+        } else {
+            ivProfile.setImageBitmap(BitmapFactory.decodeResource(getApplicationContext().getResources(),
+                    R.drawable.profile));
+        }
+        ivProfile.setOnClickListener(this);
+        Menu header = navigationView.getMenu();
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
@@ -116,7 +145,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                     public void onClick(DialogInterface dialog, int id) {
                                         DatabaseHelper helper = DatabaseManager.getInstance().getHelper();
                                         helper.close();
-                                        helper.clearAllDataInDatabase();
+                                        helper.clearDataAfterLogout();
                                         logout();
 //                                        stopService(new Intent(getApplicationContext(), MyServiceNative.class));
 //                                        stopService(new Intent(getApplicationContext(), MyTrackingLocationService.class));
@@ -137,20 +166,37 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                 return false;
             }
         });
+        drawerLayout = (DrawerLayout) findViewById(R.id.drawer);
+        ActionBarDrawerToggle actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.openDrawer, R.string.closeDrawer) {
+
+            @Override
+            public void onDrawerClosed(View drawerView) {
+                super.onDrawerClosed(drawerView);
+            }
+
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+            }
+        };
+
+        drawerLayout.setDrawerListener(actionBarDrawerToggle);
+        actionBarDrawerToggle.syncState();
+        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
     public void logout(){
         final ProgressDialog Dialog = new ProgressDialog(MainMenu.this);
         RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
         clsUserLoginRepo repoUserLogin = null;
-        clsDeviceInfoRepo repoDeviceInfo = null;
+        clsmVersionAppRepo repoVersionInfo = null;
         String strLinkAPI = "http://10.171.10.30/KN2015_PRM_V2.WEB/VisitPlan/API/VisitPlanAPI/LogOut_J";
 //        String nameRole = selectedRole;
-        JSONObject resJson = new JSONObject();
+        final JSONObject resJson = new JSONObject();
         List<clsUserLogin> dataLogin = null;
         dataLogin = (List<clsUserLogin>) repoUserLogin.findAll();
-        List<clsDeviceInfo> dataInfo = null;
+        List<clsmVersionApp> dataInfo = null;
         try {
-            dataInfo = (List<clsDeviceInfo>) repoDeviceInfo.findAll();
+            dataInfo = (List<clsmVersionApp>) repoVersionInfo.findAll();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -159,13 +205,13 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
             resJson.put("TxtGUI_trUserLogin", dataLogin.get(0).getTxtGUI());
             resJson.put("TxtUserID", dataLogin.get(0).getTxtUserID());
             resJson.put("TxtGUI_mVersionApp", dataInfo.get(0).getTxtVersion());
-            resJson.put("IntCabangID", dataLogin.get(0).getCabangId());
+            resJson.put("IntCabangID", dataLogin.get(0).getIntCabangID());
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
         final String mRequestBody = "[" + resJson.toString() + "]";
-        new VolleyUtils().makeJsonObjectRequest(MainMenu.this, strLinkAPI, mRequestBody, new VolleyResponseListener() {
+        new VolleyUtils().makeJsonObjectRequest(MainMenu.this, strLinkAPI, mRequestBody,"Logging Out, Please Wait !", new VolleyResponseListener() {
             @Override
             public void onError(String response) {
                 new clsMainActivity().showCustomToast(getApplicationContext(), response, false);
@@ -174,6 +220,18 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
             @Override
             public void onResponse(String response, Boolean status, String strErrorMsg) {
                 if (response != null) {
+                    JSONObject jsonObject1 = null;
+                    try {
+                        jsonObject1 = new JSONObject(response);
+                        JSONObject jsn = jsonObject1.getJSONObject("validJson");
+                        String warn = jsn.getString("TxtWarn");
+                        String result = jsn.getString("TxtResult");
+                        if (result.equals("1")){
+                            new DatabaseHelper(getApplicationContext()).clearDataAfterLogout();
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
 
                 }
                 /*
@@ -247,7 +305,11 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
 
     @Override
     public void onClick(View v) {
-
+        switch (v.getId()) {
+            case R.id.profile_image:
+//                pickImage2();
+                break;
+        }
     }
     @Override
     public void onBackPressed() {

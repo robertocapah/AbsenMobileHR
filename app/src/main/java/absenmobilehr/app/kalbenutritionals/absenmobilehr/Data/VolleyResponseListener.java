@@ -6,6 +6,5 @@ package absenmobilehr.app.kalbenutritionals.absenmobilehr.Data;
 
 public interface VolleyResponseListener {
     void onError(String message);
-
     void onResponse(String response, Boolean status, String strErrorMsg);
 }

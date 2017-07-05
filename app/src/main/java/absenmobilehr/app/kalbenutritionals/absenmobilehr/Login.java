@@ -47,8 +47,10 @@ import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.VolleyUtils;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.clsHelper;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsDeviceInfo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsUserLogin;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsmVersionApp;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsDeviceInfoRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsUserLoginRepo;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsmVersionAppRepo;
 
 //import bl.clsHelperBL;
 //import bl.clsMainBL;
@@ -89,6 +91,7 @@ public class Login extends clsMainActivity {
     private static final String TAG = "MainActivity";
     clsDeviceInfoRepo repoDeviceInfo = null;
     clsUserLoginRepo repoLogin = null;
+    clsmVersionAppRepo repoVersionApp = null;
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -380,27 +383,29 @@ public class Login extends clsMainActivity {
         String strLinkAPI = "http://prm.kalbenutritionals.web.id/VisitPlan/API/VisitPlanAPI/LogIn_J";
 //        String nameRole = selectedRole;
         JSONObject resJson = new JSONObject();
-        List<clsDeviceInfo> dataInfo = null;
+        List<clsmVersionApp> dataInfo = null;
+        List<clsDeviceInfo> dataDevice = null;
         try {
-            dataInfo = (List<clsDeviceInfo>) repoDeviceInfo.findAll();
+            dataInfo = (List<clsmVersionApp>) repoVersionApp.findAll();
+            dataDevice = (List<clsDeviceInfo>) repoDeviceInfo.findAll();
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
         try {
             resJson.put("TxtVersion", dataInfo.get(0).getTxtVersion());
+            resJson.put("TxtGUI_mVersionApp", dataInfo.get(0).getTxtGUI());
             resJson.put("TxtPegawaiID", txtEmail1);
             resJson.put("TxtPassword", txtPassword1);
-            resJson.put("TxtModel", dataInfo.get(0).getTxtModel());
-            resJson.put("TxtDevice", dataInfo.get(0).getTxtDevice());
-            resJson.put("TxtGUI_mVersionApp", dataInfo.get(0).getTxtGUI());
+            resJson.put("TxtModel", dataDevice.get(0).getTxtModel());
+            resJson.put("TxtDevice", dataDevice.get(0).getTxtDevice());
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
         final String mRequestBody = "[" + resJson.toString() + "]";
 
-        new VolleyUtils().makeJsonObjectRequest(Login.this, strLinkAPI, mRequestBody, new VolleyResponseListener() {
+        new VolleyUtils().makeJsonObjectRequest(Login.this, strLinkAPI, mRequestBody, "Logging in, please wait !", new VolleyResponseListener() {
             @Override
             public void onError(String response) {
                 new clsMainActivity().showCustomToast(getApplicationContext(), response, false);
@@ -411,12 +416,20 @@ public class Login extends clsMainActivity {
                 if (response != null) {
                     try {
                         JSONObject jsonObject1 = new JSONObject(response);
-                        String result = jsonObject1.getString("TxtResult");
-                        String warn = jsonObject1.getString("TxtWarn");
+                        JSONObject jsn = jsonObject1.getJSONObject("validJson");
+                        String warn = jsn.getString("TxtWarn");
+                        String result = jsn.getString("TxtResult");
+
                         if (result.equals("1")) {
-                            JSONObject jsonObject2 = jsonObject1.getJSONObject("TxtData");
+                            JSONObject jsonObject2 = jsn.getJSONObject("TxtData");
                             JSONObject jsonDataUserLogin = jsonObject2.getJSONObject("UserLogin");
-                            String TxtNameApp = jsonDataUserLogin.getString("TxtNameApp");
+                            String nameApp = null;
+                            try {
+                                List<clsmVersionApp> appInfo = (List<clsmVersionApp>) repoVersionApp.findAll();
+                                nameApp = appInfo.get(0).getTxtNameApp();
+                            } catch (SQLException e) {
+                                e.printStackTrace();
+                            }
                             String TxtGUI = jsonDataUserLogin.getString("TxtGUI");
                             String TxtUserID = jsonDataUserLogin.getString("TxtUserID");
                             String TxtJabatanID = jsonDataUserLogin.getString("TxtJabatanID");
@@ -432,7 +445,7 @@ public class Login extends clsMainActivity {
                             String TxtDeviceId = jsonDataUserLogin.getString("TxtDeviceId");
                             String TxtInsertedBy = jsonDataUserLogin.getString("TxtInsertedBy");
                             clsUserLogin data = new clsUserLogin();
-                            data.setTxtNameApp(TxtNameApp);
+                            data.setTxtNameApp(nameApp);
                             data.setTxtGUI(TxtGUI);
                             data.setTxtUserID(TxtUserID);
                             data.setJabatanId(TxtJabatanID);
@@ -452,96 +465,33 @@ public class Login extends clsMainActivity {
                             data.setTxtInsertedBy(TxtInsertedBy);
                             data.setDtInserted(dateFormat.format(cal.getTime()));
 
-                            repoLogin =new clsUserLoginRepo(getApplicationContext());
+                            repoLogin = new clsUserLoginRepo(getApplicationContext());
                             int i = 0;
-                            i = repoLogin.create(data);
-                            if(i > -1)
-                            {
+                            i = repoLogin.createOrUpdate(data);
+                            if (i > -1) {
                                 Log.d("Data info", "Data info berhasil di simpan");
                                 Intent myIntent = new Intent(Login.this, MainMenu.class);
                                 myIntent.putExtra("keyMainMenu", "main_menu");
                                 startActivity(myIntent);
-                            }else{
-                                new clsMainActivity().showCustomToast(getApplicationContext(),warn,false);
                             }
+                        } else {
+                            new clsMainActivity().showCustomToast(getApplicationContext(), warn, false);
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
                 }
-                if(!status){
-                    new clsMainActivity().showCustomToast(getApplicationContext(), strErrorMsg, false);
-                }
+//                if(!status){
+//                    new clsMainActivity().showCustomToast(getApplicationContext(), strErrorMsg, false);
+//                }
             }
         });
-
-        /*Dialog.show();
-        String result = new clsHelper().volleyImplement(getApplicationContext(), mRequestBody, strLinkAPI, Login.this);
-        try {
-            JSONObject jsonObject1 = new JSONObject(result);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        StringRequest req = new StringRequest(Request.Method.POST, strLinkAPI,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        if (response != null) {
-                            try {
-                                JSONObject jsonObject1 = new JSONObject(response);
-                                String result = jsonObject1.getString("TxtResult");
-                                if (result.equals("1")) {
-                                    JSONObject jsonObject2 = jsonObject1.getJSONObject("TxtData");
-                                    JSONObject jsonDataUserLogin = jsonObject2.getJSONObject("UserLogin");
-                                    String TxtNameApp = jsonDataUserLogin.getString("TxtNameApp");
-                                    String TxtGUI = jsonDataUserLogin.getString("TxtGUI");
-                                    String TxtUserID = jsonDataUserLogin.getString("TxtUserID");
-                                    String TxtJabatanID = jsonDataUserLogin.getString("TxtJabatanID");
-                                    String TxtJabatanName = jsonDataUserLogin.getString("TxtJabatanName");
-                                    String TxtUserName = jsonDataUserLogin.getString("TxtUserName");
-                                    String TxtName = jsonDataUserLogin.getString("TxtName");
-                                    String TxtEmail = jsonDataUserLogin.getString("TxtEmail");
-                                    String TxtEmpID = jsonDataUserLogin.getString("TxtEmpID");
-                                    String IntCabangID = jsonDataUserLogin.getString("IntCabangID");
-                                    String TxtKodeCabang = jsonDataUserLogin.getString("TxtKodeCabang");
-                                    String TxtNamaCabang = jsonDataUserLogin.getString("TxtNamaCabang");
-                                    String DtLastLogin = jsonDataUserLogin.getString("DtLastLogin");
-                                    String TxtDeviceId = jsonDataUserLogin.getString("TxtDeviceId");
-                                    String TxtInsertedBy = jsonDataUserLogin.getString("TxtInsertedBy");
-
-                                }
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                VolleyLog.d(TAG, "Error: " + error.getMessage());
-                Toast.makeText(getApplicationContext(),
-                        error.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        }) {
-            @Override
-            protected Map<String, String> getParams() throws AuthFailureError {
-                Map<String, String> params = new HashMap<String, String>();
-                params.put("txtParam", mRequestBody);
-//                params.put("v","hello");
-                return params;
-            }
-        };
-        req.setRetryPolicy(new
-                DefaultRetryPolicy(60000,
-                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
-        queue.add(req);*/
     }
 
     public void checkVersion() {
         final ProgressDialog Dialog = new ProgressDialog(Login.this);
         RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
-        String strLinkAPI = "http://prm.kalbenutritionals.web.id/VisitPlan/API/VisitPlanAPI/CheckVersionApp_J";
+        String strLinkAPI = "http://10.171.11.87:8010/VisitPlan/API/VisitPlanAPI/CheckVersionApp_J";
         JSONObject resJson = new JSONObject();
         try {
             resJson.put("TxtVersion", pInfo.versionName);
@@ -554,7 +504,7 @@ public class Login extends clsMainActivity {
 //        String result = new clsHelper().volleyImplement(getApplicationContext(),mRequestBody,strLinkAPI,Login.this);
 //
 
-        new VolleyUtils().makeJsonObjectRequest(Login.this, strLinkAPI, mRequestBody, new VolleyResponseListener() {
+        new VolleyUtils().makeJsonObjectRequest(Login.this, strLinkAPI, mRequestBody, "Checking Version !", new VolleyResponseListener() {
             @Override
             public void onError(String response) {
                 new clsMainActivity().showCustomToast(getApplicationContext(), response, false);
@@ -562,14 +512,14 @@ public class Login extends clsMainActivity {
 
             @Override
             public void onResponse(String response, Boolean status, String strErrorMsg) {
-                if (response != null){
+                if (response != null) {
                     try {
                         JSONObject jsonObject1 = new JSONObject(response);
                         JSONObject jsonObject2 = jsonObject1.getJSONObject("validJson");
 
                         String result = jsonObject2.getString("TxtResult");
                         String txtWarn = jsonObject2.getString("TxtWarn");
-                        if (result.equals("1")){
+                        if (result.equals("1")) {
                             JSONObject jsonObject3 = jsonObject2.getJSONObject("TxtData");
                             String txtGUI = jsonObject3.getString("TxtGUI");
                             String txtNameApp = jsonObject3.getString("TxtNameApp");
@@ -580,27 +530,31 @@ public class Login extends clsMainActivity {
                             TelephonyManager tm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
                             String imeiNumber = tm.getDeviceId();
                             clsDeviceInfo data = new clsDeviceInfo();
-                            data.setTxtGUI(txtGUI);
-                            data.setTxtNameApp(txtNameApp);
+                            clsmVersionApp dataVersion = new clsmVersionApp();
+                            dataVersion.setTxtGUI(txtGUI);
+                            dataVersion.setTxtNameApp(txtNameApp);
+                            dataVersion.setTxtVersion(txtVersion);
+                            dataVersion.setTxtFile(txtFile);
+                            dataVersion.setBitActive(bitActive);
                             data.setTxtDevice(android.os.Build.DEVICE);
-                            data.setTxtFile(txtFile);
-                            data.setTxtVersion(txtVersion);
-                            data.setBitActive(bitActive);
                             data.setTxtInsertedBy(txtInsertedBy);
                             data.setIdDevice(imeiNumber);
-                            data.setTxtModel(android.os.Build.MANUFACTURER+" "+android.os.Build.MODEL);
-                            repoDeviceInfo =new clsDeviceInfoRepo(getApplicationContext());
+                            data.setTxtModel(android.os.Build.MANUFACTURER + " " + android.os.Build.MODEL);
+                            repoDeviceInfo = new clsDeviceInfoRepo(getApplicationContext());
+                            repoVersionApp = new clsmVersionAppRepo(getApplicationContext());
                             int i = 0;
+                            int j = 0;
                             try {
                                 i = repoDeviceInfo.createOrUpdate(data);
+                                j = repoVersionApp.createOrUpdate(dataVersion);
                             } catch (SQLException e) {
                                 e.printStackTrace();
                             }
-                            if(i > -1)
-                            {
+                            if (i > -1 && j > -1) {
                                 Log.d("Data info", "Data info berhasil di simpan");
+                                status = true;
                             }
-                        }else{
+                        } else {
                             Toast.makeText(getApplicationContext(), txtWarn, Toast.LENGTH_SHORT).show();
                         }
 
@@ -612,7 +566,7 @@ public class Login extends clsMainActivity {
                         e.printStackTrace();
                     }
                 }
-                if(!status){
+                if (!status) {
                     new clsMainActivity().showCustomToast(getApplicationContext(), strErrorMsg, false);
                 }
             }
@@ -624,6 +578,7 @@ public class Login extends clsMainActivity {
             e.printStackTrace();
         }*/
     }
+
     int intProcesscancel = 0;
     ProgressDialog mProgressDialog;
 

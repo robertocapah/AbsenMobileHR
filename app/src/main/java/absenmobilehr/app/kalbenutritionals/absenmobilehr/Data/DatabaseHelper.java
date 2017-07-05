@@ -19,7 +19,7 @@ import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsUserLob;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsUserLogin;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsUserPegawai;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsmConfig;
-import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.mVersionApp;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsmVersionApp;
 
 
 /**
@@ -30,7 +30,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     // name of the database file for your application -- change to something appropriate for your app
     private static final String DATABASE_NAME = _path.dbName;
     // any time you make changes to your database objects, you may have to increase the database version
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 1;
 
     // the DAO object we use to access the SimpleData table
     protected Dao<clsmConfig, Integer> mConfigDao;
@@ -44,8 +44,8 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     protected Dao<clsDisplayPicture, Integer> displayPictureDao;
     protected RuntimeExceptionDao<clsDisplayPicture, Integer> displayPictureRuntimeDao = null;
 
-    protected Dao<mVersionApp, Integer> mVersionAppsDao;
-    protected RuntimeExceptionDao<mVersionApp, Integer> mVersionAppsRuntimeDao = null;
+    protected Dao<clsmVersionApp, Integer> mVersionAppsDao;
+    protected RuntimeExceptionDao<clsmVersionApp, Integer> mVersionAppsRuntimeDao = null;
 
     protected Dao<clsDeviceInfo, Integer> deviceInfoDao;
     protected RuntimeExceptionDao<clsDeviceInfo, Integer> deviceInfoRuntimeDao = null;
@@ -69,7 +69,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
             TableUtils.createTableIfNotExists(connectionSource, clsUserLogin.class);
             TableUtils.createTableIfNotExists(connectionSource, clsDisplayPicture.class);
             TableUtils.createTableIfNotExists(connectionSource, clsDeviceInfo.class);
-            TableUtils.createTableIfNotExists(connectionSource, mVersionApp.class);
+            TableUtils.createTableIfNotExists(connectionSource, clsmVersionApp.class);
             TableUtils.createTableIfNotExists(connectionSource, clsUserJabatan.class);
             TableUtils.createTableIfNotExists(connectionSource, clsUserLob.class);
             TableUtils.createTableIfNotExists(connectionSource, clsUserPegawai.class);
@@ -90,7 +90,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
             TableUtils.dropTable(connectionSource, clsUserLogin.class, true);
             TableUtils.dropTable(connectionSource, clsDeviceInfo.class, true);
             TableUtils.dropTable(connectionSource, clsDisplayPicture.class, true);
-            TableUtils.dropTable(connectionSource, mVersionApp.class, true);
+            TableUtils.dropTable(connectionSource, clsmVersionApp.class, true);
             TableUtils.dropTable(connectionSource, clsUserLogin.class, true);
             TableUtils.dropTable(connectionSource, clsUserJabatan.class, true);
             TableUtils.dropTable(connectionSource, clsUserPegawai.class, true);
@@ -109,12 +109,29 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
             TableUtils.clearTable(connectionSource, clsUserLogin.class);
             TableUtils.clearTable(connectionSource, clsDeviceInfo.class);
             TableUtils.clearTable(connectionSource, clsDisplayPicture.class);
-            TableUtils.clearTable(connectionSource, mVersionApp.class);
+            TableUtils.clearTable(connectionSource, clsmVersionApp.class);
             TableUtils.clearTable(connectionSource, clsUserLogin.class);
             TableUtils.clearTable(connectionSource, clsUserJabatan.class);
             TableUtils.clearTable(connectionSource, clsUserPegawai.class);
             TableUtils.clearTable(connectionSource, clsUserLob.class);
             TableUtils.clearTable(connectionSource, clsmConfig.class);
+            // after we drop the old databases, we create the new ones
+//            onCreate(db, connectionSource);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+    }
+    public void clearDataAfterLogout(){
+        Log.i(DatabaseHelper.class.getName(), "onUpgrade");
+        try {
+            TableUtils.clearTable(connectionSource, clsUserLogin.class);
+            TableUtils.clearTable(connectionSource, clsDisplayPicture.class);
+            TableUtils.clearTable(connectionSource, clsmVersionApp.class);
+            TableUtils.clearTable(connectionSource, clsUserLogin.class);
+            TableUtils.clearTable(connectionSource, clsUserJabatan.class);
+            TableUtils.clearTable(connectionSource, clsUserPegawai.class);
+            TableUtils.clearTable(connectionSource, clsUserLob.class);
             // after we drop the old databases, we create the new ones
 //            onCreate(db, connectionSource);
         } catch (SQLException e) {
@@ -175,9 +192,9 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
         return displayPictureDao;
     }
 
-    public Dao<mVersionApp, Integer> getmVersionAppsDao() throws SQLException {
+    public Dao<clsmVersionApp, Integer> getmVersionAppsDao() throws SQLException {
         if (mVersionAppsDao == null) {
-            mVersionAppsDao = getDao(mVersionApp.class);
+            mVersionAppsDao = getDao(clsmVersionApp.class);
         }
         return mVersionAppsDao;
     }
@@ -207,9 +224,9 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
         return deviceInfoRuntimeDao;
     }
 
-    public RuntimeExceptionDao<mVersionApp, Integer> getmVersionAppsRuntimeDao() {
+    public RuntimeExceptionDao<clsmVersionApp, Integer> getmVersionAppsRuntimeDao() {
         if (mVersionAppsRuntimeDao == null) {
-            mVersionAppsRuntimeDao = getRuntimeExceptionDao(mVersionApp.class);
+            mVersionAppsRuntimeDao = getRuntimeExceptionDao(clsmVersionApp.class);
         }
         return mVersionAppsRuntimeDao;
     }

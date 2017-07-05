@@ -9,11 +9,11 @@ import java.io.Serializable;
  * Created by Robert on 16/06/2017.
  */
 @DatabaseTable
-public class mVersionApp implements Serializable {
-    @DatabaseField(id = true,columnName = "idVersion")
-    public Integer idVersion;
-    @DatabaseField(columnName = "txtGUI")
+public class clsmVersionApp implements Serializable {
+    @DatabaseField(id = true,columnName = "txtGUI")
     public String txtGUI;
+    @DatabaseField(columnName = "bitActive")
+    public String bitActive;
     @DatabaseField(columnName = "txtNameApp")
     public String txtNameApp;
     @DatabaseField(columnName = "txtVersion")
@@ -25,12 +25,12 @@ public class mVersionApp implements Serializable {
 
     }
 
-    public Integer getIdVersion() {
-        return idVersion;
+    public String getBitActive() {
+        return bitActive;
     }
 
-    public void setIdVersion(Integer idVersion) {
-        this.idVersion = idVersion;
+    public void setBitActive(String bitActive) {
+        this.bitActive = bitActive;
     }
 
     public String getTxtGUI() {

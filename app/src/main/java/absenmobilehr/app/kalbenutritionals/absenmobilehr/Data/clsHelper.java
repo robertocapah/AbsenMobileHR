@@ -1,6 +1,7 @@
 package absenmobilehr.app.kalbenutritionals.absenmobilehr.Data;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.widget.Toast;
 
@@ -24,7 +25,7 @@ import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-import cn.pedant.SweetAlert.SweetAlertDialog;
+//import cn.pedant.SweetAlert.SweetAlertDialog;
 
 /**
  * Created by Robert on 20/06/2017.
@@ -61,8 +62,7 @@ public class clsHelper {
     public String volleyImplement(final Context context, final String mRequestBody, String strLinkAPI, Activity activity){
         RequestQueue queue = Volley.newRequestQueue(context);
         final String[] ret = {null};
-        final SweetAlertDialog Dialog = new SweetAlertDialog(activity);
-        Dialog.setTitleText("Loading");
+        final ProgressDialog Dialog = new ProgressDialog(activity);
         Dialog.show();
 //        JSONObject obj = null;
         StringRequest req = new StringRequest(Request.Method.POST, strLinkAPI, new Response.Listener<String>(){

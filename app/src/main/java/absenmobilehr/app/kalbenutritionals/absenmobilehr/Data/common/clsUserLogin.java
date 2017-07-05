@@ -24,8 +24,6 @@ public class clsUserLogin implements Serializable{
     public String jabatanId;
     @DatabaseField(columnName = "jabatanName")
     public String jabatanName;
-    @DatabaseField(columnName = "cabangId")
-    public String cabangId;
     @DatabaseField(columnName = "txtKodeCabang")
     public String txtKodeCabang;
     @DatabaseField(columnName = "txtNamaCabang")
@@ -38,8 +36,6 @@ public class clsUserLogin implements Serializable{
     public String txtName;
     @DatabaseField(columnName = "txtEmail")
     public String txtEmail;
-    @DatabaseField(columnName = "txtEmpId")
-    public String txtEmpId;
     @DatabaseField(columnName = "dtLastLogin")
     public String dtLastLogin;
     @DatabaseField(columnName = "txtDeviceId")
@@ -50,7 +46,41 @@ public class clsUserLogin implements Serializable{
     public String txtInsertedBy;
     @DatabaseField(columnName = "dtInserted")
     public String dtInserted;
-
+//    public String Property_dbName = new clsUserLogin().getClass().getSimpleName();
+    public String Property_dbName = "clsUserLogin";
+    public String Property_clsUserLogin = "clsUserLogin";
+    public String Property_intCabangId = "intCabangId";
+    public String Property_txtGUI = "txtGUI";
+    public String Property_txtNameApp = "txtNameApp";
+    public String Property_employeeId = "employeeId";
+    public String Property_jabatanId = "jabatanId";
+    public String Property_jabatanName = "jabatanName";
+    public String Property_cabangId = "cabangId";
+    public String Property_txtKodeCabang = "txtKodeCabang";
+    public String Property_txtNamaCabang = "txtNamaCabang";
+    public String Property_txtUserId = "txtUserId";
+    public String Property_txtUserName = "txtUserName";
+    public String Property_txtName = "txtName";
+    public String Property_txtEmail = "txtEmail";
+    public String Property_dtLastLogin = "dtLastLogin";
+    public String Property_txtDeviceId = "txtDeviceId";
+    public String Property_dtLogout = "dtLogout";
+    public String Property_All=Property_clsUserLogin +","+
+            Property_intCabangId +","+
+            Property_txtGUI +","+
+            Property_txtNameApp +","+
+            Property_employeeId +","+
+            Property_jabatanId +","+
+            Property_jabatanName +","+
+            Property_txtKodeCabang +","+
+            Property_txtNamaCabang +","+
+            Property_txtUserId +","+
+            Property_txtUserName +","+
+            Property_txtName +","+
+            Property_txtEmail +","+
+            Property_dtLastLogin+","+
+            Property_txtDeviceId+","+
+            Property_dtLogout;
 
     public clsUserLogin(){
 
@@ -94,14 +124,6 @@ public class clsUserLogin implements Serializable{
 
     public void setEmployeeId(String employeeId) {
         this.employeeId = employeeId;
-    }
-
-    public String getCabangId() {
-        return cabangId;
-    }
-
-    public void setCabangId(String cabangId) {
-        this.cabangId = cabangId;
     }
 
     public String getTxtKodeCabang() {
@@ -174,14 +196,6 @@ public class clsUserLogin implements Serializable{
 
     public void setTxtEmail(String txtEmail) {
         this.txtEmail = txtEmail;
-    }
-
-    public String getTxtEmpId() {
-        return txtEmpId;
-    }
-
-    public void setTxtEmpId(String txtEmpId) {
-        this.txtEmpId = txtEmpId;
     }
 
     public String getDtLastLogin() {
