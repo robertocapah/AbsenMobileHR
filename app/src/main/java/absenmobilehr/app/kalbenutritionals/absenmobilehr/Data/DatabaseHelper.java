@@ -104,7 +104,6 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
         }
     }
     public void clearAllDataInDatabase(){
-        Log.i(DatabaseHelper.class.getName(), "onUpgrade");
         try {
             TableUtils.clearTable(connectionSource, clsUserLogin.class);
             TableUtils.clearTable(connectionSource, clsDeviceInfo.class);
@@ -123,7 +122,6 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 
     }
     public void clearDataAfterLogout(){
-        Log.i(DatabaseHelper.class.getName(), "onUpgrade");
         try {
             TableUtils.clearTable(connectionSource, clsUserLogin.class);
             TableUtils.clearTable(connectionSource, clsDisplayPicture.class);

@@ -144,8 +144,8 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int id) {
                                         DatabaseHelper helper = DatabaseManager.getInstance().getHelper();
-                                        helper.close();
                                         helper.clearDataAfterLogout();
+                                        helper.close();
                                         logout();
 //                                        stopService(new Intent(getApplicationContext(), MyServiceNative.class));
 //                                        stopService(new Intent(getApplicationContext(), MyTrackingLocationService.class));
