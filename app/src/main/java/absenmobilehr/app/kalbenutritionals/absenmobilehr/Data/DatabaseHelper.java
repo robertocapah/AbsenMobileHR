@@ -12,6 +12,7 @@ import com.j256.ormlite.table.TableUtils;
 
 import java.sql.SQLException;
 
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsAbsenData;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsDeviceInfo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsDisplayPicture;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsUserJabatan;
@@ -30,13 +31,14 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     // name of the database file for your application -- change to something appropriate for your app
     private static final String DATABASE_NAME = _path.dbName;
     // any time you make changes to your database objects, you may have to increase the database version
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     // the DAO object we use to access the SimpleData table
     protected Dao<clsmConfig, Integer> mConfigDao;
     protected Dao<clsUserLob, Integer> userLobDao;
     protected Dao<clsUserJabatan, Integer> userJabatanDao;
     protected Dao<clsUserPegawai, Integer> userPegawaiDao;
+    protected Dao<clsAbsenData, Integer> userAbsenDao;
 
     protected Dao<clsUserLogin, Integer> userLoginDao;
     protected RuntimeExceptionDao<clsUserLogin, Integer> userLoginRuntimeDao = null;
@@ -74,6 +76,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
             TableUtils.createTableIfNotExists(connectionSource, clsUserLob.class);
             TableUtils.createTableIfNotExists(connectionSource, clsUserPegawai.class);
             TableUtils.createTableIfNotExists(connectionSource, clsmConfig.class);
+            TableUtils.createTableIfNotExists(connectionSource, clsAbsenData.class);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -96,6 +99,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
             TableUtils.dropTable(connectionSource, clsUserPegawai.class, true);
             TableUtils.dropTable(connectionSource, clsUserLob.class, true);
             TableUtils.dropTable(connectionSource, clsmConfig.class, true);
+            TableUtils.dropTable(connectionSource, clsAbsenData.class, true);
             // after we drop the old databases, we create the new ones
             onCreate(db, connectionSource);
         } catch (SQLException e) {
@@ -114,6 +118,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
             TableUtils.clearTable(connectionSource, clsUserPegawai.class);
             TableUtils.clearTable(connectionSource, clsUserLob.class);
             TableUtils.clearTable(connectionSource, clsmConfig.class);
+            TableUtils.clearTable(connectionSource, clsAbsenData.class);
             // after we drop the old databases, we create the new ones
 //            onCreate(db, connectionSource);
         } catch (SQLException e) {
@@ -126,10 +131,10 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
             TableUtils.clearTable(connectionSource, clsUserLogin.class);
             TableUtils.clearTable(connectionSource, clsDisplayPicture.class);
             TableUtils.clearTable(connectionSource, clsmVersionApp.class);
-            TableUtils.clearTable(connectionSource, clsUserLogin.class);
             TableUtils.clearTable(connectionSource, clsUserJabatan.class);
             TableUtils.clearTable(connectionSource, clsUserPegawai.class);
             TableUtils.clearTable(connectionSource, clsUserLob.class);
+            TableUtils.clearTable(connectionSource, clsAbsenData.class);
             // after we drop the old databases, we create the new ones
 //            onCreate(db, connectionSource);
         } catch (SQLException e) {
@@ -142,6 +147,12 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
      * Returns the Database Access Object (DAO) for our SimpleData class. It will create it or just give the cached
      * value.
      */
+    public Dao<clsAbsenData,Integer> getUserAbsenDao() throws SQLException{
+        if (userAbsenDao == null){
+            userAbsenDao = getDao(clsAbsenData.class);
+        }
+        return userAbsenDao;
+    }
     public Dao<clsmConfig, Integer> getmConfigDao() throws SQLException {
         if (mConfigDao == null) {
             mConfigDao = getDao(clsmConfig.class);

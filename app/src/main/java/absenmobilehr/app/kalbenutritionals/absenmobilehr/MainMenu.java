@@ -1,12 +1,16 @@
 package absenmobilehr.app.kalbenutritionals.absenmobilehr;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -21,6 +25,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.SubMenu;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
@@ -29,6 +34,7 @@ import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.theartofdev.edmodo.cropper.CropImage;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -40,12 +46,15 @@ import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.DatabaseHelper;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.DatabaseManager;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.VolleyResponseListener;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.VolleyUtils;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsAbsenData;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsDisplayPicture;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsUserLogin;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsmVersionApp;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsAbsenDataRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsDisplayPictureRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsUserLoginRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsmVersionAppRepo;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Fragment.FragmentAbsen;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Fragment.FragmentInformation;
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -66,7 +75,8 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
     Boolean isSubMenu = false;
 
     clsMainActivity _clsMainActivity = new clsMainActivity();
-
+    List<clsUserLogin> dataLogin= null;
+    List<clsmVersionApp> dataInfo = null;
     String[] listMenu;
     String[] linkMenu;
 
@@ -102,7 +112,13 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         tvUsername = (TextView) vwHeader.findViewById(R.id.username);
         tvEmail = (TextView) vwHeader.findViewById(R.id.email);
         clsUserLoginRepo repo = new clsUserLoginRepo(getApplicationContext());
-        List<clsUserLogin> dataLogin= (List<clsUserLogin>) repo.findAll();
+        clsmVersionAppRepo repoVersionInfo = new clsmVersionAppRepo(getApplicationContext());
+        try {
+            dataLogin = (List<clsUserLogin>) repo.findAll();
+            dataInfo = (List<clsmVersionApp>) repoVersionInfo.findAll();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         tvUsername.setText(_clsMainActivity.greetings() + dataLogin.get(0).getTxtName());
         tvEmail.setText(dataLogin.get(0).getTxtEmail());
         try {
@@ -119,6 +135,19 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         }
         ivProfile.setOnClickListener(this);
         Menu header = navigationView.getMenu();
+        clsAbsenData dataAbsenAktif = new clsAbsenDataRepo(getApplicationContext()).getDataCheckinActive(getApplicationContext());
+        if (dataAbsenAktif!=null){
+            header.removeItem(R.id.absen);
+            header.removeItem(R.id.logout);
+        }else{
+            header.removeItem(R.id.checkout);
+        }
+        SubMenu subMenuVersion = header.addSubMenu(R.id.groupVersion, 0, 3, "Version");
+        try {
+            subMenuVersion.add(getPackageManager().getPackageInfo(getPackageName(), 0).versionName + " \u00a9 KN-IT").setIcon(R.drawable.ic_android).setEnabled(false);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
@@ -143,9 +172,6 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                 .setCancelable(false)
                                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int id) {
-                                        DatabaseHelper helper = DatabaseManager.getInstance().getHelper();
-                                        helper.clearDataAfterLogout();
-                                        helper.close();
                                         logout();
 //                                        stopService(new Intent(getApplicationContext(), MyServiceNative.class));
 //                                        stopService(new Intent(getApplicationContext(), MyTrackingLocationService.class));
@@ -161,6 +187,68 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                 });
                         final AlertDialog alertD = alertDialogBuilder.create();
                         alertD.show();
+                        return true;
+                    case R.id.absen:
+                        toolbar.setTitle("Kuesioner / Quiz");
+                        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+                        FragmentAbsen fragmentKuesioner = new FragmentAbsen();
+                        FragmentTransaction fragmentTransactionKuesioner = getSupportFragmentManager().beginTransaction();
+                        fragmentTransactionKuesioner.replace(R.id.frame, fragmentKuesioner);
+                        fragmentTransactionKuesioner.commit();
+                        return true;
+                    case R.id.home:
+                        toolbar.setTitle("Home");
+
+                        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
+
+                        FragmentInformation homeFragment = new FragmentInformation();
+                        FragmentTransaction fragmentTransactionHome = getSupportFragmentManager().beginTransaction();
+                        fragmentTransactionHome.replace(R.id.frame, homeFragment);
+                        fragmentTransactionHome.commit();
+                        selectedId = 99;
+
+                        return true;
+                    case R.id.checkout:
+                        LayoutInflater _layoutInflater = LayoutInflater.from(MainMenu.this);
+                        final View _promptView = _layoutInflater.inflate(R.layout.confirm_data, null);
+
+                        final TextView tvConfirm = (TextView) _promptView.findViewById(R.id.tvTitle);
+                        final TextView tvDesc = (TextView) _promptView.findViewById(R.id.tvDesc);
+                        tvDesc.setVisibility(View.INVISIBLE);
+                        tvConfirm.setText("Check Out Data ?");
+                        tvConfirm.setTextSize(18);
+
+                        AlertDialog.Builder _alertDialogBuilder = new AlertDialog.Builder(MainMenu.this);
+                        _alertDialogBuilder.setView(_promptView);
+                        _alertDialogBuilder
+                                .setCancelable(false)
+                                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        clsAbsenData dataAbsen = new clsAbsenDataRepo(getApplicationContext()).getDataCheckinActive(getApplicationContext());
+
+                                        if (dataAbsen != null) {
+                                            dataAbsen.setDtCheckout(_clsMainActivity.FormatDateDB().toString());
+                                            try {
+                                                new clsAbsenDataRepo(getApplicationContext()).update(dataAbsen);
+                                            } catch (SQLException e) {
+                                                e.printStackTrace();
+                                            }
+                                            finish();
+                                            Intent nextScreen = new Intent(getApplicationContext(), MainMenu.class);
+                                            nextScreen.putExtra("keyMainMenu", "main_menu");
+                                            finish();
+                                            startActivity(nextScreen);
+                                        }
+                                    }
+                                })
+                                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        dialog.cancel();
+                                    }
+                                });
+                        final AlertDialog _alertD = _alertDialogBuilder.create();
+                        _alertD.show();
+
                         return true;
                 }
                 return false;
@@ -184,22 +272,38 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         actionBarDrawerToggle.syncState();
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
+    @Override
+    @SuppressLint("NewApi")
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == CropImage.PICK_IMAGE_CHOOSER_REQUEST_CODE && resultCode == AppCompatActivity.RESULT_OK) {
+            Uri imageUri = CropImage.getPickImageResultUri(this, data);
+
+            if (CropImage.isReadExternalStoragePermissionsRequired(this, imageUri)) {
+                requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, CropImage.PICK_IMAGE_PERMISSIONS_REQUEST_CODE);
+            } else {
+//                Intent intent = new Intent(this, CropDisplayPicture.class);
+                String strName = imageUri.toString();
+                intent.putExtra("uriPicture", strName);
+                startActivity(intent);
+                finish();
+            }
+        } else if (requestCode==100 || requestCode == 130){
+            for (Fragment fragment : getSupportFragmentManager().getFragments()) {
+                fragment.onActivityResult(requestCode, resultCode, data);
+            }
+        }
+
+    }
+
     public void logout(){
         final ProgressDialog Dialog = new ProgressDialog(MainMenu.this);
         RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
-        clsUserLoginRepo repoUserLogin = null;
-        clsmVersionAppRepo repoVersionInfo = null;
+
         String strLinkAPI = "http://10.171.10.30/KN2015_PRM_V2.WEB/VisitPlan/API/VisitPlanAPI/LogOut_J";
 //        String nameRole = selectedRole;
         final JSONObject resJson = new JSONObject();
-        List<clsUserLogin> dataLogin = null;
-        dataLogin = (List<clsUserLogin>) repoUserLogin.findAll();
-        List<clsmVersionApp> dataInfo = null;
-        try {
-            dataInfo = (List<clsmVersionApp>) repoVersionInfo.findAll();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
 
         try {
             resJson.put("TxtGUI_trUserLogin", dataLogin.get(0).getTxtGUI());
@@ -227,78 +331,18 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                         String warn = jsn.getString("TxtWarn");
                         String result = jsn.getString("TxtResult");
                         if (result.equals("1")){
-                            new DatabaseHelper(getApplicationContext()).clearDataAfterLogout();
+//                            new DatabaseHelper(getApplicationContext()).clearDataAfterLogout();
+                            DatabaseHelper helper = DatabaseManager.getInstance().getHelper();
+                            helper.clearDataAfterLogout();
+//                            helper.close();
+                            Intent nextScreen = new Intent(MainMenu.this, Splash.class);
+                            startActivity(nextScreen);
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
 
                 }
-                /*
-                if (response != null) {
-                    try {
-                        JSONObject jsonObject1 = new JSONObject(response);
-                        String result = jsonObject1.getString("TxtResult");
-                        String warn = jsonObject1.getString("TxtWarn");
-                        if (result.equals("1")) {
-                            JSONObject jsonObject2 = jsonObject1.getJSONObject("TxtData");
-                            JSONObject jsonDataUserLogin = jsonObject2.getJSONObject("UserLogin");
-                            String TxtNameApp = jsonDataUserLogin.getString("TxtNameApp");
-                            String TxtGUI = jsonDataUserLogin.getString("TxtGUI");
-                            String TxtUserID = jsonDataUserLogin.getString("TxtUserID");
-                            String TxtJabatanID = jsonDataUserLogin.getString("TxtJabatanID");
-                            String TxtJabatanName = jsonDataUserLogin.getString("TxtJabatanName");
-                            String TxtUserName = jsonDataUserLogin.getString("TxtUserName");
-                            String TxtName = jsonDataUserLogin.getString("TxtName");
-                            String TxtEmail = jsonDataUserLogin.getString("TxtEmail");
-                            String TxtEmpID = jsonDataUserLogin.getString("TxtEmpID");
-                            String IntCabangID = jsonDataUserLogin.getString("IntCabangID");
-                            String TxtKodeCabang = jsonDataUserLogin.getString("TxtKodeCabang");
-                            String TxtNamaCabang = jsonDataUserLogin.getString("TxtNamaCabang");
-                            String DtLastLogin = jsonDataUserLogin.getString("DtLastLogin");
-                            String TxtDeviceId = jsonDataUserLogin.getString("TxtDeviceId");
-                            String TxtInsertedBy = jsonDataUserLogin.getString("TxtInsertedBy");
-                            clsUserLogin data = new clsUserLogin();
-                            data.setTxtNameApp(TxtNameApp);
-                            data.setTxtGUI(TxtGUI);
-                            data.setTxtUserID(TxtUserID);
-                            data.setJabatanId(TxtJabatanID);
-                            data.setJabatanName(TxtJabatanName);
-                            data.setIdUserLogin(1);
-                            data.setTxtUserName(TxtUserName);
-                            data.setTxtName(TxtName);
-                            data.setTxtEmail(TxtEmail);
-                            data.setEmployeeId(TxtEmpID);
-                            data.setIntCabangID(IntCabangID);
-                            data.setTxtKodeCabang(TxtKodeCabang);
-                            data.setTxtNamaCabang(TxtNamaCabang);
-                            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                            Calendar cal = Calendar.getInstance();
-                            data.setDtLastLogin(DtLastLogin);
-                            data.setTxtDeviceId(TxtDeviceId);
-                            data.setTxtInsertedBy(TxtInsertedBy);
-                            data.setDtInserted(dateFormat.format(cal.getTime()));
-
-                            repoLogin =new clsUserLoginRepo(getApplicationContext());
-                            int i = 0;
-                            i = repoLogin.create(data);
-                            if(i > -1)
-                            {
-                                Log.d("Data info", "Data info berhasil di simpan");
-                                Intent myIntent = new Intent(Login.this, MainMenu.class);
-                                myIntent.putExtra("keyMainMenu", "main_menu");
-                                startActivity(myIntent);
-                            }else{
-                                new clsMainActivity().showCustomToast(getApplicationContext(),warn,false);
-                            }
-                        }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                }
-                if(!status){
-                    new clsMainActivity().showCustomToast(getApplicationContext(), strErrorMsg, false);
-                }*/
             }
         });
     }

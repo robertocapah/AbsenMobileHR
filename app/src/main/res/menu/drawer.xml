@@ -15,7 +15,7 @@
             app:actionLayout="@layout/menu_counter"/>
 
         <item
-            android:id="@+id/soalkuesioner"
+            android:id="@+id/absen"
             android:orderInCategory="0"
             android:title="Absen"
             app:actionLayout="@layout/menu_counter"/>
@@ -25,7 +25,11 @@
         android:checkableBehavior="single"
         android:id="@+id/groupListfooter">
 
-
+        <item
+            android:id="@+id/checkout"
+            android:checked="false"
+            android:orderInCategory="2"
+            android:title="Checkout" />
        <!-- <item
             android:id="@+id/information"
             android:checked="false"

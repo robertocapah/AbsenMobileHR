@@ -2,6 +2,7 @@ package absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.bl;
 
 import android.content.Context;
 
+import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -35,8 +36,13 @@ public class clsMainBL {
         Calendar cal = Calendar.getInstance();
         String now = dateFormat.format(cal.getTime()).toString();
 //        if(repo.CheckLoginNow()){
-            List<clsUserLogin> listData= (List<clsUserLogin>) repo.findAll();
-            for (clsUserLogin data : listData){
+        List<clsUserLogin> listData= null;
+        try {
+            listData = (List<clsUserLogin>) repo.findAll();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        for (clsUserLogin data : listData){
                 if (data.dtLastLogin.equals(now)){
                     _clsStatusMenuStart.set_intStatus(enumStatusMenuStart.UserActiveLogin);
                 }

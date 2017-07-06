@@ -94,6 +94,23 @@ public class clsDeviceInfoRepo implements crud {
         }
         return items;
     }
+    public clsDeviceInfo getDataDevice(Context context){
+        clsDeviceInfoRepo repo = new clsDeviceInfoRepo(context);
+        clsDeviceInfo dataLogin =new clsDeviceInfo();
+//        if(repo.CheckLoginNow()){
+        List<clsDeviceInfo> listData= null;
+        try {
+            listData = (List<clsDeviceInfo>) repo.findAll();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        for (clsDeviceInfo data : listData){
+                dataLogin = data;
+        }
+
+//        }
+        return dataLogin;
+    }
     public void clearTable() throws SQLException{
         TableUtils.clearTable(helper.getConnectionSource(), clsDeviceInfo.class);
     }

@@ -6,7 +6,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:background="#FFFFFF"
-    tools:context="kalbeabsen.app.kalbenutritionals.kalbeabsen.MainMenu"
+    tools:context="absenmobilehr.app.kalbenutritionals.absenmobilehr.MainMenu"
     android:id="@+id/coordinatorLayout">
 
     <android.support.v4.widget.NestedScrollView

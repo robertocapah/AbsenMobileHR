@@ -6,7 +6,7 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:background="@color/cardview_shadow_end_color"
         android:orientation="vertical"
         android:weightSum="4">
@@ -17,7 +17,8 @@
             android:orientation="vertical"
             android:background="#4CAF50"
             android:gravity="center"
-            android:layout_weight="1.8">
+            android:layout_weight="2.5">
+
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/profile_image"
             android:layout_width="100dp"
@@ -43,7 +44,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
             android:gravity="center"
-            android:text="KEDIRI - DRAGON, TOKO"
+            android:text="Jakarta"
             android:textColor="@color/white"/>
 
         <TextView
@@ -59,11 +60,40 @@
 
         <LinearLayout
             android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_marginTop="20dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="status :"
+                android:layout_weight="1"
+                android:gravity="center"/>
+            <com.owater.library.CircleTextView
+                android:id="@+id/status"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_weight="0.33"
+                android:gravity="center"
+                android:text="checkout"
+                android:textColor="@color/colorAccent"
+                android:textSize="15dp"
+                app:ct_backgroundColor="#FFFFFF"
+                app:ct_border_alpha="0.5"
+                app:ct_border_color="@color/colorAccent"
+                app:ct_border_width="10dp"
+                app:ct_type="shadow_alpha" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="0dip"
             android:background="@color/white"
             android:gravity="center"
             android:orientation="horizontal"
-            android:layout_weight="1">
+            android:layout_weight="1"
+            android:visibility="gone">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -160,7 +190,7 @@
 
         </LinearLayout>
 
-        <LinearLayout
+        <!--<LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dip"
             android:padding="10dp"
@@ -274,7 +304,7 @@
                         />
                 </TableRow>
             </TableLayout>
-        </LinearLayout>
+        </LinearLayout>-->
 
     </LinearLayout>
 

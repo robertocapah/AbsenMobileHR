@@ -88,7 +88,7 @@ public class clsUserLoginRepo implements crud {
     }
 
     @Override
-    public List<?> findAll() {
+    public List<?> findAll() throws SQLException{
         List<clsUserLogin> items = null;
         try{
             items = helper.getUserLoginDao().queryForAll();
@@ -123,7 +123,12 @@ public class clsUserLoginRepo implements crud {
         Calendar cal = Calendar.getInstance();
         String now = dateFormat.format(cal.getTime()).toString();
 //        if(repo.CheckLoginNow()){
-        List<clsUserLogin> listData= (List<clsUserLogin>) repo.findAll();
+        List<clsUserLogin> listData= null;
+        try {
+            listData = (List<clsUserLogin>) repo.findAll();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         for (clsUserLogin data : listData){
             if (data.dtLastLogin.equals(now)){
                 dataLogin = data;
