@@ -9,31 +9,31 @@ import com.j256.ormlite.table.DatabaseTable;
 @DatabaseTable
 public class clsUserPegawai {
     @DatabaseField(id = true,columnName = "intPegawaiId")
-    public Integer intPegawaiId;
+    private Integer intPegawaiId;
     @DatabaseField(columnName = "intDomainId")
-    public Integer intDomainId;
+    private Integer intDomainId;
     @DatabaseField(columnName = "txtPegawaiId")
-    public String txtPegawaiId;
+    private String txtPegawaiId;
     @DatabaseField(columnName = "txtNik")
-    public String txtNik;
+    private String txtNik;
     @DatabaseField(columnName = "txtPegawaiName")
-    public String txtPegawaiName;
+    private String txtPegawaiName;
     @DatabaseField(columnName = "txtEmail")
-    public String txtEmail;
+    private String txtEmail;
     @DatabaseField(columnName = "txtUserCRM")
-    public String txtUserCRM;
+    private String txtUserCRM;
     @DatabaseField(columnName = "bitDomainUser")
-    public String bitDomainUser;
+    private String bitDomainUser;
     @DatabaseField(columnName = "bitActive")
-    public String bitActive;
+    private String bitActive;
     @DatabaseField(columnName = "dtNonActive")
-    public String dtNonActive;
+    private String dtNonActive;
     @DatabaseField(columnName = "txtInsertedBy")
-    public String txtInsertedBy;
+    private String txtInsertedBy;
     @DatabaseField(columnName = "dtInserted")
-    public String dtInserted;
+    private String dtInserted;
     @DatabaseField(columnName = "dtUpdated")
-    public String dtUpdated;
+    private String dtUpdated;
 
     public clsUserPegawai(){}
 

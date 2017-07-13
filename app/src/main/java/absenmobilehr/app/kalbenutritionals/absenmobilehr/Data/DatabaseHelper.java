@@ -15,11 +15,13 @@ import java.sql.SQLException;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsAbsenData;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsDeviceInfo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsDisplayPicture;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsTrackingData;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsUserJabatan;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsUserLob;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsUserLogin;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsUserPegawai;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsmConfig;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsmCounterData;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsmVersionApp;
 
 
@@ -39,6 +41,8 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     protected Dao<clsUserJabatan, Integer> userJabatanDao;
     protected Dao<clsUserPegawai, Integer> userPegawaiDao;
     protected Dao<clsAbsenData, Integer> userAbsenDao;
+    protected Dao<clsTrackingData, Integer> trackingDataDao;
+    protected Dao<clsmCounterData, Integer> counterDataDao;
 
     protected Dao<clsUserLogin, Integer> userLoginDao;
     protected RuntimeExceptionDao<clsUserLogin, Integer> userLoginRuntimeDao = null;
@@ -77,6 +81,8 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
             TableUtils.createTableIfNotExists(connectionSource, clsUserPegawai.class);
             TableUtils.createTableIfNotExists(connectionSource, clsmConfig.class);
             TableUtils.createTableIfNotExists(connectionSource, clsAbsenData.class);
+            TableUtils.createTableIfNotExists(connectionSource, clsTrackingData.class);
+            TableUtils.createTableIfNotExists(connectionSource, clsmCounterData.class);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -100,6 +106,8 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
             TableUtils.dropTable(connectionSource, clsUserLob.class, true);
             TableUtils.dropTable(connectionSource, clsmConfig.class, true);
             TableUtils.dropTable(connectionSource, clsAbsenData.class, true);
+            TableUtils.dropTable(connectionSource, clsTrackingData.class, true);
+            TableUtils.dropTable(connectionSource, clsmCounterData.class, true);
             // after we drop the old databases, we create the new ones
             onCreate(db, connectionSource);
         } catch (SQLException e) {
@@ -107,7 +115,8 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
             throw new RuntimeException(e);
         }
     }
-    public void clearAllDataInDatabase(){
+
+    public void clearAllDataInDatabase() {
         try {
             TableUtils.clearTable(connectionSource, clsUserLogin.class);
             TableUtils.clearTable(connectionSource, clsDeviceInfo.class);
@@ -119,6 +128,8 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
             TableUtils.clearTable(connectionSource, clsUserLob.class);
             TableUtils.clearTable(connectionSource, clsmConfig.class);
             TableUtils.clearTable(connectionSource, clsAbsenData.class);
+            TableUtils.clearTable(connectionSource, clsTrackingData.class);
+            TableUtils.clearTable(connectionSource, clsmCounterData.class);
             // after we drop the old databases, we create the new ones
 //            onCreate(db, connectionSource);
         } catch (SQLException e) {
@@ -126,7 +137,8 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
         }
 
     }
-    public void clearDataAfterLogout(){
+
+    public void clearDataAfterLogout() {
         try {
             TableUtils.clearTable(connectionSource, clsUserLogin.class);
             TableUtils.clearTable(connectionSource, clsDisplayPicture.class);
@@ -135,6 +147,8 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
             TableUtils.clearTable(connectionSource, clsUserPegawai.class);
             TableUtils.clearTable(connectionSource, clsUserLob.class);
             TableUtils.clearTable(connectionSource, clsAbsenData.class);
+            TableUtils.clearTable(connectionSource, clsTrackingData.class);
+            TableUtils.clearTable(connectionSource, clsmCounterData.class);
             // after we drop the old databases, we create the new ones
 //            onCreate(db, connectionSource);
         } catch (SQLException e) {
@@ -147,18 +161,34 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
      * Returns the Database Access Object (DAO) for our SimpleData class. It will create it or just give the cached
      * value.
      */
-    public Dao<clsAbsenData,Integer> getUserAbsenDao() throws SQLException{
-        if (userAbsenDao == null){
+    public Dao<clsmCounterData, Integer> getCounterDataDao() throws SQLException{
+        if (counterDataDao == null) {
+            counterDataDao = getDao(clsmCounterData.class);
+        }
+        return counterDataDao;
+    }
+
+    public Dao<clsTrackingData, Integer> getTrackingDataDao() throws SQLException {
+        if (trackingDataDao == null) {
+            trackingDataDao = getDao(clsTrackingData.class);
+        }
+        return trackingDataDao;
+    }
+
+    public Dao<clsAbsenData, Integer> getUserAbsenDao() throws SQLException {
+        if (userAbsenDao == null) {
             userAbsenDao = getDao(clsAbsenData.class);
         }
         return userAbsenDao;
     }
+
     public Dao<clsmConfig, Integer> getmConfigDao() throws SQLException {
         if (mConfigDao == null) {
             mConfigDao = getDao(clsmConfig.class);
         }
         return mConfigDao;
     }
+
     public Dao<clsUserPegawai, Integer> getUserPegawaiDao() throws SQLException {
         if (userPegawaiDao == null) {
             userPegawaiDao = getDao(clsUserPegawai.class);
@@ -254,6 +284,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
         userLobDao = null;
         userJabatanDao = null;
         userPegawaiDao = null;
+        trackingDataDao = null;
     }
 
 }

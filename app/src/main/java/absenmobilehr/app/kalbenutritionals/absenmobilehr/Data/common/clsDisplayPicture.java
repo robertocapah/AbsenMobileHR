@@ -12,10 +12,10 @@ import java.io.Serializable;
 @DatabaseTable
 public class clsDisplayPicture implements Serializable {
     @DatabaseField(columnName = "id")
-    public int id;
+    private int id;
 
     @DatabaseField(columnName = "image", dataType = DataType.BYTE_ARRAY)
-    public byte[] image;
+    private byte[] image;
 
     public clsDisplayPicture(int id, byte[] image){
         this.id = id;

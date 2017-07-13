@@ -11,15 +11,15 @@ import java.io.Serializable;
 @DatabaseTable
 public class clsmVersionApp implements Serializable {
     @DatabaseField(id = true,columnName = "txtGUI")
-    public String txtGUI;
+    private String txtGUI;
     @DatabaseField(columnName = "bitActive")
-    public String bitActive;
+    private String bitActive;
     @DatabaseField(columnName = "txtNameApp")
-    public String txtNameApp;
+    private String txtNameApp;
     @DatabaseField(columnName = "txtVersion")
-    public String txtVersion;
+    private String txtVersion;
     @DatabaseField(columnName = "txtFile")
-    public String txtFile;
+    private String txtFile;
 
     public void mVersionApp(){
 

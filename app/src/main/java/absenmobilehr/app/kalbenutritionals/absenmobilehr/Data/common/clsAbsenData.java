@@ -12,29 +12,29 @@ import java.io.Serializable;
 @DatabaseTable
 public class clsAbsenData implements Serializable {
     @DatabaseField(id = true, columnName = "intId")
-    public String intId;
+    private String intId;
     @DatabaseField(columnName = "dtCheckin")
-    public String dtCheckin;
+    private String dtCheckin;
     @DatabaseField(columnName = "dtCheckout")
-    public String dtCheckout;
+    private String dtCheckout;
     @DatabaseField(columnName = "intSubmit")
-    public String intSubmit;
+    private String intSubmit;
     @DatabaseField(columnName = "Sync")
-    public String Sync;
+    private String Sync;
     @DatabaseField(columnName = "txtAbsen")
-    public String txtAbsen;
+    private String txtAbsen;
     @DatabaseField(columnName = "txtLatitude")
-    public String txtLatitude;
+    private String txtLatitude;
     @DatabaseField(columnName = "txtLongitude")
-    public String txtLongitude;
+    private String txtLongitude;
     @DatabaseField(columnName = "txtDeviceId")
-    public String txtDeviceId;
+    private String txtDeviceId;
     @DatabaseField(columnName = "txtImg1", dataType = DataType.BYTE_ARRAY)
-    public byte[] txtImg1;
+    private byte[] txtImg1;
     @DatabaseField(columnName = "txtImg2", dataType = DataType.BYTE_ARRAY)
-    public byte[] txtImg2;
+    private byte[] txtImg2;
     @DatabaseField(columnName = "txtUserId")
-    public String txtUserId;
+    private String txtUserId;
 
     public String Property_intId = "intId";
     public String Property_dtCheckin = "dtCheckin";

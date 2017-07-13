@@ -9,15 +9,15 @@ import com.j256.ormlite.table.DatabaseTable;
 @DatabaseTable
 public class clsUserJabatan {
     @DatabaseField(id=true,columnName = "intJabatanId")
-    public Integer intJabatanId;
+    private Integer intJabatanId;
     @DatabaseField(columnName = "txtJabatanName")
-    public String txtJabatanName;
+    private String txtJabatanName;
     @DatabaseField(columnName = "txtJabatanDesc")
-    public String txtJabatanDesc;
+    private String txtJabatanDesc;
     @DatabaseField(columnName = "bitPrimary")
-    public String bitPrimary;
+    private String bitPrimary;
     @DatabaseField(columnName = "limit")
-    public String limit;
+    private String limit;
 
     public clsUserJabatan(){
     }

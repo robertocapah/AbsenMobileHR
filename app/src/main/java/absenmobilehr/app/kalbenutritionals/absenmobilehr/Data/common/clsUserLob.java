@@ -9,23 +9,23 @@ import com.j256.ormlite.table.DatabaseTable;
 @DatabaseTable
 public class clsUserLob {
     @DatabaseField(id = true)
-    public Integer intLOBID;
+    private Integer intLOBID;
     @DatabaseField
-    public String txtLobName;
+    private String txtLobName;
     @DatabaseField
-    public String txtLobDesc;
+    private String txtLobDesc;
     @DatabaseField
-    public String bitActive;
+    private String bitActive;
     @DatabaseField
-    public String dtNonActive;
+    private String dtNonActive;
     @DatabaseField
-    public String insertedBy;
+    private String insertedBy;
     @DatabaseField
-    public String dtInserted;
+    private String dtInserted;
     @DatabaseField
-    public String updatedby;
+    private String updatedby;
     @DatabaseField
-    public String dtUpdated;
+    private String dtUpdated;
 
     public clsUserLob(){}
 

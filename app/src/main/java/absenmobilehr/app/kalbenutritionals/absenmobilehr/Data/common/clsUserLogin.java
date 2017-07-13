@@ -11,41 +11,41 @@ import java.io.Serializable;
 @DatabaseTable
 public class clsUserLogin implements Serializable{
     @DatabaseField(id = true,columnName = "clsUserLogin")
-    public Integer idUserLogin;
+    private Integer idUserLogin;
     @DatabaseField(columnName = "intCabangId")
-    public String IntCabangID;
+    private String IntCabangID;
     @DatabaseField(columnName = "txtGUI")
-    public String txtGUI;
+    private String txtGUI;
     @DatabaseField(columnName = "txtNameApp")
-    public String txtNameApp;
+    private String txtNameApp;
     @DatabaseField(columnName = "employeeId")
-    public String employeeId;
+    private String employeeId;
     @DatabaseField(columnName = "jabatanId")
-    public String jabatanId;
+    private String jabatanId;
     @DatabaseField(columnName = "jabatanName")
-    public String jabatanName;
+    private String jabatanName;
     @DatabaseField(columnName = "txtKodeCabang")
-    public String txtKodeCabang;
+    private String txtKodeCabang;
     @DatabaseField(columnName = "txtNamaCabang")
-    public String txtNamaCabang;
+    private String txtNamaCabang;
     @DatabaseField(columnName = "txtUserId")
-    public String txtUserID;
+    private String txtUserID;
     @DatabaseField(columnName = "txtUserName")
-    public String txtUserName;
+    private String txtUserName;
     @DatabaseField(columnName = "txtName")
-    public String txtName;
+    private String txtName;
     @DatabaseField(columnName = "txtEmail")
-    public String txtEmail;
+    private String txtEmail;
     @DatabaseField(columnName = "dtLastLogin")
-    public String dtLastLogin;
+    private String dtLastLogin;
     @DatabaseField(columnName = "txtDeviceId")
-    public String txtDeviceId;
+    private String txtDeviceId;
     @DatabaseField(columnName = "dtLogout")
-    public String dtLogOut;
+    private String dtLogOut;
     @DatabaseField(columnName = "txtInsertedBy")
-    public String txtInsertedBy;
+    private String txtInsertedBy;
     @DatabaseField(columnName = "dtInserted")
-    public String dtInserted;
+    private String dtInserted;
 //    public String Property_dbName = new clsUserLogin().getClass().getSimpleName();
     public String Property_dbName = "clsUserLogin";
     public String Property_clsUserLogin = "clsUserLogin";

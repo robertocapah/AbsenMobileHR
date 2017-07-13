@@ -12,15 +12,15 @@ import java.io.Serializable;
 public class clsDeviceInfo implements Serializable {
 
     @DatabaseField(id = true, columnName = "idDevice")
-    public String idDevice;
+    private String idDevice;
     @DatabaseField(columnName = "txtDevice")
-    public String txtDevice;
+    private String txtDevice;
     @DatabaseField(columnName = "txtModel")
-    public String txtModel;
+    private String txtModel;
     @DatabaseField(columnName = "txtUserId")
-    public String txtUserId;
+    private String txtUserId;
     @DatabaseField(columnName = "txtInsertedBy")
-    public String txtInsertedBy;
+    private String txtInsertedBy;
 
     public clsDeviceInfo() {
 

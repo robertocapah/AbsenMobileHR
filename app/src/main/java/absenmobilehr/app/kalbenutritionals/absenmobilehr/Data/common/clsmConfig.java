@@ -9,15 +9,15 @@ import com.j256.ormlite.table.DatabaseTable;
 @DatabaseTable
 public class clsmConfig {
     @DatabaseField(id = true, columnName = "intId")
-    public Integer intId;
+    private Integer intId;
     @DatabaseField(columnName = "txtName")
-    public String txtName;
+    private String txtName;
     @DatabaseField(columnName = "txtValue")
-    public String txtValue;
+    private String txtValue;
     @DatabaseField(columnName = "txtDefaultValue")
-    public String txtDefaultValue;
+    private String txtDefaultValue;
     @DatabaseField(columnName = "intEditAdmin")
-    public Integer intEditAdmin;
+    private Integer intEditAdmin;
 
     public clsmConfig(){
 
