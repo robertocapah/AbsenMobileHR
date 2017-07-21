@@ -27,7 +27,7 @@ public class VolleyUtils {
 //        Dialog.setCancelable(false);
 //        Dialog.show();
         Dialog = ProgressDialog.show(activity, "",
-                progressBarType, true);
+                progressBarType, true); 
         final ProgressDialog finalDialog = Dialog;
         final ProgressDialog finalDialog1 = Dialog;
         StringRequest req = new StringRequest(Request.Method.POST, strLinkAPI, new Response.Listener<String>() {
