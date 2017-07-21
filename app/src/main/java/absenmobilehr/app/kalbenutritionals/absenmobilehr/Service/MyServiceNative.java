@@ -7,13 +7,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.IBinder;
 import android.util.Log;
 
-import com.android.volley.DefaultRetryPolicy;
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -25,6 +20,8 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.VolleyResponseListener;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.VolleyUtils;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.clsHardCode;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.clsHelper;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsAbsenData;
@@ -101,86 +98,18 @@ public class MyServiceNative extends Service{
             _shutdownService();
         }else{
             try {
-                RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
-
-                String strLinkAPI = "http://10.171.11.87/APIEF2/api/PushDataHRMobile/pushData?data={data}";
-                JSONObject resJson = new JSONObject();
-
-                 resJson = dtJson.getDtdataJson().txtJSON();
-                final String mRequestBody = resJson.toString();
-//        String result = new clsHelper().volleyImplement(getApplicationContext(),mRequestBody,strLinkAPI,Login.this);
-//
-                StringRequest myReq = new StringRequest(Request.Method.POST,
-                        strLinkAPI,
-                        createMyReqSuccessListener(),
-                        createMyReqErrorListener()) {
-
+                String strLinkAPI = "http://10.171.11.87/APIEF2/api/PushData/pushData2";
+                new VolleyUtils().makeJsonObjectRequestPushData(getApplicationContext(), strLinkAPI, "", new VolleyResponseListener() {
                     @Override
-                    public byte[] getBody() throws com.android.volley.AuthFailureError {
-                        String str = mRequestBody;
-                        return str.getBytes();
-                    };
+                    public void onError(String message) {
 
-                    public String getBodyContentType()
-                    {
-                        return "application/json; charset=utf-8";
-                    }
-
-                };
-                myReq.setRetryPolicy(new
-                        DefaultRetryPolicy(60000,
-                        DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                        DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
-                queue.add(myReq);
-
-
-                /*new VolleyUtils().makeJsonObjectRequestPushData(this, strLinkAPI, mRequestBody, new VolleyResponseListener() {
-                    @Override
-                    public void onError(String response) {
-                        new clsMainActivity().showCustomToast(getApplicationContext(), response, false);
                     }
 
                     @Override
                     public void onResponse(String response, Boolean status, String strErrorMsg) {
-                        if (response != null) {
-                            try {
-                                JSONObject jsonObject1 = new JSONObject(response);
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-                        }
 
-                        if (!status) {
-                            new clsMainActivity().showCustomToast(getApplicationContext(), strErrorMsg, false);
-                        }
                     }
-                });*/
-
-//                JSONArray JsonArrayResult=new clsHelper().callPushDataReturnJson(versionName,dtJson.getDtdataJson().txtJSON().toString(),dtJson.getFileUpload());
-//                new clsHelperBL().saveDataPush(dtJson.getDtdataJson(),JsonArrayResult);
-
-                /*Iterator iterator = JsonArrayResult.iterator();
-                Boolean flag = true;
-                String errorMess = "";
-                APIData dtAPIDATA = new APIData();
-                while (iterator.hasNext()){
-                    org.json.simple.JSONObject  innerObj = (org.json.simple.JSONObject )iterator.next();
-                    int boolValid = Integer.valueOf(String.valueOf(innerObj.get(dtAPIDATA.boolValid)));
-                    if (boolValid == Integer.valueOf(new clsHardCode().intSuccess)){
-                        new clsHelperBL().deleteDataPush(dtJson.getDtdataJson(), JsonArrayResult);
-                    } else {
-                        flag = false;
-                        errorMess = (String) innerObj.get(dtAPIDATA.strMessage);
-                        break;
-                    }
-                }*/
-
-//				Intent serviceIntent = new Intent(this,MyNotificationService.class);
-//				serviceIntent.putExtra("From", "PUSHDATA");
-//				startService(serviceIntent);
-
-//                startNotification();
-
+                });
             } catch (Exception e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();

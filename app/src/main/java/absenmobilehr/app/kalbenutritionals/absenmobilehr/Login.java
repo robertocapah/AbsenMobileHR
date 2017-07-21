@@ -524,7 +524,7 @@ public class Login extends clsMainActivity {
     public void checkVersion() {
         final ProgressDialog Dialog = new ProgressDialog(Login.this);
         RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
-        String strLinkAPI = "http://10.171.11.87:8010/VisitPlan/API/VisitPlanAPI/CheckVersionApp_J";
+        String strLinkAPI = "http://prm.kalbenutritionals.web.id/VisitPlan/API/VisitPlanAPI/CheckVersionApp_J";
         JSONObject resJson = new JSONObject();
         try {
             resJson.put("TxtVersion", pInfo.versionName);
