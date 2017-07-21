@@ -3,8 +3,10 @@ package absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo;
 import android.content.Context;
 
 import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.stmt.QueryBuilder;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.DatabaseHelper;
@@ -133,5 +135,29 @@ public class clsAbsenDataRepo implements crud {
         num = items.size();
         // return count
         return num;
+    }
+    public List<clsAbsenData> getAllDataToPushData(Context context){
+        QueryBuilder<clsAbsenData, Integer> queryBuilder = null;
+        List<clsAbsenData> data = null;
+        try {
+            data = (List<clsAbsenData>) helper.getUserAbsenDao().queryForAll();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        clsAbsenData dt = new clsAbsenData();
+        List<clsAbsenData> listData = new ArrayList<>();
+
+        if (data.size()>0){
+            try {
+                queryBuilder = helper.getUserAbsenDao().queryBuilder();
+                queryBuilder.where().eq(dt.Property_intSubmit, "1").and().eq(dt.Property_Sync, "0");
+                listData = queryBuilder.query();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+
+        return listData;
     }
 }

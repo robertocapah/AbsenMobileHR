@@ -198,7 +198,7 @@ public class Splash extends AppCompatActivity {
                 boolean checkPermission = checkPermission();
             }  else {
                 StartAnimations();
-//                checkStatusMenu();
+                checkStatusMenu();
             }
         } else {
             StartAnimations();

@@ -2,9 +2,12 @@ package absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo;
 
 import android.content.Context;
 
+import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.QueryBuilder;
+import com.j256.ormlite.stmt.UpdateBuilder;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.DatabaseHelper;
@@ -49,7 +52,37 @@ public class clsTrackingDataRepo implements crud {
 
     @Override
     public int createOrUpdate(Object item) throws SQLException {
-        return 0;
+        int index = -1;
+        clsTrackingData object = (clsTrackingData) item;
+        try {
+            Dao.CreateOrUpdateStatus status = helper.getTrackingDataDao().createOrUpdate(object);
+            index = status.getNumLinesChanged();
+//            index = 1;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return index;
+    }
+    public List<clsTrackingData> getAllDataToPushData(Context context){
+        QueryBuilder<clsTrackingData, Integer> queryBuilder = null;
+        List<clsTrackingData> data = null;
+        try {
+            data = (List<clsTrackingData>) helper.getTrackingDataDao().queryForAll();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        clsTrackingData dt = new clsTrackingData();
+        List<clsTrackingData> listData = new ArrayList<>();
+        if (data.size()>0){
+            try {
+                queryBuilder = helper.getTrackingDataDao().queryBuilder();
+                queryBuilder.where().eq(dt.Property_intSubmit, "1").and().eq(dt.Property_intSync, "0");
+                listData = queryBuilder.query();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return listData;
     }
 
     @Override
@@ -70,5 +103,28 @@ public class clsTrackingDataRepo implements crud {
     @Override
     public List<?> findAll() throws SQLException {
         return null;
+    }
+    public int updateAllRowTracking(){
+        int index = -1;
+        clsTrackingData object = new clsTrackingData();
+        /*object.setIntSync("1");
+        object.setIntSubmit("1");
+        try {
+            index = helper.getTrackingDataDao().update(object);
+        }catch (SQLException e){
+            e.printStackTrace();
+        }*/
+        UpdateBuilder<clsTrackingData, Integer> updateBuilder = null;
+        try {
+            updateBuilder = helper.getTrackingDataDao().updateBuilder();
+            updateBuilder.updateColumnValue(object.Property_intSync,"1");
+            updateBuilder.updateColumnValue(object.Property_intSubmit, "1");
+            index = updateBuilder.update();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+// update the goal_title and goal_why fields
+
+        return index;
     }
 }

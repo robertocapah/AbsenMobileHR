@@ -5,6 +5,7 @@ import android.content.Context;
 import com.j256.ormlite.dao.Dao;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.DatabaseHelper;
@@ -88,6 +89,9 @@ public class clsmVersionAppRepo implements crud  {
         List<clsmVersionApp> items = null;
         try{
             items = helper.getmVersionAppsDao().queryForAll();
+            if (items == null){
+                items = new ArrayList<>();
+            }
         }catch (SQLException e){
             e.printStackTrace();
         }

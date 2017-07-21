@@ -3,6 +3,7 @@ package absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo;
 import android.content.Context;
 
 import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.stmt.QueryBuilder;
 
 import java.sql.SQLException;
 import java.text.DateFormat;
@@ -137,6 +138,27 @@ public class clsUserLoginRepo implements crud {
 
 //        }
         return dataLogin;
+    }
+    public int getContactCount(Context context){
+        clsUserLoginRepo repo = new clsUserLoginRepo(context);
+        int count = 0;
+        try {
+            List<clsUserLogin> data = (List<clsUserLogin>)repo.findAll();
+            count = data.size();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return count;
+    }
+    public List<clsUserLogin> getAllDataToPushData(Context context){
+        QueryBuilder<clsUserLogin, Integer> queryBuilder = null;
+        List<clsUserLogin> data = null;
+        try {
+            data = (List<clsUserLogin>) helper.getUserLoginDao().queryForAll();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return data;
     }
 
 }

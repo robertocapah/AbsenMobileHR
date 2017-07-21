@@ -2,6 +2,7 @@ package absenmobilehr.app.kalbenutritionals.absenmobilehr.Data;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.app.Service;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.DefaultRetryPolicy;
@@ -52,12 +53,53 @@ public class VolleyUtils {
             }
         };
         req.setRetryPolicy(new
-                DefaultRetryPolicy(60000,
+                DefaultRetryPolicy(5000,
                 DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
                 DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
 
         RequestQueue queue = Volley.newRequestQueue(activity.getApplicationContext());
         queue.add(req);
     }
+    public void makeJsonObjectRequestPushData(Service service, String strLinkAPI, final String mRequestBody, final VolleyResponseListener listener) {
+        StringRequest req = new StringRequest(Request.Method.POST, strLinkAPI, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                Boolean status = false;
+                String errorMessage = null;
+                listener.onResponse(response, status, errorMessage);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                listener.onError(error.getMessage());
+            }
+        }) {
+            /*@Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("txtParam", mRequestBody);
+                return params;
+            }*/
+
+            @Override
+            public byte[] getBody() throws AuthFailureError {
+                String str = mRequestBody;
+                return super.getBody();
+            }
+
+            @Override
+            public String getPostBodyContentType() {
+                return "application/json; charset=utf-8";
+            }
+        };
+        req.setRetryPolicy(new
+                DefaultRetryPolicy(30000,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+
+        RequestQueue queue = Volley.newRequestQueue(service.getApplicationContext());
+        queue.add(req);
+    }
+
 
 }

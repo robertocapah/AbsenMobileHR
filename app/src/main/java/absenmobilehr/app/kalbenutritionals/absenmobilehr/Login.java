@@ -1,5 +1,6 @@
 package absenmobilehr.app.kalbenutritionals.absenmobilehr;
 
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -38,6 +39,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
@@ -51,6 +53,8 @@ import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsmVersion
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsDeviceInfoRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsUserLoginRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsmVersionAppRepo;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Service.MyServiceNative;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Service.MyTrackingLocationService;
 
 //import bl.clsHelperBL;
 //import bl.clsMainBL;
@@ -89,9 +93,9 @@ public class Login extends clsMainActivity {
     private String[] arrdefaultBranch = new String[]{"-"};
     private String[] arrdefaultOutlet = new String[]{"-"};
     private static final String TAG = "MainActivity";
-    clsDeviceInfoRepo repoDeviceInfo = null;
-    clsUserLoginRepo repoLogin = null;
-    clsmVersionAppRepo repoVersionApp = null;
+    clsDeviceInfoRepo repoDeviceInfo;
+    clsUserLoginRepo repoLogin;
+    clsmVersionAppRepo repoVersionApp;
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -131,7 +135,8 @@ public class Login extends clsMainActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
-
+        repoDeviceInfo = new clsDeviceInfoRepo(getApplicationContext());
+        repoVersionApp = new clsmVersionAppRepo(getApplicationContext());
         try {
             pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
         } catch (PackageManager.NameNotFoundException e2) {
@@ -271,7 +276,8 @@ public class Login extends clsMainActivity {
                     txtPassword1 = txtLoginPassword.getText().toString();
 //                        AsyncCallLogin task = new AsyncCallLogin();
 //                        task.execute();
-                    userLogin();
+                    List<clsmVersionApp> _clsmVersionApp = new ArrayList<clsmVersionApp>();
+                        userLogin();
                 }
             }
         });
@@ -374,118 +380,145 @@ public class Login extends clsMainActivity {
 //        checkVersion();
     }
 
+    private boolean isMyServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     private void userLogin() {
-        final ProgressDialog Dialog = new ProgressDialog(Login.this);
-        RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
-        txtEmail1 = txtLoginEmail.getText().toString();
-        txtPassword1 = txtLoginPassword.getText().toString();
-        String strLinkAPI = "http://prm.kalbenutritionals.web.id/VisitPlan/API/VisitPlanAPI/LogIn_J";
-//        String nameRole = selectedRole;
-        JSONObject resJson = new JSONObject();
-        List<clsmVersionApp> dataInfo = null;
-        List<clsDeviceInfo> dataDevice = null;
+
+        List<clsmVersionApp> _clsmVersionApp = new ArrayList<>();
         try {
-            dataInfo = (List<clsmVersionApp>) repoVersionApp.findAll();
-            dataDevice = (List<clsDeviceInfo>) repoDeviceInfo.findAll();
+            _clsmVersionApp = (List<clsmVersionApp>) new clsmVersionAppRepo(getApplicationContext()).findAll();
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
-        try {
-            resJson.put("TxtVersion", dataInfo.get(0).getTxtVersion());
-            resJson.put("TxtGUI_mVersionApp", dataInfo.get(0).getTxtGUI());
-            resJson.put("TxtPegawaiID", txtEmail1);
-            resJson.put("TxtPassword", txtPassword1);
-            resJson.put("TxtModel", dataDevice.get(0).getTxtModel());
-            resJson.put("TxtDevice", dataDevice.get(0).getTxtDevice());
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        final String mRequestBody = "[" + resJson.toString() + "]";
-
-        new VolleyUtils().makeJsonObjectRequest(Login.this, strLinkAPI, mRequestBody, "Logging in, please wait !", new VolleyResponseListener() {
-            @Override
-            public void onError(String response) {
-                new clsMainActivity().showCustomToast(getApplicationContext(), response, false);
+        if (_clsmVersionApp.size() > 0){
+            RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
+            txtEmail1 = txtLoginEmail.getText().toString();
+            txtPassword1 = txtLoginPassword.getText().toString();
+            String strLinkAPI = "http://prm.kalbenutritionals.web.id/VisitPlan/API/VisitPlanAPI/LogIn_J";
+//        String nameRole = selectedRole;
+            JSONObject resJson = new JSONObject();
+            List<clsmVersionApp> dataInfo = new ArrayList<>();
+            List<clsDeviceInfo> dataDevice = new ArrayList<>();
+            try {
+                dataInfo = (List<clsmVersionApp>) repoVersionApp.findAll();
+                dataDevice = (List<clsDeviceInfo>) repoDeviceInfo.findAll();
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
 
-            @Override
-            public void onResponse(String response, Boolean status, String strErrorMsg) {
-                if (response != null) {
-                    try {
-                        JSONObject jsonObject1 = new JSONObject(response);
-                        JSONObject jsn = jsonObject1.getJSONObject("validJson");
-                        String warn = jsn.getString("TxtWarn");
-                        String result = jsn.getString("TxtResult");
+            try {
+                resJson.put("TxtVersion", dataInfo.get(0).getTxtVersion());
+                resJson.put("TxtGUI_mVersionApp", dataInfo.get(0).getTxtGUI());
+                resJson.put("TxtPegawaiID", txtEmail1);
+                resJson.put("TxtPassword", txtPassword1);
+                resJson.put("TxtModel", dataDevice.get(0).getTxtModel());
+                resJson.put("TxtDevice", dataDevice.get(0).getTxtDevice());
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
 
-                        if (result.equals("1")) {
-                            JSONObject jsonObject2 = jsn.getJSONObject("TxtData");
-                            JSONObject jsonDataUserLogin = jsonObject2.getJSONObject("UserLogin");
-                            String nameApp = null;
-                            try {
-                                List<clsmVersionApp> appInfo = (List<clsmVersionApp>) repoVersionApp.findAll();
-                                nameApp = appInfo.get(0).getTxtNameApp();
-                            } catch (SQLException e) {
-                                e.printStackTrace();
-                            }
-                            String TxtGUI = jsonDataUserLogin.getString("TxtGUI");
-                            String TxtUserID = jsonDataUserLogin.getString("TxtUserID");
-                            String TxtJabatanID = jsonDataUserLogin.getString("TxtJabatanID");
-                            String TxtJabatanName = jsonDataUserLogin.getString("TxtJabatanName");
-                            String TxtUserName = jsonDataUserLogin.getString("TxtUserName");
-                            String TxtName = jsonDataUserLogin.getString("TxtName");
-                            String TxtEmail = jsonDataUserLogin.getString("TxtEmail");
-                            String TxtEmpID = jsonDataUserLogin.getString("TxtEmpID");
-                            String IntCabangID = jsonDataUserLogin.getString("IntCabangID");
-                            String TxtKodeCabang = jsonDataUserLogin.getString("TxtKodeCabang");
-                            String TxtNamaCabang = jsonDataUserLogin.getString("TxtNamaCabang");
-                            String DtLastLogin = jsonDataUserLogin.getString("DtLastLogin");
-                            String TxtDeviceId = jsonDataUserLogin.getString("TxtDeviceId");
-                            String TxtInsertedBy = jsonDataUserLogin.getString("TxtInsertedBy");
-                            clsUserLogin data = new clsUserLogin();
-                            data.setTxtNameApp(nameApp);
-                            data.setTxtGUI(TxtGUI);
-                            data.setTxtUserID(TxtUserID);
-                            data.setJabatanId(TxtJabatanID);
-                            data.setJabatanName(TxtJabatanName);
-                            data.setIdUserLogin(1);
-                            data.setTxtUserName(TxtUserName);
-                            data.setTxtName(TxtName);
-                            data.setTxtEmail(TxtEmail);
-                            data.setEmployeeId(TxtEmpID);
-                            data.setIntCabangID(IntCabangID);
-                            data.setTxtKodeCabang(TxtKodeCabang);
-                            data.setTxtNamaCabang(TxtNamaCabang);
-                            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                            Calendar cal = Calendar.getInstance();
-                            data.setDtLastLogin(DtLastLogin);
-                            data.setTxtDeviceId(TxtDeviceId);
-                            data.setTxtInsertedBy(TxtInsertedBy);
-                            data.setDtInserted(dateFormat.format(cal.getTime()));
-
-                            repoLogin = new clsUserLoginRepo(getApplicationContext());
-                            int i = 0;
-                            i = repoLogin.createOrUpdate(data);
-                            if (i > -1) {
-                                Log.d("Data info", "Data info berhasil di simpan");
-                                Intent myIntent = new Intent(Login.this, MainMenu.class);
-                                myIntent.putExtra("keyMainMenu", "main_menu");
-                                startActivity(myIntent);
-                            }
-                        } else {
-                            new clsMainActivity().showCustomToast(getApplicationContext(), warn, false);
-                        }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+            final String mRequestBody = "[" + resJson.toString() + "]";
+            new VolleyUtils().makeJsonObjectRequest(Login.this, strLinkAPI, mRequestBody, "Logging in, please wait !", new VolleyResponseListener() {
+                @Override
+                public void onError(String response) {
+                    new clsMainActivity().showCustomToast(getApplicationContext(), response, false);
                 }
+
+                @Override
+                public void onResponse(String response, Boolean status, String strErrorMsg) {
+                    if (response != null) {
+                        try {
+                            JSONObject jsonObject1 = new JSONObject(response);
+                            JSONObject jsn = jsonObject1.getJSONObject("validJson");
+                            String warn = jsn.getString("TxtWarn");
+                            String result = jsn.getString("TxtResult");
+
+                            if (result.equals("1")) {
+                                JSONObject jsonObject2 = jsn.getJSONObject("TxtData");
+                                JSONObject jsonDataUserLogin = jsonObject2.getJSONObject("UserLogin");
+                                String nameApp = null;
+                                try {
+                                    List<clsmVersionApp> appInfo = (List<clsmVersionApp>) repoVersionApp.findAll();
+                                    nameApp = appInfo.get(0).getTxtNameApp();
+                                } catch (SQLException e) {
+                                    e.printStackTrace();
+                                }
+                                String TxtGUI = jsonDataUserLogin.getString("TxtGUI");
+                                String TxtUserID = jsonDataUserLogin.getString("TxtUserID");
+                                String TxtJabatanID = jsonDataUserLogin.getString("TxtJabatanID");
+                                String TxtJabatanName = jsonDataUserLogin.getString("TxtJabatanName");
+                                String TxtUserName = jsonDataUserLogin.getString("TxtUserName");
+                                String TxtName = jsonDataUserLogin.getString("TxtName");
+                                String TxtEmail = jsonDataUserLogin.getString("TxtEmail");
+                                String TxtEmpID = jsonDataUserLogin.getString("TxtEmpID");
+                                String IntCabangID = jsonDataUserLogin.getString("IntCabangID");
+                                String TxtKodeCabang = jsonDataUserLogin.getString("TxtKodeCabang");
+                                String TxtNamaCabang = jsonDataUserLogin.getString("TxtNamaCabang");
+                                String DtLastLogin = jsonDataUserLogin.getString("DtLastLogin");
+                                String TxtDeviceId = jsonDataUserLogin.getString("TxtDeviceId");
+                                String TxtInsertedBy = jsonDataUserLogin.getString("TxtInsertedBy");
+                                clsUserLogin data = new clsUserLogin();
+                                data.setTxtNameApp(nameApp);
+                                data.setTxtGUI(TxtGUI);
+                                data.setTxtUserID(TxtUserID);
+                                data.setJabatanId(TxtJabatanID);
+                                data.setJabatanName(TxtJabatanName);
+                                data.setIdUserLogin(1);
+                                data.setTxtUserName(TxtUserName);
+                                data.setTxtName(TxtName);
+                                data.setTxtEmail(TxtEmail);
+                                data.setEmployeeId(TxtEmpID);
+                                data.setIntCabangID(IntCabangID);
+                                data.setTxtKodeCabang(TxtKodeCabang);
+                                data.setTxtNamaCabang(TxtNamaCabang);
+                                DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                                Calendar cal = Calendar.getInstance();
+                                data.setDtLastLogin(DtLastLogin);
+                                data.setTxtDeviceId(TxtDeviceId);
+                                data.setTxtInsertedBy(TxtInsertedBy);
+                                data.setDtInserted(dateFormat.format(cal.getTime()));
+
+                                repoLogin = new clsUserLoginRepo(getApplicationContext());
+                                int i = 0;
+                                i = repoLogin.createOrUpdate(data);
+                                if (i > -1) {
+                                    Log.d("Data info", "Data info berhasil di simpan");
+                                    startService(new Intent(Login.this, MyTrackingLocationService.class));
+                                    startService(new Intent(Login.this, MyServiceNative.class));
+                                    Intent myIntent = new Intent(Login.this, MainMenu.class);
+                                    myIntent.putExtra("keyMainMenu", "main_menu");
+                                    startActivity(myIntent);
+                                    if (!isMyServiceRunning(MyServiceNative.class)) {
+                                        startService(new Intent(Login.this, MyServiceNative.class));
+                                    }
+                                    boolean tes;
+                                    tes = isMyServiceRunning(MyServiceNative.class);
+                                }
+                            } else {
+                                new clsMainActivity().showCustomToast(getApplicationContext(), warn, false);
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
 //                if(!status){
 //                    new clsMainActivity().showCustomToast(getApplicationContext(), strErrorMsg, false);
 //                }
-            }
-        });
+                }
+            });
+        }else{
+            checkVersion();
+        }
+
     }
 
     public void checkVersion() {
@@ -507,7 +540,9 @@ public class Login extends clsMainActivity {
         new VolleyUtils().makeJsonObjectRequest(Login.this, strLinkAPI, mRequestBody, "Checking Version !", new VolleyResponseListener() {
             @Override
             public void onError(String response) {
-                new clsMainActivity().showCustomToast(getApplicationContext(), response, false);
+                new clsMainActivity().showCustomToast(getApplicationContext(),"Connection Failed, please check your network !", false);
+//                Toast.makeText(getApplicationContext(), "Connection Failed, please check your network !", Toast.LENGTH_SHORT).show();
+//                Log.d("connection failed", response);
             }
 
             @Override
@@ -540,8 +575,6 @@ public class Login extends clsMainActivity {
                             data.setTxtInsertedBy(txtInsertedBy);
                             data.setIdDevice(imeiNumber);
                             data.setTxtModel(android.os.Build.MANUFACTURER + " " + android.os.Build.MODEL);
-                            repoDeviceInfo = new clsDeviceInfoRepo(getApplicationContext());
-                            repoVersionApp = new clsmVersionAppRepo(getApplicationContext());
                             int i = 0;
                             int j = 0;
                             try {
@@ -567,7 +600,9 @@ public class Login extends clsMainActivity {
                     }
                 }
                 if (!status) {
-                    new clsMainActivity().showCustomToast(getApplicationContext(), strErrorMsg, false);
+                    new clsMainActivity().showCustomToast(getApplicationContext(),"Connection Failed, please check your network !", false);
+                }else{
+                    new clsMainActivity().showCustomToast(getApplicationContext(),"Connected, you ready to login", true);
                 }
             }
         });

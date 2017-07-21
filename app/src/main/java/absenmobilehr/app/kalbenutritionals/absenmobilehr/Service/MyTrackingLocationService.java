@@ -98,7 +98,7 @@ public class MyTrackingLocationService extends Service implements GoogleApiClien
             e2.printStackTrace();
         }
         clsHardCode clsdthc = new clsHardCode();
-        db = SQLiteDatabase.openOrCreateDatabase(clsdthc.dbName, null); // create file database
+//        db = SQLiteDatabase.openOrCreateDatabase(clsdthc.dbName, null); // create file database
         clsUserLogin loginData = new clsUserLoginRepo(getApplicationContext()).getDataLogin(getApplicationContext());
 
         if (loginData != null) {
@@ -111,7 +111,7 @@ public class MyTrackingLocationService extends Service implements GoogleApiClien
                 counterData.setTxtDeskripsi("value menunjukan waktu terakhir menjalankan services");
                 counterData.setTxtName("Monitor Service Location");
                 counterData.setTxtValue(dateFormat.format(cal.getTime()));
-                new clsmCounterDataRepo(getApplicationContext()).create(counterData);
+                new clsmCounterDataRepo(getApplicationContext()).createOrUpdate(counterData);
 
                 startRepeatingTask();
                 //new clsInit().PushData(db,versionName);
@@ -120,13 +120,10 @@ public class MyTrackingLocationService extends Service implements GoogleApiClien
                 e1.printStackTrace();
             }
 
-
-//            trackingLocation();
-
         } else {
             shutdownService();
         }
-        db.close();
+//        db.close();
     }
 
     public Location trackingLocation() {
@@ -192,19 +189,22 @@ public class MyTrackingLocationService extends Service implements GoogleApiClien
         clsTrackingData dataLocation = new clsTrackingData();
         clsUserLogin dataUserActive = new clsUserLoginRepo(getApplicationContext()).getDataLogin(getApplicationContext());
         final int index;
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Calendar cal = Calendar.getInstance();
         try {
             index = new clsTrackingDataRepo(getApplicationContext()).getContactCount() + 1;
             if (new clsTrackingDataRepo(getApplicationContext()).getContactCount() == 0) {
                 if (dataUserActive != null) {
-                    dataLocation.setIntId(1);
                     dataLocation.setTxtLongitude(String.valueOf(mLastLocation.getLongitude()));
-                    dataLocation.setTxtLatitude(String.valueOf(mLastLocation.getLongitude()));
+                    dataLocation.setTxtLatitude(String.valueOf(mLastLocation.getLatitude()));
                     dataLocation.setTxtUserId(dataUserActive.getTxtUserID());
                     dataLocation.setTxtUsername(dataUserActive.getTxtUserName());
                     dataLocation.setTxtDeviceId(dataUserActive.getTxtDeviceId());
                     dataLocation.setTxtBranchCode(dataUserActive.getTxtKodeCabang());
                     dataLocation.setTxtNIK(dataUserActive.getEmployeeId());
+                    dataLocation.setGuiIdLogin(dataUserActive.getTxtGUI());
                     dataLocation.setIntSequence(String.valueOf(index));
+                    dataLocation.setTxtTime(dateFormat.format(cal.getTime()));
                     dataLocation.setIntSubmit("1");
                     dataLocation.setIntSync("0");
 
@@ -218,18 +218,23 @@ public class MyTrackingLocationService extends Service implements GoogleApiClien
                 data = Integer.valueOf(datas.get(0).getIntSequence());
 
                 if (dataUserActive != null) {
-                    dataLocation.setIntId(1);
                     dataLocation.setTxtLongitude(String.valueOf(mLastLocation.getLongitude()));
-                    dataLocation.setTxtLatitude(String.valueOf(mLastLocation.getLongitude()));
+                    dataLocation.setTxtLatitude(String.valueOf(mLastLocation.getLatitude()));
                     dataLocation.setTxtUserId(dataUserActive.getTxtUserID());
                     dataLocation.setTxtUsername(dataUserActive.getTxtUserName());
                     dataLocation.setTxtDeviceId(dataUserActive.getTxtDeviceId());
                     dataLocation.setTxtBranchCode(dataUserActive.getTxtKodeCabang());
                     dataLocation.setTxtNIK(dataUserActive.getEmployeeId());
+                    dataLocation.setTxtTime(dateFormat.format(cal.getTime()));
                     dataLocation.setIntSequence(String.valueOf(data + 1));
                     dataLocation.setIntSubmit("1");
                     dataLocation.setIntSync("0");
-                    new clsTrackingDataRepo(getApplicationContext()).create(dataLocation);
+                    try{
+                        new clsTrackingDataRepo(getApplicationContext()).create(dataLocation);
+                    }catch (SQLException e){
+                        e.printStackTrace();
+                    }
+
                 } else {
                     shutdownService();
                 }

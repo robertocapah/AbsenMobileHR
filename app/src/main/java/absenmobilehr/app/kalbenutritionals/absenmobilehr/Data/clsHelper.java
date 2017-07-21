@@ -1,29 +1,36 @@
 package absenmobilehr.app.kalbenutritionals.absenmobilehr.Data;
 
-import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.Context;
-import android.widget.Toast;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.Environment;
+import android.util.Base64;
 
-import com.android.volley.AuthFailureError;
-import com.android.volley.DefaultRetryPolicy;
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.VolleyLog;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
+import org.json.JSONArray;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsAbsenData;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsPushData;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsTrackingData;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsUserLogin;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsmCounterData;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.dataJson;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsAbsenDataRepo;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsTrackingDataRepo;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsUserLoginRepo;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsmCounterDataRepo;
 
 //import cn.pedant.SweetAlert.SweetAlertDialog;
 
@@ -41,7 +48,7 @@ public class clsHelper {
         InputStream myInput = context.getAssets().open(CURRENT_DATABASE_PATH);
 
         // Path to the just created empty db
-        String outFileName = "/data/data/absenmobilehr.app.kalbenutritionals.absenmobilehr/databases/" + _path.dbName;
+        String outFileName = "/sdcard/Android/absenmobilehr.app.kalbenutritionals.absenmobilehr/databases/" + _path.dbName;
 
         //Open the empty db as the output stream
         OutputStream myOutput = new FileOutputStream(outFileName);
@@ -59,7 +66,173 @@ public class clsHelper {
         myInput.close();
 
     }
-    public String volleyImplement(final Context context, final String mRequestBody, String strLinkAPI, Activity activity){
+    public clsPushData pushData(String versionName, Context context){
+        clsPushData dtclsPushData = new clsPushData();
+        dataJson dtPush = new dataJson();
+        clsUserLoginRepo repo = new clsUserLoginRepo(context);
+        HashMap<String, byte[]> FileUpload = null;
+        if (repo.getContactCount(context) > 0) {
+            clsUserLogin dataLogin = repo.getDataLogin(context);
+            dtPush.set_txtVersionApp(versionName);
+            dtPush.set_txtUserId(dataLogin.getTxtUserID());
+//            dtPush.set_txtSessionLoginId(dataLogin.);
+            try {
+                DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+                Calendar cal = Calendar.getInstance();
+                clsmCounterDataRepo _mCounterNumberRepo = new clsmCounterDataRepo(context);
+                clsmCounterData _data = new clsmCounterData();
+                _data.setIntId(enumCounterData.MonitorSchedule.getidCounterData());
+                _data.setTxtDeskripsi("value menunjukan waktu terakhir menjalankan services");
+                _data.setTxtName("Monitor Service");
+                _data.setTxtValue(dateFormat.format(cal.getTime()));
+                _mCounterNumberRepo.createOrUpdate(_data);
+
+                //new clsInit().PushData(db,versionName);
+            } catch (Exception e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            }
+            clsTrackingDataRepo _trackingLocationRepo = new clsTrackingDataRepo(context);
+            clsAbsenDataRepo _clsAbsenDataRepo = new clsAbsenDataRepo(context);
+            clsUserLoginRepo _clsLoginRepo = new clsUserLoginRepo(context);
+            List<clsTrackingData> ListOfTrackingLocation = _trackingLocationRepo.getAllDataToPushData(context);
+            List<clsAbsenData> ListOftAbsenUserData = _clsAbsenDataRepo.getAllDataToPushData(context);
+            List<clsUserLogin> ListOftLoginData  = _clsLoginRepo.getAllDataToPushData(context);
+
+
+            FileUpload = new HashMap<String, byte[]>();
+            if (ListOftAbsenUserData != null) {
+                dtPush.setListOftAbsenUserData(ListOftAbsenUserData);
+                for (clsAbsenData dttAbsenUserData : ListOftAbsenUserData) {
+                    if (dttAbsenUserData.getTxtImg1() != null) {
+                        FileUpload.put("FUAbsen" + dttAbsenUserData.getGuiId() + "-1", dttAbsenUserData.getTxtImg1());
+                    }
+                    if (dttAbsenUserData.getTxtImg2() != null) {
+                        FileUpload.put("FUAbsen" + dttAbsenUserData.getGuiId() + "-2", dttAbsenUserData.getTxtImg2());
+                    }
+                }
+            }
+            if (ListOfTrackingLocation != null){
+                dtPush.setListOfTrackingLocationData(ListOfTrackingLocation);
+            }
+            if (ListOftLoginData != null){
+                dtPush.setListDatatUserLogin(ListOftLoginData);
+            }
+
+        }else {
+            dtPush = null;
+        }
+        dtclsPushData.setDtdataJson(dtPush);
+        dtclsPushData.setFileUpload(FileUpload);
+        return dtclsPushData;
+    }
+
+    public static Bitmap getImage(byte[] image) {
+        return BitmapFactory.decodeByteArray(image, 0, image.length);
+    }
+
+    public String getStringImage(Bitmap bmp){
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bmp.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+        byte[] imageBytes = baos.toByteArray();
+        String encodedImage = Base64.encodeToString(imageBytes, Base64.DEFAULT);
+        return encodedImage;
+    }
+
+    public JSONArray callPushDataReturnJson(String versionName, String strJson, HashMap<String, byte[]> ListOfDataFile)throws Exception {
+        String txtMethod = "PushDataHRMobile";
+//        RequestQueue queue = Volley.newRequestQueue(context);
+        String strLinkAPI = "http://10.171.11.87:8010/VisitPlan/API/VisitPlanAPI/CheckVersionApp_J";
+        /*JSONObject resJson = new JSONObject();
+        try {
+            resJson.put("TxtVersion", pInfo.versionName);
+            resJson.put("TxtNameApp", "Android - Call Plan BR Mobile");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }*/
+        clsHelper _help = new clsHelper();
+        final String mRequestBody = strJson;
+        clsHelper _clsHelper = new clsHelper();
+        final JSONArray[] jsonArray = {new JSONArray()};
+//        String TimeOut = dataAPI.get_txtValue();
+        String JsonData = _help.PushDataWithFile(strLinkAPI, strJson, 5 , ListOfDataFile);
+        /*new VolleyUtils().makeJsonObjectRequestPushData(activity, strLinkAPI, mRequestBody, new VolleyResponseListener() {
+            @Override
+            public void onError(String response) {
+//                new clsMainActivity().showCustomToast(get, response, false);
+            }
+
+            @Override
+            public void onResponse(String response, Boolean status, String strErrorMsg) {
+                if (response != null) {
+                    try {
+                        jsonArray[0] = new JSONArray(response);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });*/
+        return jsonArray[0];
+    }
+    public String PushDataWithFile(String urlToRead,String DataJson,Integer intTimeOut,HashMap<String,byte[]> ListOfDataFile){
+        String charset = "UTF-8";
+
+        String requestURL = urlToRead;
+        String Result="";
+        clsHelper _clsClsHelper = new clsHelper();
+
+        File folder = new File(Environment.getExternalStorageDirectory().toString() + "/data/data/Kalbespgmobile2/tempdata");
+        folder.mkdir();
+
+        try {
+            MultipartUtility multipart = new MultipartUtility(requestURL, charset,intTimeOut);
+
+            //multipart.addHeaderField("User-Agent", "CodeJava");
+            //multipart.addHeaderField("DataHeader", DataJson);
+
+            multipart.addFormField("dataField",DataJson);
+            //multipart.addFormField("keywords", "Java,upload,Spring");
+
+            for(Map.Entry<String, byte[]> entry : ListOfDataFile.entrySet()) {
+                String key = entry.getKey();
+//                String value = entry.getValue();
+
+                byte [] array = entry.getValue();
+                File file = File.createTempFile("image-", ".jpg", new File(Environment.getExternalStorageDirectory().toString() + "/data/data/Kalbespgmobile2/tempdata"));
+                FileOutputStream out = new FileOutputStream( file );
+                out.write( array );
+                out.close();
+
+                multipart.addFilePart(key, new File(file.getAbsolutePath()));
+            }
+            List<String> response = multipart.finish();
+            //System.out.println("SERVER REPLIED:");
+
+            for (String line : response) {
+                Result+=line;
+                System.out.println(line);
+            }
+        } catch (IOException ex) {
+            System.err.println(ex);
+        }
+
+        if (folder.isDirectory())
+        {
+            String[] children = folder.list();
+            for (int i = 0; i < children.length; i++)
+            {
+                new File(folder, children[i]).delete();
+            }
+            folder.delete();
+        }
+
+        return _clsClsHelper.ResultJsonData(Result);
+    }
+    public String ResultJsonData(String dt){
+        return dt.substring(16,dt.length()-2);
+    }
+    /*public String volleyImplement(final Context context, final String mRequestBody, String strLinkAPI, Activity activity){
         RequestQueue queue = Volley.newRequestQueue(context);
         final String[] ret = {null};
         final ProgressDialog Dialog = new ProgressDialog(activity);
@@ -75,7 +248,7 @@ public class clsHelper {
 
                         String result = jsonObject2.getString("TxtResult");
                         String txtWarn = jsonObject2.getString("TxtWarn");
-                        /*if (result.equals("1")){
+                        *//*if (result.equals("1")){
                             JSONObject jsonObject3 = jsonObject2.getJSONObject("TxtData");
                             String txtGUI = jsonObject3.getString("TxtGUI");
                             String txtNameApp = jsonObject3.getString("TxtNameApp");
@@ -108,7 +281,7 @@ public class clsHelper {
                             }
                         }else{
                             Toast.makeText(context, txtWarn, Toast.LENGTH_SHORT).show();
-                        }*/
+                        }*//*
 
 
 //                        for (int i = 0; i < jsonArray.length(); i++) {
@@ -142,7 +315,9 @@ public class clsHelper {
                 DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         queue.add(req);
         return ret[0];
-    }
+    }*/
+
+
 
 
 }

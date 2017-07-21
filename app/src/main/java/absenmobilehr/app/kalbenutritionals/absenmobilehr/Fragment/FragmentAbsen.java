@@ -65,6 +65,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.bl.clsMainBL;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.clsHardCode;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsAbsenData;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsDeviceInfo;
@@ -395,7 +396,7 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
                 if (_clsAbsenData == null) {
                     _clsAbsenData = new clsAbsenData();
                 }
-                _clsAbsenData.setIntId(txtHDId.getText().toString());
+                _clsAbsenData.setGuiId(txtHDId.getText().toString());
                 _clsAbsenData.setIntSubmit("0");
                 _clsAbsenData.setSync("0");
                 _clsAbsenData.setTxtAbsen("0");
@@ -423,7 +424,7 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
                 if (_clsAbsenData == null) {
                     _clsAbsenData = new clsAbsenData();
                 }
-                _clsAbsenData.setIntId(txtHDId.getText().toString());
+                _clsAbsenData.setGuiId(txtHDId.getText().toString());
                 _clsAbsenData.setIntSubmit("0");
                 _clsAbsenData.setSync("0");
                 _clsAbsenData.setTxtAbsen("0");
@@ -468,7 +469,7 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
             }
 
 
-            txtHDId.setText(_clsAbsenData.getIntId());
+            txtHDId.setText(_clsAbsenData.getGuiId());
             lblLang.setText(_clsAbsenData.getTxtLatitude());
             lblLong.setText(_clsAbsenData.getTxtLongitude());
 
@@ -564,7 +565,8 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
                                             DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                                             Calendar cal = Calendar.getInstance();
                                             datatAbsenUserData.setDtCheckin(dateFormat.format(cal.getTime()));
-                                            datatAbsenUserData.setIntId(txtHDId.getText().toString());
+//                                            datatAbsenUserData.setIntId(txtHDId.getText().toString());
+                                            datatAbsenUserData.setGuiId(new clsMainBL().GenerateGuid());
                                             datatAbsenUserData.setIntSubmit("1");
                                             datatAbsenUserData.setSync("0");
                                             datatAbsenUserData.setTxtAbsen("0");
@@ -572,6 +574,7 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
                                             datatAbsenUserData.setTxtLongitude(lblLong.getText().toString());
                                             datatAbsenUserData.setTxtDeviceId(dataDeviceInfoUser.getTxtDevice());
                                             datatAbsenUserData.setTxtUserId(idUserActive);
+                                            datatAbsenUserData.setTxtGuiIdLogin(dataUserActive.getTxtGUI());
                                             datatAbsenUserData.setDtCheckout(null);
                                             try {
                                                 new clsAbsenDataRepo(context).createOrUpdate(datatAbsenUserData);
@@ -912,7 +915,7 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
             } else {
                 _clsAbsenData.setTxtImg1(pht);
 //                dttAbsenUserData.set_txtImg2(null);
-                _clsAbsenData.setIntId(txtHDId.getText().toString());
+                _clsAbsenData.setGuiId(txtHDId.getText().toString());
             }
             _clsAbsenData.setIntSubmit("0");
             _clsAbsenData.setSync("0");
@@ -961,7 +964,7 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
             } else {
                 _clsAbsenData.setTxtImg1(null);
                 _clsAbsenData.setTxtImg2(pht);
-                _clsAbsenData.setIntId(txtHDId.getText().toString());
+                _clsAbsenData.setGuiId(txtHDId.getText().toString());
             }
             _clsAbsenData.setIntSubmit("1");
             _clsAbsenData.setSync("0");

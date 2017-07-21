@@ -9,8 +9,10 @@ import java.io.Serializable;
  */
 
 public class clsTrackingData implements Serializable {
-    @DatabaseField(id = true, columnName = "intId",generatedId = true)
+    @DatabaseField(columnName = "intId",generatedId = true, allowGeneratedIdInsert=true)
     private Integer intId;
+    @DatabaseField(columnName = "GuiIdLogin")
+    private String GuiIdLogin;
     @DatabaseField(columnName = "txtLongitude")
     private String txtLongitude;
     @DatabaseField(columnName = "txtLatitude")
@@ -37,6 +39,7 @@ public class clsTrackingData implements Serializable {
     public clsTrackingData(){}
 
     public String Property_intId = "intId";
+    public String Property_GuiIdLogin = "GuiIdLogin";
     public String Property_txtLongitude = "txtLongitude";
     public String Property_txtLatitude = "txtLatitude";
     public String Property_txtTime = "txtTime";
@@ -61,6 +64,14 @@ public class clsTrackingData implements Serializable {
             Property_intSequence + "," +
             Property_intSubmit + "," +
             Property_intSync;
+
+    public String getGuiIdLogin() {
+        return GuiIdLogin;
+    }
+
+    public void setGuiIdLogin(String guiIdLogin) {
+        GuiIdLogin = guiIdLogin;
+    }
 
     public Integer getIntId() {
         return intId;

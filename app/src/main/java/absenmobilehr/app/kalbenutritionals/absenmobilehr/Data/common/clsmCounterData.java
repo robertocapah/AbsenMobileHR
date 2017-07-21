@@ -9,7 +9,7 @@ import java.io.Serializable;
  */
 
 public class clsmCounterData implements Serializable {
-    @DatabaseField(id = true, columnName = "intId",generatedId = true)
+    @DatabaseField(columnName = "intId",id = true)
     private int intId;
     @DatabaseField(columnName = "txtName")
     private String txtName;

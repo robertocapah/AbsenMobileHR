@@ -12,7 +12,9 @@ import java.io.Serializable;
 @DatabaseTable
 public class clsAbsenData implements Serializable {
     @DatabaseField(id = true, columnName = "intId")
-    private String intId;
+    private String txtGuiId;
+    @DatabaseField(columnName = "txtGuiIdLogin")
+    private String txtGuiIdLogin;
     @DatabaseField(columnName = "dtCheckin")
     private String dtCheckin;
     @DatabaseField(columnName = "dtCheckout")
@@ -36,7 +38,8 @@ public class clsAbsenData implements Serializable {
     @DatabaseField(columnName = "txtUserId")
     private String txtUserId;
 
-    public String Property_intId = "intId";
+    public String Property_txtGuiId = "txtGuiId";
+    public String Property_GuiIdLogin = "GuiIdLogin";
     public String Property_dtCheckin = "dtCheckin";
     public String Property_dtCheckout = "dtCheckout";
     public String Property_intSubmit = "intSubmit";
@@ -48,7 +51,8 @@ public class clsAbsenData implements Serializable {
     public String Property_txtImg1 = "txtImg1";
     public String Property_txtImg2 = "txtImg2";
     public String Property_txtUserId = "txtUserId";
-    public String Property_All=Property_intId +","+
+    public String Property_ListOftAbsenUser = "ListOftAbsenUser";
+    public String Property_All=Property_txtGuiId +","+
             Property_dtCheckin +","+
             Property_dtCheckout +","+
             Property_intSubmit +","+
@@ -63,12 +67,20 @@ public class clsAbsenData implements Serializable {
 
     public clsAbsenData(){}
 
-    public String getIntId() {
-        return intId;
+    public String getGuiId() {
+        return txtGuiId;
     }
 
-    public void setIntId(String intId) {
-        this.intId = intId;
+    public void setGuiId(String intId) {
+        this.txtGuiId = intId;
+    }
+
+    public String getTxtGuiIdLogin() {
+        return txtGuiIdLogin;
+    }
+
+    public void setTxtGuiIdLogin(String txtGuiIdLogin) {
+        this.txtGuiIdLogin = txtGuiIdLogin;
     }
 
     public String getDtCheckin() {

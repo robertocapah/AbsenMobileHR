@@ -76,6 +76,12 @@ public class clsmConfigRepo {
         helper.getmConfigDao().createOrUpdate(data6);
 
     }
+    /*public String getLIVE(Context context){
+        String txtLinkAPI="";
+        clsmConfigRepo
+
+        return txtLinkAPI;
+    }*/
 
     public List<clsmConfig> findByName(String name) throws SQLException {
         List<clsmConfig> items = null;

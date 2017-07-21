@@ -43,7 +43,7 @@ public class clsMainBL {
             e.printStackTrace();
         }
         for (clsUserLogin data : listData){
-                if (data.dtLastLogin.equals(now)){
+                if (data.getDtLastLogin().equals(now)){
                     _clsStatusMenuStart.set_intStatus(enumStatusMenuStart.UserActiveLogin);
                 }
             }

@@ -2,6 +2,8 @@ package absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo;
 
 import android.content.Context;
 
+import com.j256.ormlite.dao.Dao;
+
 import java.sql.SQLException;
 import java.util.List;
 
@@ -33,7 +35,16 @@ public class clsmCounterDataRepo implements crud {
 
     @Override
     public int createOrUpdate(Object item) throws SQLException {
-        return 0;
+        int index = -1;
+        clsmCounterData object = (clsmCounterData) item;
+        try {
+            Dao.CreateOrUpdateStatus status = helper.getCounterDataDao().createOrUpdate(object);
+            index = status.getNumLinesChanged();
+//            index = 1;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return index;
     }
 
     @Override

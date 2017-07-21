@@ -65,6 +65,8 @@ public class clsUserLogin implements Serializable{
     public String Property_dtLastLogin = "dtLastLogin";
     public String Property_txtDeviceId = "txtDeviceId";
     public String Property_dtLogout = "dtLogout";
+    public String Property_listOfUserLogin = "listOfUserLogin";
+
     public String Property_All=Property_clsUserLogin +","+
             Property_intCabangId +","+
             Property_txtGUI +","+

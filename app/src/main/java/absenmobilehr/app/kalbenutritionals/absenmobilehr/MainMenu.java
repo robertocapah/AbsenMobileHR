@@ -56,6 +56,8 @@ import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsUserLoginR
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsmVersionAppRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Fragment.FragmentAbsen;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Fragment.FragmentInformation;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Service.MyServiceNative;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Service.MyTrackingLocationService;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 public class MainMenu extends AppCompatActivity implements View.OnClickListener {
@@ -89,6 +91,13 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         selectedId = 0;
+
+        Intent serviceIntentMyServiceNative = new Intent(getApplicationContext(), MyServiceNative.class);
+        getApplicationContext().startService(serviceIntentMyServiceNative);
+
+        Intent serviceIntentMyTrackingLocationService = new Intent(getApplicationContext(), MyTrackingLocationService.class);
+        getApplicationContext().startService(serviceIntentMyTrackingLocationService);
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
             getWindow().setStatusBarColor(getResources().getColor(R.color.primary_color_theme));
@@ -173,8 +182,8 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int id) {
                                         logout();
-//                                        stopService(new Intent(getApplicationContext(), MyServiceNative.class));
-//                                        stopService(new Intent(getApplicationContext(), MyTrackingLocationService.class));
+                                        stopService(new Intent(getApplicationContext(), MyServiceNative.class));
+                                        stopService(new Intent(getApplicationContext(), MyTrackingLocationService.class));
 //                                        AsyncCallLogOut task = new AsyncCallLogOut();
 //                                        task.execute();
                                         //new clsHelperBL().DeleteAllDB();
@@ -228,6 +237,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
 
                                         if (dataAbsen != null) {
                                             dataAbsen.setDtCheckout(_clsMainActivity.FormatDateDB().toString());
+                                            dataAbsen.setSync("0");
                                             try {
                                                 new clsAbsenDataRepo(getApplicationContext()).update(dataAbsen);
                                             } catch (SQLException e) {
