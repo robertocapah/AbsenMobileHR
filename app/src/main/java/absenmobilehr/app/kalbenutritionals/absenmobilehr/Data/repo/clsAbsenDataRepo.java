@@ -4,6 +4,7 @@ import android.content.Context;
 
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.QueryBuilder;
+import com.j256.ormlite.stmt.UpdateBuilder;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -159,5 +160,28 @@ public class clsAbsenDataRepo implements crud {
 
 
         return listData;
+    }
+    public int updateAllRowAbsen(){
+        int index = -1;
+        clsAbsenData object = new clsAbsenData();
+        /*object.setIntSync("1");
+        object.setIntSubmit("1");
+        try {
+            index = helper.getTrackingDataDao().update(object);
+        }catch (SQLException e){
+            e.printStackTrace();
+        }*/
+        UpdateBuilder<clsAbsenData, Integer> updateBuilder = null;
+        try {
+            updateBuilder = helper.getUserAbsenDao().updateBuilder();
+            updateBuilder.updateColumnValue(object.Property_Sync,"1");
+            updateBuilder.updateColumnValue(object.Property_intSubmit, "1");
+            index = updateBuilder.update();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+// update the goal_title and goal_why fields
+
+        return index;
     }
 }

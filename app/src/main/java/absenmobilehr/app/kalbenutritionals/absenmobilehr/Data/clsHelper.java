@@ -105,10 +105,10 @@ public class clsHelper {
                 dtPush.setListOftAbsenUserData(ListOftAbsenUserData);
                 for (clsAbsenData dttAbsenUserData : ListOftAbsenUserData) {
                     if (dttAbsenUserData.getTxtImg1() != null) {
-                        FileUpload.put("FUAbsen" + dttAbsenUserData.getGuiId() + "-1", dttAbsenUserData.getTxtImg1());
+                        FileUpload.put("FUAbsen-1", dttAbsenUserData.getTxtImg1());
                     }
                     if (dttAbsenUserData.getTxtImg2() != null) {
-                        FileUpload.put("FUAbsen" + dttAbsenUserData.getGuiId() + "-2", dttAbsenUserData.getTxtImg2());
+                        FileUpload.put("FUAbsen-2", dttAbsenUserData.getTxtImg2());
                     }
                 }
             }

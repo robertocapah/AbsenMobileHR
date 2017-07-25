@@ -2,7 +2,9 @@ package absenmobilehr.app.kalbenutritionals.absenmobilehr;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.ActivityManager;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -86,18 +88,26 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
 
     String i_view = null;
     Intent intent;
-
+    private boolean isMyServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         selectedId = 0;
 
-        Intent serviceIntentMyServiceNative = new Intent(getApplicationContext(), MyServiceNative.class);
-        getApplicationContext().startService(serviceIntentMyServiceNative);
-
-        Intent serviceIntentMyTrackingLocationService = new Intent(getApplicationContext(), MyTrackingLocationService.class);
-        getApplicationContext().startService(serviceIntentMyTrackingLocationService);
-
+        if (!isMyServiceRunning(MyServiceNative.class)) {
+            startService(new Intent(MainMenu.this, MyServiceNative.class));
+        }
+        if (!isMyServiceRunning(MyTrackingLocationService.class)) {
+            startService(new Intent(MainMenu.this, MyTrackingLocationService.class));
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
             getWindow().setStatusBarColor(getResources().getColor(R.color.primary_color_theme));
@@ -182,8 +192,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int id) {
                                         logout();
-                                        stopService(new Intent(getApplicationContext(), MyServiceNative.class));
-                                        stopService(new Intent(getApplicationContext(), MyTrackingLocationService.class));
+
 //                                        AsyncCallLogOut task = new AsyncCallLogOut();
 //                                        task.execute();
                                         //new clsHelperBL().DeleteAllDB();
@@ -311,7 +320,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         final ProgressDialog Dialog = new ProgressDialog(MainMenu.this);
         RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
 
-        String strLinkAPI = "http://10.171.10.30/KN2015_PRM_V2.WEB/VisitPlan/API/VisitPlanAPI/LogOut_J";
+        String strLinkAPI = "http://prm.kalbenutritionals.web.id/VisitPlan/API/VisitPlanAPI/LogOut_J";
 //        String nameRole = selectedRole;
         final JSONObject resJson = new JSONObject();
 
@@ -343,10 +352,13 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                         if (result.equals("1")){
 //                            new DatabaseHelper(getApplicationContext()).clearDataAfterLogout();
                             DatabaseHelper helper = DatabaseManager.getInstance().getHelper();
+                            stopService(new Intent(getApplicationContext(), MyTrackingLocationService.class));
                             helper.clearDataAfterLogout();
 //                            helper.close();
+                            finish();
                             Intent nextScreen = new Intent(MainMenu.this, Splash.class);
                             startActivity(nextScreen);
+
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();

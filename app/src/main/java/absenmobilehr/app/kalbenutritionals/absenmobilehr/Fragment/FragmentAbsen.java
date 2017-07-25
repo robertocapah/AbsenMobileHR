@@ -257,7 +257,7 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
     @Override
     public View onCreateView(LayoutInflater inflater, final ViewGroup container, Bundle savedInstanceState) {
         v = inflater.inflate(R.layout.activity_absen, container, false);
-
+        final String GuiID = new clsMainBL().GenerateGuid();
         txtHDId = (TextView) v.findViewById(R.id.txtHDId);
         btnRefreshMaps = (Button) v.findViewById(R.id.btnRefreshMaps);
         btnCheckIn = (Button) v.findViewById(R.id.buttonCheckIn);
@@ -396,7 +396,7 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
                 if (_clsAbsenData == null) {
                     _clsAbsenData = new clsAbsenData();
                 }
-                _clsAbsenData.setGuiId(txtHDId.getText().toString());
+                _clsAbsenData.setGuiId(GuiID);
                 _clsAbsenData.setIntSubmit("0");
                 _clsAbsenData.setSync("0");
                 _clsAbsenData.setTxtAbsen("0");
@@ -424,7 +424,7 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
                 if (_clsAbsenData == null) {
                     _clsAbsenData = new clsAbsenData();
                 }
-                _clsAbsenData.setGuiId(txtHDId.getText().toString());
+                _clsAbsenData.setGuiId(GuiID);
                 _clsAbsenData.setIntSubmit("0");
                 _clsAbsenData.setSync("0");
                 _clsAbsenData.setTxtAbsen("0");
@@ -566,7 +566,7 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
                                             Calendar cal = Calendar.getInstance();
                                             datatAbsenUserData.setDtCheckin(dateFormat.format(cal.getTime()));
 //                                            datatAbsenUserData.setIntId(txtHDId.getText().toString());
-                                            datatAbsenUserData.setGuiId(new clsMainBL().GenerateGuid());
+                                            datatAbsenUserData.setGuiId(GuiID);
                                             datatAbsenUserData.setIntSubmit("1");
                                             datatAbsenUserData.setSync("0");
                                             datatAbsenUserData.setTxtAbsen("0");
@@ -920,11 +920,11 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
             _clsAbsenData.setIntSubmit("0");
             _clsAbsenData.setSync("0");
             _clsAbsenData.setTxtAbsen("0");
-            try {
+            /*try {
                 new clsAbsenDataRepo(context).createOrUpdate(_clsAbsenData);
             } catch (SQLException e) {
                 e.printStackTrace();
-            }
+            }*/
 
         } catch (NullPointerException e) {
             e.printStackTrace();

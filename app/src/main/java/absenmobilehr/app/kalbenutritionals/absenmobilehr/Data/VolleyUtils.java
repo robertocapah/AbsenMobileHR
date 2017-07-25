@@ -6,7 +6,6 @@ import android.content.Context;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.DefaultRetryPolicy;
-import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -14,11 +13,12 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
+import org.json.JSONException;
+
 import java.util.HashMap;
 import java.util.Map;
 
-import absenmobilehr.app.kalbenutritionals.absenmobilehr.R;
-import addons.volley.AppHelper;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsPushData;
 import addons.volley.VolleyMultipartRequest;
 
 /**
@@ -65,11 +65,11 @@ public class VolleyUtils {
         RequestQueue queue = Volley.newRequestQueue(activity.getApplicationContext());
         queue.add(req);
     }
-    public void makeJsonObjectRequestPushData(final Context ctx, String strLinkAPI, final String mRequestBody, final VolleyResponseListener listener) {
+    public void makeJsonObjectRequestPushData(final Context ctx, String strLinkAPI, final clsPushData mRequestBody, final VolleyResponseListener listener) {
 
-        VolleyMultipartRequest multipartRequest = new VolleyMultipartRequest(Request.Method.POST, strLinkAPI, new Response.Listener<NetworkResponse>() {
+        VolleyMultipartRequest multipartRequest = new VolleyMultipartRequest(Request.Method.POST, strLinkAPI, new Response.Listener<String>() {
             @Override
-            public void onResponse(NetworkResponse response) {
+            public void onResponse(String response) {
                 Boolean status = false;
                 String errorMessage = null;
                 listener.onResponse(response.toString(), status, errorMessage);
@@ -83,11 +83,11 @@ public class VolleyUtils {
             @Override
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
-                params.put("api_token", "gh659gjhvdyudo973823tt9gvjf7i6ric75r76");
-                params.put("name", "Angga");
-                params.put("location", "Indonesia");
-                params.put("about", "UI/UX Designer");
-                params.put("contact", "angga@email.com");
+                try {
+                    params.put("txtParams", mRequestBody.getDtdataJson().txtJSON().toString());
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
                 return params;
             }
 
@@ -96,13 +96,18 @@ public class VolleyUtils {
                 Map<String, DataPart> params = new HashMap<>();
                 // file name could found file base or direct access from real path
                 // for now just get bitmap data from ImageView
-                params.put("avatar", new DataPart("file_avatar.jpg", AppHelper.getFileDataFromDrawable(ctx, R.drawable.ic_alert), "image/jpeg"));
+                if (mRequestBody.getFileUpload().get("FUAbsen-1") != null){
+                    params.put("image1", new DataPart("file_image1.jpg", mRequestBody.getFileUpload().get("FUAbsen-1"), "image/jpeg"));
+                }
+                if (mRequestBody.getFileUpload().get("FUAbsen-2") != null){
+                    params.put("image2", new DataPart("file_image2.jpg", mRequestBody.getFileUpload().get("FUAbsen-2"), "image/jpeg"));
+                }
 
                 return params;
             }
         };
         multipartRequest.setRetryPolicy(new
-                DefaultRetryPolicy(5000,
+                DefaultRetryPolicy(500000,
                 DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
                 DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
 

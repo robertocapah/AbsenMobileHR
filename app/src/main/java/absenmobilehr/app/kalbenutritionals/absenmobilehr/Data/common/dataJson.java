@@ -1,7 +1,5 @@
 package absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common;
 
-import android.graphics.Bitmap;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -9,8 +7,6 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
-import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.clsHelper;
 
 /**
  * Created by Robert on 14/07/2017.
@@ -100,7 +96,8 @@ public class dataJson {
             itemsListJquey = new ArrayList<JSONObject>();
             for (clsTrackingData data : this.getListOfTrackingLocationData()){
                 JSONObject item1 = new JSONObject();
-                item1.put(dtTrackingLocationData.Property_intId, String.valueOf(data.getIntId()));
+                item1.put(dtTrackingLocationData.Property_GuiID, String.valueOf(data.getGuiId()));
+                item1.put(dtTrackingLocationData.Property_GuiIdLogin, String.valueOf(data.getGuiIdLogin()));
                 item1.put(dtTrackingLocationData.Property_txtLongitude, String.valueOf(data.getTxtLongitude()));
                 item1.put(dtTrackingLocationData.Property_txtLatitude, String.valueOf(data.getTxtLatitude()));
                 item1.put(dtTrackingLocationData.Property_txtTime, String.valueOf(data.getTxtTime()));
@@ -133,7 +130,7 @@ public class dataJson {
                 item1.put(dttAbsenUserData.Property_txtDeviceId, String.valueOf(data.getTxtDeviceId()));
                 String img1 = "null";
                 String img2 = "null";
-                if (data.getTxtImg1()!= null){
+                /*if (data.getTxtImg1()!= null){
                     Bitmap bmp1 = new clsHelper().getImage(data.getTxtImg1());
                     img1 = new clsHelper().getStringImage(bmp1);
 
@@ -142,7 +139,7 @@ public class dataJson {
                     Bitmap bmp2 = new clsHelper().getImage(data.getTxtImg2());
                     img2 = new clsHelper().getStringImage(bmp2);
 
-                }
+                }*/
                 item1.put(dttAbsenUserData.Property_txtImg2, String.valueOf(img2));
                 item1.put(dttAbsenUserData.Property_txtImg1, String.valueOf(img1));
                 itemsListJquey.add(item1);
@@ -150,25 +147,25 @@ public class dataJson {
             resJson.put(dttAbsenUserData.Property_ListOftAbsenUser, new JSONArray(itemsListJquey));
         }
         if ( this.getListDatatUserLogin() != null){
-            clsUserLogin dttAbsenUserData = new clsUserLogin();
+            clsUserLogin dttUserLogin = new clsUserLogin();
             itemsListJquey = new ArrayList<JSONObject>();
             for (clsUserLogin data : this.getListDatatUserLogin()) {
                 JSONObject item1 = new JSONObject();
-                item1.put(dttAbsenUserData.Property_txtGUI, String.valueOf(data.getTxtGUI()));
-                item1.put(dttAbsenUserData.Property_employeeId, String.valueOf(data.getEmployeeId()));
-                item1.put(dttAbsenUserData.Property_jabatanId, String.valueOf(data.getJabatanId()));
-                item1.put(dttAbsenUserData.Property_jabatanName, String.valueOf(data.getJabatanName()));
-                item1.put(dttAbsenUserData.Property_txtName, String.valueOf(data.getTxtName()));
-                item1.put(dttAbsenUserData.Property_txtUserName, String.valueOf(data.getTxtUserName()));
-                item1.put(dttAbsenUserData.Property_cabangId, String.valueOf(data.getIntCabangID()));
-                item1.put(dttAbsenUserData.Property_txtNamaCabang, String.valueOf(data.getTxtNamaCabang()));
-                item1.put(dttAbsenUserData.Property_dtLastLogin, String.valueOf(data.getDtLastLogin()));
-                item1.put(dttAbsenUserData.Property_txtDeviceId, String.valueOf(data.getTxtDeviceId()));
-                item1.put(dttAbsenUserData.Property_txtUserId, String.valueOf(data.getTxtUserID()));
-                item1.put(dttAbsenUserData.Property_txtEmail, String.valueOf(data.getTxtEmail()));
+                item1.put(dttUserLogin.Property_txtGUI, String.valueOf(data.getTxtGUI()));
+                item1.put(dttUserLogin.Property_employeeId, String.valueOf(data.getEmployeeId()));
+                item1.put(dttUserLogin.Property_jabatanId, String.valueOf(data.getJabatanId()));
+                item1.put(dttUserLogin.Property_jabatanName, String.valueOf(data.getJabatanName()));
+                item1.put(dttUserLogin.Property_txtName, String.valueOf(data.getTxtName()));
+                item1.put(dttUserLogin.Property_txtUserName, String.valueOf(data.getTxtUserName()));
+                item1.put(dttUserLogin.Property_cabangId, String.valueOf(data.getIntCabangID()));
+                item1.put(dttUserLogin.Property_txtNamaCabang, String.valueOf(data.getTxtNamaCabang()));
+                item1.put(dttUserLogin.Property_dtLastLogin, String.valueOf(data.getDtLastLogin()));
+                item1.put(dttUserLogin.Property_txtDeviceId, String.valueOf(data.getTxtDeviceId()));
+                item1.put(dttUserLogin.Property_txtUserId, String.valueOf(data.getTxtUserID()));
+                item1.put(dttUserLogin.Property_txtEmail, String.valueOf(data.getTxtEmail()));
                 itemsListJquey.add(item1);
             }
-            resJson.put(dttAbsenUserData.Property_listOfUserLogin, new JSONArray(itemsListJquey));
+            resJson.put(dttUserLogin.Property_listOfUserLogin, new JSONArray(itemsListJquey));
         }
         resJson.put(Property_intResult, getIntResult());
         resJson.put(Property_txtDescription, getTxtDescription());

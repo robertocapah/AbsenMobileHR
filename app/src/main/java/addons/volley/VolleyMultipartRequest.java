@@ -25,31 +25,14 @@ import java.util.Map;
  * Sketch Project Studio
  * Created by Angga on 27/04/2016 12.05.
  */
-public class VolleyMultipartRequest extends Request<NetworkResponse> {
+public class VolleyMultipartRequest extends Request<String> {
     private final String twoHyphens = "--";
     private final String lineEnd = "\r\n";
     private final String boundary = "apiclient-" + System.currentTimeMillis();
 
-    private Response.Listener<NetworkResponse> mListener;
+    private Response.Listener<String> mListener;
     private Response.ErrorListener mErrorListener;
     private Map<String, String> mHeaders;
-
-    /**
-     * Default constructor with predefined header and post method.
-     *
-     * @param url           request destination
-     * @param headers       predefined custom header
-     * @param listener      on success achieved 200 code from request
-     * @param errorListener on error http or library timeout
-     */
-    public VolleyMultipartRequest(String url, Map<String, String> headers,
-                                  Response.Listener<NetworkResponse> listener,
-                                  Response.ErrorListener errorListener) {
-        super(Method.POST, url, errorListener);
-        this.mListener = listener;
-        this.mErrorListener = errorListener;
-        this.mHeaders = headers;
-    }
 
     /**
      * Constructor with option method and default header configuration.
@@ -60,7 +43,7 @@ public class VolleyMultipartRequest extends Request<NetworkResponse> {
      * @param errorListener on error event handler
      */
     public VolleyMultipartRequest(int method, String url,
-                                  Response.Listener<NetworkResponse> listener,
+                                  Response.Listener<String> listener,
                                   Response.ErrorListener errorListener) {
         super(method, url, errorListener);
         this.mListener = listener;
@@ -89,11 +72,12 @@ public class VolleyMultipartRequest extends Request<NetworkResponse> {
                 textParse(dos, params, getParamsEncoding());
             }
 
-            // populate data byte payload
             Map<String, DataPart> data = getByteData();
             if (data != null && data.size() > 0) {
                 dataParse(dos, data);
             }
+            // populate data byte payload
+
 
             // close multipart form data after text and file data
             dos.writeBytes(twoHyphens + boundary + twoHyphens + lineEnd);
@@ -116,18 +100,21 @@ public class VolleyMultipartRequest extends Request<NetworkResponse> {
     }
 
     @Override
-    protected Response<NetworkResponse> parseNetworkResponse(NetworkResponse response) {
+    protected Response<String> parseNetworkResponse(NetworkResponse response) {
+        String parsed;
         try {
-            return Response.success(
+            parsed = new String(response.data, HttpHeaderParser.parseCharset(response.headers));
+            /*return Response.success(
                     response,
-                    HttpHeaderParser.parseCacheHeaders(response));
+                    HttpHeaderParser.parseCacheHeaders(response));*/
+            return Response.success(parsed, HttpHeaderParser.parseCacheHeaders(response));
         } catch (Exception e) {
             return Response.error(new ParseError(e));
         }
     }
 
     @Override
-    protected void deliverResponse(NetworkResponse response) {
+    protected void deliverResponse(String response) {
         mListener.onResponse(response);
     }
 

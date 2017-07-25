@@ -126,7 +126,7 @@ public class clsUserLoginRepo implements crud {
 //        if(repo.CheckLoginNow()){
         List<clsUserLogin> listData= null;
         try {
-            listData = (List<clsUserLogin>) repo.findAll();
+            listData = helper.getUserLoginDao().queryForAll();
         } catch (SQLException e) {
             e.printStackTrace();
         }

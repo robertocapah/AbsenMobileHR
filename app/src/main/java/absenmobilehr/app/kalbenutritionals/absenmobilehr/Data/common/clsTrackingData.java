@@ -9,8 +9,8 @@ import java.io.Serializable;
  */
 
 public class clsTrackingData implements Serializable {
-    @DatabaseField(columnName = "intId",generatedId = true, allowGeneratedIdInsert=true)
-    private Integer intId;
+    @DatabaseField(columnName = "GuiId", id = true)
+    private String GuiId;
     @DatabaseField(columnName = "GuiIdLogin")
     private String GuiIdLogin;
     @DatabaseField(columnName = "txtLongitude")
@@ -38,7 +38,7 @@ public class clsTrackingData implements Serializable {
 
     public clsTrackingData(){}
 
-    public String Property_intId = "intId";
+    public String Property_GuiID = "GuiID";
     public String Property_GuiIdLogin = "GuiIdLogin";
     public String Property_txtLongitude = "txtLongitude";
     public String Property_txtLatitude = "txtLatitude";
@@ -52,7 +52,7 @@ public class clsTrackingData implements Serializable {
     public String Property_intSync = "intSync";
     public String Property_intSequence = "intSequence";
     public String Property_ListOftrackingLocation = "ListOfTrackingLocationData";
-    public String Property_All = Property_intId + "," +
+    public String Property_All = Property_GuiID + "," +
             Property_txtLongitude + "," +
             Property_txtLatitude + "," +
             Property_txtTime + "," +
@@ -73,12 +73,12 @@ public class clsTrackingData implements Serializable {
         GuiIdLogin = guiIdLogin;
     }
 
-    public Integer getIntId() {
-        return intId;
+    public String getGuiId() {
+        return GuiId;
     }
 
-    public void setIntId(Integer intId) {
-        this.intId = intId;
+    public void setGuiId(String intId) {
+        this.GuiId = intId;
     }
 
     public String getTxtLongitude() {

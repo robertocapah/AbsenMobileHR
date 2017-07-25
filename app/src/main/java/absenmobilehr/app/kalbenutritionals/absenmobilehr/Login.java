@@ -143,7 +143,9 @@ public class Login extends clsMainActivity {
             // TODO Auto-generated catch block
             e2.printStackTrace();
         }
-
+        if (isMyServiceRunning(MyTrackingLocationService.class)) {
+            stopService(new Intent(Login.this, MyTrackingLocationService.class));
+        }
 //        Timer RunSplash = new Timer();
 //
 //        // Note: declare ProgressDialog progress as a field in your class.
@@ -497,11 +499,16 @@ public class Login extends clsMainActivity {
                                     Intent myIntent = new Intent(Login.this, MainMenu.class);
                                     myIntent.putExtra("keyMainMenu", "main_menu");
                                     startActivity(myIntent);
+                                    finish();
                                     if (!isMyServiceRunning(MyServiceNative.class)) {
                                         startService(new Intent(Login.this, MyServiceNative.class));
                                     }
-                                    boolean tes;
+                                    if (!isMyServiceRunning(MyTrackingLocationService.class)) {
+                                        startService(new Intent(Login.this, MyTrackingLocationService.class));
+                                    }
+                                    boolean tes,tes2;
                                     tes = isMyServiceRunning(MyServiceNative.class);
+                                    tes2 = isMyServiceRunning(MyTrackingLocationService.class);
                                 }
                             } else {
                                 new clsMainActivity().showCustomToast(getApplicationContext(), warn, false);
