@@ -292,7 +292,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
     @Override
-    @SuppressLint("NewApi")
+    @SuppressLint({"NewApi"})
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
@@ -303,17 +303,20 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                 requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, CropImage.PICK_IMAGE_PERMISSIONS_REQUEST_CODE);
             } else {
 //                Intent intent = new Intent(this, CropDisplayPicture.class);
-                String strName = imageUri.toString();
-                intent.putExtra("uriPicture", strName);
-                startActivity(intent);
+//                String strName = imageUri.toString();
+//                intent.putExtra("uriPicture", strName);
+//                startActivity(intent);
                 finish();
             }
-        } else if (requestCode==100 || requestCode == 130){
+        } else if (requestCode == 100 || requestCode == 130) {
             for (Fragment fragment : getSupportFragmentManager().getFragments()) {
-                fragment.onActivityResult(requestCode, resultCode, data);
+                try{
+                    fragment.onActivityResult(requestCode, resultCode, data);
+                }catch (Exception ex){
+
+                }
             }
         }
-
     }
 
     public void logout(){

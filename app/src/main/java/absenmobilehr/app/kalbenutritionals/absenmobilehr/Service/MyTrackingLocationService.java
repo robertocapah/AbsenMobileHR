@@ -195,6 +195,7 @@ public class MyTrackingLocationService extends Service implements GoogleApiClien
             index = new clsTrackingDataRepo(getApplicationContext()).getContactCount() + 1;
             if (new clsTrackingDataRepo(getApplicationContext()).getContactCount() == 0) {
                 if (dataUserActive != null) {
+                    dataLocation.setGuiId(new clsMainActivity().GenerateGuid());
                     dataLocation.setTxtLongitude(String.valueOf(mLastLocation.getLongitude()));
                     dataLocation.setTxtLatitude(String.valueOf(mLastLocation.getLatitude()));
                     dataLocation.setTxtUserId(dataUserActive.getTxtUserID());
@@ -207,8 +208,15 @@ public class MyTrackingLocationService extends Service implements GoogleApiClien
                     dataLocation.setTxtTime(dateFormat.format(cal.getTime()));
                     dataLocation.setIntSubmit("1");
                     dataLocation.setIntSync("0");
-
-                    new clsTrackingDataRepo(getApplicationContext()).create(dataLocation);
+                    if (dataUserActive.getTxtGUI() != null){
+                        try{
+                            new clsTrackingDataRepo(getApplicationContext()).create(dataLocation);
+                        }catch (SQLException e){
+                            e.printStackTrace();
+                        }
+                    }else{
+                        shutdownService();
+                    }
                 } else {
                     shutdownService();
                 }
@@ -218,6 +226,7 @@ public class MyTrackingLocationService extends Service implements GoogleApiClien
                 data = Integer.valueOf(datas.get(0).getIntSequence());
 
                 if (dataUserActive != null) {
+                    dataLocation.setGuiId(new clsMainActivity().GenerateGuid());
                     dataLocation.setTxtLongitude(String.valueOf(mLastLocation.getLongitude()));
                     dataLocation.setTxtLatitude(String.valueOf(mLastLocation.getLatitude()));
                     dataLocation.setTxtUserId(dataUserActive.getTxtUserID());
@@ -225,16 +234,18 @@ public class MyTrackingLocationService extends Service implements GoogleApiClien
                     dataLocation.setTxtDeviceId(dataUserActive.getTxtDeviceId());
                     dataLocation.setTxtBranchCode(dataUserActive.getTxtKodeCabang());
                     dataLocation.setTxtNIK(dataUserActive.getEmployeeId());
-                    dataLocation.setTxtTime(dateFormat.format(cal.getTime()));
+                    dataLocation.setGuiIdLogin(dataUserActive.getTxtGUI());
                     dataLocation.setIntSequence(String.valueOf(data + 1));
+                    dataLocation.setTxtTime(dateFormat.format(cal.getTime()));
                     dataLocation.setIntSubmit("1");
                     dataLocation.setIntSync("0");
-                    try{
-                        new clsTrackingDataRepo(getApplicationContext()).create(dataLocation);
-                    }catch (SQLException e){
-                        e.printStackTrace();
+                    if (dataUserActive.getTxtGUI() != null){
+                        try{
+                            new clsTrackingDataRepo(getApplicationContext()).create(dataLocation);
+                        }catch (SQLException e){
+                            e.printStackTrace();
+                        }
                     }
-
                 } else {
                     shutdownService();
                 }
