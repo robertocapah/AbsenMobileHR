@@ -192,7 +192,21 @@ public class MyTrackingLocationService extends Service implements GoogleApiClien
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Calendar cal = Calendar.getInstance();
         try {
-            index = new clsTrackingDataRepo(getApplicationContext()).getContactCount() + 1;
+            String intSquence = new Intent().getStringExtra("intSequence");
+            if (intSquence != null &&!intSquence.equals("null")){
+                int intSq = Integer.parseInt(intSquence);
+                index = intSq + 1;
+            }else{
+                List<clsTrackingData> datas = (List<clsTrackingData>) new clsTrackingDataRepo(getApplicationContext()).findAll();
+                if (datas != null && datas.size()>0){
+                    index = new clsTrackingDataRepo(getApplicationContext()).getMaxSequence() + 1;
+                }else{
+                    index = 1;
+                }
+
+            }
+
+
             if (new clsTrackingDataRepo(getApplicationContext()).getContactCount() == 0) {
                 if (dataUserActive != null) {
                     dataLocation.setGuiId(new clsMainActivity().GenerateGuid());

@@ -64,6 +64,10 @@
             android:configChanges="orientation|screenSize"
             android:label="" />
         <activity
+            android:name=".PushData"
+            android:configChanges="orientation|screenSize"
+            android:label="" />
+        <activity
             android:name=".Splash"
             android:theme="@style/Theme.AppCompat.Translucent"
             android:screenOrientation="portrait">

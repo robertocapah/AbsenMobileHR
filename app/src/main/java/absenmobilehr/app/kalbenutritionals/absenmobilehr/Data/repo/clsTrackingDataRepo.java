@@ -40,6 +40,13 @@ public class clsTrackingDataRepo implements crud {
         index = helper.getTrackingDataDao().queryForAll().size();
         return index;
     }
+    public int getMaxSequence() throws SQLException{
+        QueryBuilder<clsTrackingData, Integer> builder = helper.getTrackingDataDao().queryBuilder();
+        builder.orderBy("intSequence", false);  // true or false for ascending so change to true to get min id
+        clsTrackingData data = helper.getTrackingDataDao().queryForFirst(builder.prepare());
+        String id = data.getIntSequence();
+        return Integer.parseInt(id);
+    }
     public List<clsTrackingData> getLastDataByTime() throws SQLException{
         clsTrackingData data = new clsTrackingData();
         QueryBuilder<clsTrackingData,Integer> query = helper.getTrackingDataDao().queryBuilder();
@@ -102,7 +109,13 @@ public class clsTrackingDataRepo implements crud {
 
     @Override
     public List<?> findAll() throws SQLException {
-        return null;
+        List<clsTrackingData> items = null;
+        try {
+            items = helper.getTrackingDataDao().queryForAll();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return items;
     }
     public int updateAllRowTracking(){
         int index = -1;

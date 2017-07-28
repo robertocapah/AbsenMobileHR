@@ -3,7 +3,6 @@ package absenmobilehr.app.kalbenutritionals.absenmobilehr.Service;
 import android.app.Service;
 import android.content.Intent;
 import android.content.pm.PackageManager.NameNotFoundException;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.IBinder;
 import android.util.Log;
 
@@ -139,7 +138,7 @@ public class MyServiceNative extends Service {
             }
         }
 
-        SQLiteDatabase db;
+//        SQLiteDatabase db;
 //    	String versionName="";
 //    	try {
 //			versionName = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;

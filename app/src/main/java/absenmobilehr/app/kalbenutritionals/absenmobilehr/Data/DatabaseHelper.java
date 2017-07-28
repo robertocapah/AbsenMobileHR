@@ -156,6 +156,26 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
         }
 
     }
+    public void clearDataTracking() {
+        try {
+            TableUtils.clearTable(connectionSource, clsTrackingData.class);
+            // after we drop the old databases, we create the new ones
+//            onCreate(db, connectionSource);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+    }
+    public void clearDataAbsen() {
+        try {
+            TableUtils.clearTable(connectionSource, clsAbsenData.class);
+            // after we drop the old databases, we create the new ones
+//            onCreate(db, connectionSource);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+    }
 
     /**
      * Returns the Database Access Object (DAO) for our SimpleData class. It will create it or just give the cached

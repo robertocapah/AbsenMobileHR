@@ -3,6 +3,7 @@ package absenmobilehr.app.kalbenutritionals.absenmobilehr.Data;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.graphics.Color;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.DefaultRetryPolicy;
@@ -20,6 +21,7 @@ import java.util.Map;
 
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsPushData;
 import addons.volley.VolleyMultipartRequest;
+import cn.pedant.SweetAlert.SweetAlertDialog;
 
 /**
  * Created by arick.anjasmara on 22/06/2017.
@@ -31,8 +33,13 @@ public class VolleyUtils {
         ProgressDialog Dialog = new ProgressDialog(activity);
 //        Dialog.setCancelable(false);
 //        Dialog.show();
-        Dialog = ProgressDialog.show(activity, "",
-                progressBarType, true); 
+        final SweetAlertDialog pDialog = new SweetAlertDialog(activity, SweetAlertDialog.PROGRESS_TYPE);
+        pDialog.getProgressHelper().setBarColor(Color.parseColor("#A5DC86"));
+        pDialog.setTitleText(progressBarType);
+        pDialog.setCancelable(false);
+        pDialog.show();
+        /*Dialog = ProgressDialog.show(activity, "",
+                progressBarType, true); */
         final ProgressDialog finalDialog = Dialog;
         final ProgressDialog finalDialog1 = Dialog;
         StringRequest req = new StringRequest(Request.Method.POST, strLinkAPI, new Response.Listener<String>() {
@@ -40,14 +47,16 @@ public class VolleyUtils {
             public void onResponse(String response) {
                 Boolean status = false;
                 String errorMessage = null;
-                finalDialog.dismiss();
+//                finalDialog.dismiss();
                 listener.onResponse(response, status, errorMessage);
+                pDialog.dismiss();
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                finalDialog1.dismiss();
+//                finalDialog1.dismiss();
                 listener.onError(error.getMessage());
+                pDialog.dismiss();
             }
         }) {
             @Override
@@ -58,7 +67,7 @@ public class VolleyUtils {
             }
         };
         req.setRetryPolicy(new
-                DefaultRetryPolicy(5000,
+                DefaultRetryPolicy(25000,
                 DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
                 DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
 
@@ -78,6 +87,7 @@ public class VolleyUtils {
             @Override
             public void onErrorResponse(VolleyError error) {
                 error.printStackTrace();
+                listener.onError(error.getMessage());
             }
         }) {
             @Override
@@ -107,7 +117,7 @@ public class VolleyUtils {
             }
         };
         multipartRequest.setRetryPolicy(new
-                DefaultRetryPolicy(500000,
+                DefaultRetryPolicy(25000,
                 DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
                 DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
 

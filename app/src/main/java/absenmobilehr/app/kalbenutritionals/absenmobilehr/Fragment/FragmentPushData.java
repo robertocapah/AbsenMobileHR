@@ -1,6 +1,7 @@
 package absenmobilehr.app.kalbenutritionals.absenmobilehr.Fragment;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -8,6 +9,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,18 +19,43 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.Volley;
+import com.owater.library.CircleTextView;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.DatabaseHelper;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.DatabaseManager;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.VolleyResponseListener;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.VolleyUtils;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.clsHelper;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsAbsenData;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsPushData;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsTrackingData;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsUserLogin;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsmVersionApp;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.dataJson;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsAbsenDataRepo;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsTrackingDataRepo;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsUserLoginRepo;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsmVersionAppRepo;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.MainMenu;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.R;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Service.MyServiceNative;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Splash;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.clsMainActivity;
+import cn.pedant.SweetAlert.SweetAlertDialog;
+
+import static com.android.volley.VolleyLog.TAG;
 
 public class FragmentPushData extends Fragment {
-
 
 
     private TableLayout tlAbsen;
@@ -38,30 +65,48 @@ public class FragmentPushData extends Fragment {
     View v;
 
     clsMainActivity _clsMainActivity = new clsMainActivity();
-
+    Context context = null;
     PackageInfo pInfo = null;
-
+    CircleTextView ctvStatusAbsen, ctvStatusTracking;
+    SweetAlertDialog pDialog;
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-
-
+        context = getActivity().getApplicationContext();
+        pDialog = new SweetAlertDialog(getActivity(), SweetAlertDialog.PROGRESS_TYPE);
         try {
             pInfo = getContext().getPackageManager().getPackageInfo(getContext().getPackageName(), 0);
         } catch (NameNotFoundException e) {
             e.printStackTrace();
         }
 
-        if(this.getArguments()!=null){
+        if (this.getArguments() != null) {
             myValue = this.getArguments().getString("message");
         }
 
         v = inflater.inflate(R.layout.activity_push_data, container, false);
+        ctvStatusAbsen = (CircleTextView) v.findViewById(R.id.tvTotalAbsen);
+        ctvStatusTracking = (CircleTextView) v.findViewById(R.id.tvTotalTracking);
 
+        List<clsAbsenData> absenDatas = (List<clsAbsenData>) new clsAbsenDataRepo(context).getAllDataToPushData(context);
+        List<clsTrackingData> trackingDatas = (List<clsTrackingData>) new clsTrackingDataRepo(context).getAllDataToPushData(context);
+        if (absenDatas != null && absenDatas.size() > 0 ){
+            int count = absenDatas.size();
+            ctvStatusAbsen.setText(String.valueOf(count)+" Attendance Datas");
+        }else{
+            ctvStatusAbsen.setText("No absen data to push");
+        }
+        if (trackingDatas != null && trackingDatas.size()>0){
+            int count = trackingDatas.size();
+            ctvStatusTracking.setText(String.valueOf(count)+" Tracking Datas");
+        }else{
+            ctvStatusTracking.setText("No tracking data to push");
+        }
+        checkAbsenData();
         Intent serviceIntentMyServiceNative = new Intent(getContext(), MyServiceNative.class);
         getContext().stopService(serviceIntentMyServiceNative);
 
-        tlAbsen = (TableLayout) v.findViewById(R.id.tl_absen);
+//        tlAbsen = (TableLayout) v.findViewById(R.id.tl_absen);
         btnPush = (Button) v.findViewById(R.id.btnPush);
 
         btnPush.setTextColor(Color.parseColor("#FFFFFF"));
@@ -71,33 +116,221 @@ public class FragmentPushData extends Fragment {
             public void onClick(View v) {
 //                AsyncCallRole task=new AsyncCallRole();
 //                task.execute();
+               pushData();
             }
         });
 
-        loadData();
+//        loadData();
 
-        return  v;
+        return v;
     }
 
-    private void loadData() {
-        String versionName="";
+    private void pushData() {
+        final String val = new Intent().getStringExtra("key_view");
+        String versionName = "";
+        pDialog.getProgressHelper().setBarColor(Color.parseColor("#A5DC86"));
+        pDialog.setTitleText("Pushing Data");
+        pDialog.setCancelable(false);
+        pDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+
+            }
+        });
+        pDialog.show();
         try {
             versionName = getActivity().getPackageManager().getPackageInfo(getActivity().getPackageName(), 0).versionName;
         } catch (NameNotFoundException e2) {
             // TODO Auto-generated catch block
             e2.printStackTrace();
         }
-        clsPushData dtclsPushData=new clsHelper().pushData(versionName, getContext());
+        clsPushData dtJson = new clsHelper().pushData(versionName, getActivity().getApplicationContext());
+        if (dtJson == null) {
+        } else {
+            try {
+//                pDialog = new SweetAlertDialog(getActivity(), SweetAlertDialog.PROGRESS_TYPE);
 
-        if(dtclsPushData!=null){
-            dataJson dtJson =dtclsPushData.getDtdataJson();
+                String strLinkAPI = "http://10.171.11.87/APIEF2/api/PushData/pushData2";
+                new VolleyUtils().makeJsonObjectRequestPushData(getActivity().getApplicationContext(), strLinkAPI, dtJson, new VolleyResponseListener() {
+                    @Override
+                    public void onError(String message) {
+                        String error;
+                        new clsMainActivity().showCustomToast(getActivity().getApplicationContext(),"Push Data Failed, Check Your Network",false);
+                        pDialog.dismiss();
+                    }
 
+                    @Override
+                    public void onResponse(String response, Boolean status, String strErrorMsg) {
+                        String res = response;
 
-            if(dtJson.getListOftAbsenUserData()!=null){
-                inittAbsen(getContext(),dtJson.getListOftAbsenUserData());
-            } else {
-                inittAbsen(getContext(),null);
+                        Log.i(TAG, "Ski data from server - " + response);
+                        clsAbsenData absenData = new clsAbsenData();
+                        clsTrackingData trackingData = new clsTrackingData();
+//                clsUserLogin userLogin = new clsUserLogin();
+                        try {
+                            JSONArray jsonArray1 = new JSONArray(response);
+                            boolean valid = false;
+                            if (jsonArray1.length()>1){
+                                for (int i = 0; i < jsonArray1.length(); i++) {
+                                    JSONObject method = jsonArray1.getJSONObject(i);
+                                    String listMethod = method.getString("PstrMethodRequest");
+                                    if (listMethod.equals(trackingData.Property_ListOftrackingLocation)) {
+                                        if (method.getString("pBoolValid").equals("1")) {
+                                            new DatabaseHelper(getActivity().getApplicationContext()).clearDataTracking();
+                                            valid = true;
+                                        }else{
+                                            valid = false;
+                                        }
+                                    }
+                                    if (listMethod.equals(absenData.Property_ListOftAbsenUser)) {
+                                        if (method.getString("pBoolValid").equals("1")) {
+                                            new DatabaseHelper(getActivity().getApplicationContext()).clearDataAbsen();
+                                            valid = true;
+                                        }else{
+                                            valid = false;
+                                        }
+                                    }
+                                    if (valid){
+                                        new clsMainActivity().showCustomToast(getActivity().getApplicationContext(),"Push Data Completed, Logging out account",true);
+                                        logout();
+                                    }
+                                }
+                            }else{
+                                new clsMainActivity().showCustomToast(getActivity().getApplicationContext(),"Push Data Completed, Logging out account",true);
+
+                                if (val.equals("push_data")){
+                                    logout();
+                                }else{
+                                    new clsTrackingDataRepo(getActivity().getApplicationContext()).updateAllRowTracking();
+                                    new clsAbsenDataRepo(getActivity().getApplicationContext()).updateAllRowAbsen();
+                                    getActivity().finish();
+                                    startActivity(new Intent(getActivity(), MainMenu.class));
+                                }
+
+                            }
+                            pDialog.dismiss();
+
+                    /*for(Object data : jsonObject1){
+
+                    }*/
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+            } catch (Exception e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
             }
+        }
+        /*FragmentPushData fragment = new FragmentPushData();
+        fragment.getView().setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                if( keyCode == KeyEvent.KEYCODE_BACK )
+                {
+                    pDialog.dismiss();
+                    return true;
+                }
+                return false;
+            }
+        });*/
+    }
+
+    public void logout(){
+        RequestQueue queue = Volley.newRequestQueue(getActivity().getApplicationContext());
+        List<clsmVersionApp> dataInfo = null;
+        List<clsUserLogin> dataLogin= null;
+        clsUserLoginRepo repo = new clsUserLoginRepo(getActivity().getApplicationContext());
+        clsmVersionAppRepo repoVersionInfo = new clsmVersionAppRepo(getActivity().getApplicationContext());
+        try {
+            dataLogin = (List<clsUserLogin>) repo.findAll();
+            dataInfo = (List<clsmVersionApp>) repoVersionInfo.findAll();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        String strLinkAPI = "http://prm.kalbenutritionals.web.id/VisitPlan/API/VisitPlanAPI/LogOut_J";
+//        String nameRole = selectedRole;
+        final JSONObject resJson = new JSONObject();
+        List<clsTrackingData> trackingDatas = new ArrayList<>();
+        trackingDatas = new clsTrackingDataRepo(getActivity().getApplicationContext()).getAllDataToPushData(getActivity().getApplicationContext());
+        try {
+            resJson.put("TxtGUI_trUserLogin", dataLogin.get(0).getTxtGUI());
+            resJson.put("TxtUserID", dataLogin.get(0).getTxtUserID());
+            resJson.put("TxtGUI_mVersionApp", dataInfo.get(0).getTxtVersion());
+            resJson.put("IntCabangID", dataLogin.get(0).getIntCabangID());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        final String mRequestBody = "[" + resJson.toString() + "]";
+        new VolleyUtils().makeJsonObjectRequest(getActivity(), strLinkAPI, mRequestBody,"Logging Out, Please Wait !", new VolleyResponseListener() {
+            @Override
+            public void onError(String response) {
+                new clsMainActivity().showCustomToast(getActivity().getApplicationContext(), response, false);
+            }
+
+            @Override
+            public void onResponse(String response, Boolean status, String strErrorMsg) {
+                if (response != null) {
+                    JSONObject jsonObject1 = null;
+                    try {
+                        jsonObject1 = new JSONObject(response);
+                        JSONObject jsn = jsonObject1.getJSONObject("validJson");
+                        String warn = jsn.getString("TxtWarn");
+                        String result = jsn.getString("TxtResult");
+                        if (result.equals("1")){
+//                            new DatabaseHelper(getApplicationContext()).clearDataAfterLogout();
+                            DatabaseHelper helper = DatabaseManager.getInstance().getHelper();
+//                            getActivity().stopService(new Intent(getActivity().getApplicationContext(), MyTrackingLocationService.class));
+                            helper.clearDataAfterLogout();
+//                            helper.close();
+                            getActivity().finish();
+                            Intent nextScreen = new Intent(getActivity(), Splash.class);
+                            startActivity(nextScreen);
+
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                }
+            }
+        });
+    }
+
+    private void checkAbsenData() {
+        clsAbsenData absenDatas = new clsAbsenDataRepo(getActivity().getApplicationContext()).getDataCheckinActive(getActivity().getApplicationContext());
+        if (absenDatas != null) {
+            clsAbsenData clsAbsenData = absenDatas;
+            clsAbsenData.setDtCheckout(_clsMainActivity.FormatDateComplete().toString());
+            try {
+                new clsAbsenDataRepo(getActivity().getApplicationContext()).update(clsAbsenData);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void loadData() {
+        String versionName = "";
+        try {
+            versionName = getActivity().getPackageManager().getPackageInfo(getActivity().getPackageName(), 0).versionName;
+        } catch (NameNotFoundException e2) {
+            // TODO Auto-generated catch block
+            e2.printStackTrace();
+        }
+        clsPushData dtclsPushData = new clsHelper().pushData(versionName, getContext());
+
+        if (dtclsPushData != null) {
+            dataJson dtJson = dtclsPushData.getDtdataJson();
+
+
+            /*if (dtJson.getListOftAbsenUserData() != null) {
+                inittAbsen(getContext(), dtJson.getListOftAbsenUserData());
+            } else {
+                inittAbsen(getContext(), null);
+            }*/
         }
     }
 
@@ -342,8 +575,8 @@ public class FragmentPushData extends Fragment {
     }*/
 
 
-    public void inittAbsen(Context _ctx,List<clsAbsenData> ListData){
-        tlAbsen = (TableLayout) v.findViewById(R.id.tl_absen);
+    public void inittAbsen(Context _ctx, List<clsAbsenData> ListData) {
+//        tlAbsen = (TableLayout) v.findViewById(R.id.tl_absen);
         tlAbsen.removeAllViews();
 
         TableRow.LayoutParams params = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.MATCH_PARENT, 1f);
@@ -368,9 +601,9 @@ public class FragmentPushData extends Fragment {
         }
         tlAbsen.addView(tr);
 
-        if(ListData!=null){
+        if (ListData != null) {
             int index = 1;
-            for(clsAbsenData dat : ListData){
+            for (clsAbsenData dat : ListData) {
                 tr = new TableRow(getContext());
 
                 TextView tv_index = new TextView(getContext());
@@ -395,7 +628,7 @@ public class FragmentPushData extends Fragment {
 
                 tr.addView(date);
 
-                tlAbsen.addView(tr,index++);
+                tlAbsen.addView(tr, index++);
             }
         }
     }

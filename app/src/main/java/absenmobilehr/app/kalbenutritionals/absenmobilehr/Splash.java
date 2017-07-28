@@ -150,6 +150,11 @@ public class Splash extends AppCompatActivity {
                         myIntent.putExtra("key_view", "main_menu");
 //                        startService(new Intent(getApplicationContext(), MyServiceNative.class));
 //                        startService(new Intent(getApplicationContext(), MyTrackingLocationService.class));
+                    }else if (_clsStatusMenuStart.get_intStatus() == enumStatusMenuStart.PushDataAbsenHRMobile) {
+                        myIntent = new Intent(Splash.this, PushData.class);
+                        myIntent.putExtra("key_view", "push_data");
+//                        startService(new Intent(getApplicationContext(), MyServiceNative.class));
+//                        startService(new Intent(getApplicationContext(), MyTrackingLocationService.class));
                     }
                 } catch (ParseException e) {
                     e.printStackTrace();

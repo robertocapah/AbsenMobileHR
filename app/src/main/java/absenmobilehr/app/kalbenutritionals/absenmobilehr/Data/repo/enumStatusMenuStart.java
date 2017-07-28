@@ -3,7 +3,7 @@ package absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo;
 public enum enumStatusMenuStart {
 	 FormLogin  (1),
 	 UserActiveLogin  (2),  
-	 PushDataSPGMobile (3),
+	 PushDataAbsenHRMobile (3),
 	 PushDataSalesForce (4);
 	
 	enumStatusMenuStart(int id) {

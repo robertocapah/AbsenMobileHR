@@ -19,7 +19,11 @@
             android:orderInCategory="0"
             android:title="Absen"
             app:actionLayout="@layout/menu_counter"/>
-
+        <item
+            android:id="@+id/pushData"
+            android:orderInCategory="0"
+            android:title="Push Data"
+            app:actionLayout="@layout/menu_counter"/>
     </group>
     <group
         android:checkableBehavior="single"

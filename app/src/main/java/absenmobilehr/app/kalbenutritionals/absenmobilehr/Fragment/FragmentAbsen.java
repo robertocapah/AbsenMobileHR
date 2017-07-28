@@ -969,11 +969,11 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
             _clsAbsenData.setIntSubmit("1");
             _clsAbsenData.setSync("0");
             _clsAbsenData.setTxtAbsen("0");//
-            try {
+            /*try {
                 new clsAbsenDataRepo(context).createOrUpdate(_clsAbsenData);
             } catch (SQLException e) {
                 e.printStackTrace();
-            }
+            }*/
         } catch (NullPointerException e) {
             e.printStackTrace();
         }

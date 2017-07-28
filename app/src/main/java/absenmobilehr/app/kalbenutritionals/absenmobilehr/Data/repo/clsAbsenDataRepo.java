@@ -151,7 +151,7 @@ public class clsAbsenDataRepo implements crud {
         if (data.size()>0){
             try {
                 queryBuilder = helper.getUserAbsenDao().queryBuilder();
-                queryBuilder.where().eq(dt.Property_intSubmit, "1").and().eq(dt.Property_Sync, "0");
+                queryBuilder.where().eq(dt.Property_intSubmit, "1").and().eq(dt.Property_Sync, "0").and().isNotNull(dt.Property_dtCheckin);
                 listData = queryBuilder.query();
             } catch (SQLException e) {
                 e.printStackTrace();

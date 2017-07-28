@@ -392,7 +392,6 @@ public class Login extends clsMainActivity {
         return false;
     }
 
-
     private void userLogin() {
 
         List<clsmVersionApp> _clsmVersionApp = new ArrayList<>();

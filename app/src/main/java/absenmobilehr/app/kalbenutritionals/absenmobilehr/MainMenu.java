@@ -3,7 +3,6 @@ package absenmobilehr.app.kalbenutritionals.absenmobilehr;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.ActivityManager;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -58,6 +57,7 @@ import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsUserLoginR
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsmVersionAppRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Fragment.FragmentAbsen;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Fragment.FragmentInformation;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Fragment.FragmentPushData;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Service.MyServiceNative;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Service.MyTrackingLocationService;
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -158,6 +158,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         if (dataAbsenAktif!=null){
             header.removeItem(R.id.absen);
             header.removeItem(R.id.logout);
+            header.removeItem(R.id.pushData);
         }else{
             header.removeItem(R.id.checkout);
         }
@@ -223,6 +224,18 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                         FragmentTransaction fragmentTransactionHome = getSupportFragmentManager().beginTransaction();
                         fragmentTransactionHome.replace(R.id.frame, homeFragment);
                         fragmentTransactionHome.commit();
+                        selectedId = 99;
+
+                        return true;
+                    case R.id.pushData:
+                        toolbar.setTitle("Home");
+
+                        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
+
+                        FragmentPushData fragmentPush = new FragmentPushData();
+                        FragmentTransaction fragmentTransactionPushData = getSupportFragmentManager().beginTransaction();
+                        fragmentTransactionPushData.replace(R.id.frame, fragmentPush);
+                        fragmentTransactionPushData.commit();
                         selectedId = 99;
 
                         return true;
@@ -320,7 +333,6 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
     }
 
     public void logout(){
-        final ProgressDialog Dialog = new ProgressDialog(MainMenu.this);
         RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
 
         String strLinkAPI = "http://prm.kalbenutritionals.web.id/VisitPlan/API/VisitPlanAPI/LogOut_J";
@@ -376,9 +388,12 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.profile_image:
-//                pickImage2();
+                pickImage2();
                 break;
         }
+    }
+    public void pickImage2() {
+        CropImage.startPickImageActivity(this);
     }
     @Override
     public void onBackPressed() {
