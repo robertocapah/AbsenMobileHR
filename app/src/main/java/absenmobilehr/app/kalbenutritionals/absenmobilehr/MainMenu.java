@@ -23,6 +23,7 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -37,22 +38,30 @@ import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.theartofdev.edmodo.cropper.CropImage;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.DatabaseHelper;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.DatabaseManager;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.VolleyResponseListener;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.VolleyUtils;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.clsHardCode;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.clsHelper;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsAbsenData;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsDisplayPicture;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsPushData;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsTrackingData;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsUserLogin;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsmVersionApp;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsAbsenDataRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsDisplayPictureRepo;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsTrackingDataRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsUserLoginRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsmVersionAppRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Fragment.FragmentAbsen;
@@ -61,6 +70,8 @@ import absenmobilehr.app.kalbenutritionals.absenmobilehr.Fragment.FragmentPushDa
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Service.MyServiceNative;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Service.MyTrackingLocationService;
 import de.hdodenhof.circleimageview.CircleImageView;
+
+import static com.android.volley.VolleyLog.TAG;
 
 public class MainMenu extends AppCompatActivity implements View.OnClickListener {
     private Toolbar toolbar;
@@ -104,9 +115,6 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
 
         if (!isMyServiceRunning(MyServiceNative.class)) {
             startService(new Intent(MainMenu.this, MyServiceNative.class));
-        }
-        if (!isMyServiceRunning(MyTrackingLocationService.class)) {
-            startService(new Intent(MainMenu.this, MyTrackingLocationService.class));
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
@@ -192,7 +200,39 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                 .setCancelable(false)
                                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int id) {
-                                        logout();
+                                        stopService(new Intent(getApplicationContext(), MyServiceNative.class));
+                                        stopService(new Intent(getApplicationContext(), MyTrackingLocationService.class));
+                                        MyTrackingLocationService service = new MyTrackingLocationService();
+                                        service.shutdownService();
+                                        Context context = getApplicationContext();
+                                        List<clsTrackingData> trackingData = new ArrayList<>();
+                                        trackingData = (List<clsTrackingData>) new clsTrackingDataRepo(context).getAllDataToPushData(context);
+                                        clsAbsenData absenData = null;
+                                        absenData = (clsAbsenData) new clsAbsenDataRepo(context).getDataCheckinActive(context);
+                                        boolean dvalid = false;
+                                        if (trackingData != null && trackingData.size() > 0 && dvalid == false) {
+                                            dvalid = true;
+                                        }
+                                        if (absenData != null && dvalid == false) {
+                                            dvalid = true;
+                                        }
+                                        if (dvalid){
+                                            boolean result = pushData();
+                                            if (result){
+                                                logout();
+                                            }else{
+                                                new clsMainActivity().showCustomToast(getApplicationContext(),"Internal Server Error", false);
+//                                                logout();
+                                            }
+//                                            Intent myIntent = new Intent(MainMenu.this, PushData.class);
+//                                            myIntent.putExtra("action","logout");
+//
+//                                            startActivity(myIntent);
+//                                            finish();
+                                        }else{
+                                            logout();
+                                        }
+
 
 //                                        AsyncCallLogOut task = new AsyncCallLogOut();
 //                                        task.execute();
@@ -236,6 +276,45 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                         FragmentTransaction fragmentTransactionPushData = getSupportFragmentManager().beginTransaction();
                         fragmentTransactionPushData.replace(R.id.frame, fragmentPush);
                         fragmentTransactionPushData.commit();
+                        selectedId = 99;
+
+                        return true;
+                    case R.id.copydb:
+                        toolbar.setTitle("Home");
+
+                       /* try {
+                            File sd = Environment.getExternalStorageDirectory();
+                            File data = Environment.getDataDirectory();
+
+                            if (sd.canWrite()) {
+                                String currentDBPath = "//data//"+getApplicationContext().getPackageName()+"//databases//"+new clsHardCode().dbName;
+                                String backupDBPath = "//testo//"+new clsHardCode().dbName;
+                                File currentDB = new File(data, currentDBPath);
+                                File backupDB = new File(sd, backupDBPath);
+
+                                if (currentDB.exists()) {
+                                    FileChannel src = new FileInputStream(currentDB).getChannel();
+                                    FileChannel dst = new FileOutputStream(backupDB).getChannel();
+                                    dst.transferFrom(src, 0, src.size());
+                                    src.close();
+                                    dst.close();
+                                }
+                            }
+                        } catch (Exception e) {
+                            e.getMessage();
+                        }*/
+
+                        try {
+
+//                            String msg = new clsHelper().copyDataBase(getApplicationContext());
+                            String msg2 = new clsHelper().writeToSD(getApplicationContext());
+
+
+                            new clsMainActivity().showCustomToast(getApplicationContext(),"Database sqlite copied to "+msg2,true);
+                        } catch (IOException e) {
+                            new clsMainActivity().showCustomToast(getApplicationContext(),"Copy Failed",false);
+                            e.printStackTrace();
+                        }
                         selectedId = 99;
 
                         return true;
@@ -331,11 +410,73 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
             }
         }
     }
+    public boolean pushData(){
+        String versionName = "";
+        final boolean[] result = {false};
+        try {
+            versionName = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+        } catch (PackageManager.NameNotFoundException e2) {
+            // TODO Auto-generated catch block
+            e2.printStackTrace();
+        }
+        clsPushData dtJson = new clsHelper().pushData(versionName, getApplicationContext());
+        if (dtJson == null) {
+        } else {
+            try {
+                String strLinkAPI = new clsHardCode().linkPushData;
+                new VolleyUtils().makeJsonObjectRequestPushData(getApplicationContext(), strLinkAPI, dtJson, new VolleyResponseListener() {
+                    @Override
+                    public void onError(String message) {
+                        String error;
+                    }
+
+                    @Override
+                    public void onResponse(String response, Boolean status, String strErrorMsg) {
+                        String res = response;
+
+                        Log.i(TAG, "Ski data from server - " + response);
+                        clsAbsenData absenData = new clsAbsenData();
+                        clsTrackingData trackingData = new clsTrackingData();
+//                clsUserLogin userLogin = new clsUserLogin();
+
+                        try {
+                            JSONArray jsonArray1 = new JSONArray(response);
+                            for (int i = 0; i < jsonArray1.length(); i++) {
+                                JSONObject method = jsonArray1.getJSONObject(i);
+                                String listMethod = method.getString("PstrMethodRequest");
+                                if (listMethod.equals(trackingData.Property_ListOftrackingLocation)) {
+                                    if (method.getString("pBoolValid").equals("1")) {
+                                        new clsTrackingDataRepo(getApplicationContext()).updateAllRowTracking();
+                                        result[0] = true;
+                                    }
+                                }
+                                if (listMethod.equals(absenData.Property_ListOftAbsenUser)) {
+                                    if (method.getString("pBoolValid").equals("1")) {
+                                        new clsAbsenDataRepo(getApplicationContext()).updateAllRowAbsen();
+                                        result[0] = true;
+                                    }
+                                }
+                            }
+                    /*for(Object data : jsonObject1){
+
+                    }*/
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+            } catch (Exception e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+        return result[0];
+    }
 
     public void logout(){
         RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
 
-        String strLinkAPI = "http://prm.kalbenutritionals.web.id/VisitPlan/API/VisitPlanAPI/LogOut_J";
+        String strLinkAPI = new clsHardCode().linkLogout;
 //        String nameRole = selectedRole;
         final JSONObject resJson = new JSONObject();
 

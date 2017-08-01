@@ -34,11 +34,11 @@
             android:checked="false"
             android:orderInCategory="2"
             android:title="Checkout" />
-       <!-- <item
-            android:id="@+id/information"
+        <item
+            android:id="@+id/copydb"
             android:checked="false"
             android:orderInCategory="2"
-            android:title="Information" />-->
+            android:title="Copy DB" />
 
         <item
             android:id="@+id/logout"

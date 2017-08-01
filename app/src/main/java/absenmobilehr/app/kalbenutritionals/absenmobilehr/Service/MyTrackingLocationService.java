@@ -192,19 +192,19 @@ public class MyTrackingLocationService extends Service implements GoogleApiClien
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Calendar cal = Calendar.getInstance();
         try {
-            String intSquence = new Intent().getStringExtra("intSequence");
-            if (intSquence != null &&!intSquence.equals("null")){
-                int intSq = Integer.parseInt(intSquence);
-                index = intSq + 1;
-            }else{
-                List<clsTrackingData> datas = (List<clsTrackingData>) new clsTrackingDataRepo(getApplicationContext()).findAll();
-                if (datas != null && datas.size()>0){
+//            String intSquence = new Intent().getStringExtra("intSequence");
+//            if (intSquence != null &&!intSquence.equals("null")){
+//                int intSq = Integer.parseInt(intSquence);
+//                index = intSq + 1;
+//            }else{
+                List<clsTrackingData> _datas = (List<clsTrackingData>) new clsTrackingDataRepo(getApplicationContext()).findAll();
+                if (_datas != null && _datas.size()>0){
                     index = new clsTrackingDataRepo(getApplicationContext()).getMaxSequence() + 1;
                 }else{
                     index = 1;
                 }
 
-            }
+//            }
 
 
             if (new clsTrackingDataRepo(getApplicationContext()).getContactCount() == 0) {
@@ -249,7 +249,7 @@ public class MyTrackingLocationService extends Service implements GoogleApiClien
                     dataLocation.setTxtBranchCode(dataUserActive.getTxtKodeCabang());
                     dataLocation.setTxtNIK(dataUserActive.getEmployeeId());
                     dataLocation.setGuiIdLogin(dataUserActive.getTxtGUI());
-                    dataLocation.setIntSequence(String.valueOf(data + 1));
+                    dataLocation.setIntSequence(String.valueOf(index));
                     dataLocation.setTxtTime(dateFormat.format(cal.getTime()));
                     dataLocation.setIntSubmit("1");
                     dataLocation.setIntSync("0");

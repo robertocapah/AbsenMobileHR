@@ -78,7 +78,7 @@ public class VolleyUtils {
 
         VolleyMultipartRequest multipartRequest = new VolleyMultipartRequest(Request.Method.POST, strLinkAPI, new Response.Listener<String>() {
             @Override
-            public void onResponse(String response) {
+               public void onResponse(String response) {
                 Boolean status = false;
                 String errorMessage = null;
                 listener.onResponse(response.toString(), status, errorMessage);
@@ -94,7 +94,7 @@ public class VolleyUtils {
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
                 try {
-                    params.put("txtParams", mRequestBody.getDtdataJson().txtJSON().toString());
+                    params.put("txtParam", mRequestBody.getDtdataJson().txtJSON().toString());
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -117,7 +117,7 @@ public class VolleyUtils {
             }
         };
         multipartRequest.setRetryPolicy(new
-                DefaultRetryPolicy(25000,
+                DefaultRetryPolicy(50000,
                 DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
                 DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
 

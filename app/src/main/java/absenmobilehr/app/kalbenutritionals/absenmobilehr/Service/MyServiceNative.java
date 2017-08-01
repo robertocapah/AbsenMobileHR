@@ -14,6 +14,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.sql.SQLException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -24,8 +27,12 @@ import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.clsHelper;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsAbsenData;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsPushData;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsTrackingData;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsmCounterData;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.enumCounterData;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsAbsenDataRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsTrackingDataRepo;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsUserLoginRepo;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsmCounterDataRepo;
 
 import static com.android.volley.VolleyLog.TAG;
 
@@ -50,7 +57,7 @@ public class MyServiceNative extends Service {
     private static long UPDATE_INTERVAL = 1 * 360 * 1000;
     ;  //default
     //private static long UPDATE_INTERVAL_DELAY = 180000;  //default
-    private static long UPDATE_INTERVAL_TESTING = 30000;  //default
+    private static long UPDATE_INTERVAL_TESTING = 5000;  //2 minutes
     private static Timer timer = new Timer();
 
     private void _startService() {
@@ -93,7 +100,7 @@ public class MyServiceNative extends Service {
             _shutdownService();
         } else {
             try {
-                String strLinkAPI = "http://10.171.11.87/APIEF2/api/PushData/pushData2";
+                String strLinkAPI = new clsHardCode().linkPushData;
                 new VolleyUtils().makeJsonObjectRequestPushData(getApplicationContext(), strLinkAPI, dtJson, new VolleyResponseListener() {
                     @Override
                     public void onError(String message) {
@@ -151,50 +158,45 @@ public class MyServiceNative extends Service {
 //        tUserLoginDA _tUserLoginDA=new tUserLoginDA(db);
         int c = 0;
         try {
-            c = new clsAbsenDataRepo(getApplicationContext()).getContactsCount(getApplicationContext());
+            c = new clsUserLoginRepo(getApplicationContext()).getContactsCount(getApplicationContext());
         } catch (SQLException e) {
             e.printStackTrace();
         }
         if (c > 0) {
-//            tUserLoginData _tUserLoginData=_tUserLoginDA.getData(db, 1);
-//
-//            try {
-//                DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-//                Calendar cal = Calendar.getInstance();
-//                mCounterNumberDA _mCounterNumberDA=new mCounterNumberDA(db);
-//                mCounterNumberData _data =new mCounterNumberData();
-//                _data.set_intId(enumCounterData.MonitorSchedule.getidCounterData());
-//                _data.set_txtDeskripsi("value menunjukan waktu terakhir menjalankan services");
-//                _data.set_txtName("Monitor Service");
-//                _data.set_txtValue(dateFormat.format(cal.getTime()));
-//                _mCounterNumberDA.SaveDataMConfig(db, _data);
-//
-//                new clsInit().PushData(db,versionName);
-//            } catch (Exception e1) {
-//                 TODO Auto-generated catch block
-//                e1.printStackTrace();
-//            }
-//            tAbsenUserDA _tAbsenUserDA =new tAbsenUserDA (db);
-//            tActivityDA _tActivityDA =new tActivityDA (db);
-//
-            /*List<clsAbsenData> ListOftAbsenUserData=new clsAbsenDataRepo(getApplicationContext()).getAllDataToPushData(getApplicationContext());
-//            List<tActivityData> ListOftActivityData=_tActivityDA.getAllDataToPushData(db);
+            try {
+                DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+                Calendar cal = Calendar.getInstance();
+                clsmCounterData _data =new clsmCounterData();
+                _data.setIntId(enumCounterData.MonitorSchedule.getidCounterData());
+                _data.setTxtDeskripsi("value menunjukan waktu terakhir menjalankan services");
+                _data.setTxtName("Monitor Service");
+                _data.setTxtValue(dateFormat.format(cal.getTime()));
+                new clsmCounterDataRepo(getApplicationContext()).createOrUpdate(_data);
+
+                //new clsInit().PushData(db,versionName);
+            } catch (Exception e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            }
+            /*tAbsenUserDA _tAbsenUserDA =new tAbsenUserDA (db);
+
+            List<tAbsenUserData> ListOftAbsenUserData=_tAbsenUserDA.getAllDataToPushData(db);
+            List<tActivityData> ListOftActivityData=_tActivityDA.getAllDataToPushData(db);
             dataJson dtPush=new dataJson();
             HashMap<String, String> FileUpload=null;
             FileUpload=new HashMap<String, String>();
             if(ListOftAbsenUserData!= null){
                 dtPush.setListOftAbsenUserData(ListOftAbsenUserData);
-                for (clsAbsenData dttAbsenUserData : ListOftAbsenUserData) {
-                    if(dttAbsenUserData.getTxtImg1()!=null){
-                        String id = dttAbsenUserData.getGuiId();
-                        String image = dttAbsenUserData.getTxtImg1().toString();
-                        FileUpload.put("FUAbsen1", image);
+                for (tAbsenUserData dttAbsenUserData : ListOftAbsenUserData) {
+                    if(dttAbsenUserData.get_txtImg1()!=null){
+                        FileUpload.put("FUAbsen1"+dttAbsenUserData.get_intId(), dttAbsenUserData.get_txtImg1().toString());
                     }
-                    if(dttAbsenUserData.getTxtImg2()!=null){
-                        FileUpload.put("FUAbsen2"+dttAbsenUserData.getGuiId(), dttAbsenUserData.getTxtImg2().toString());
+                    if(dttAbsenUserData.get_txtImg2()!=null){
+                        FileUpload.put("FUAbsen2"+dttAbsenUserData.get_intId(), dttAbsenUserData.get_txtImg2().toString());
                     }
                 }
             }*/
+
         } else {
             _shutdownService();
         }

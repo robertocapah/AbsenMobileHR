@@ -58,6 +58,7 @@ public class FragmentHome extends Fragment {
         tv_act2 = (TextView) v.findViewById(R.id.tv_act2);
         tv_cb1 = (TextView) v.findViewById(R.id.tv_cb1);
         tv_cb2 = (TextView) v.findViewById(R.id.tv_cb2);
+
         getLastTrackingData();
 
         return v;

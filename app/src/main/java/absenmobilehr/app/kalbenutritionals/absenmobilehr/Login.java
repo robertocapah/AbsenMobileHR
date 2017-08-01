@@ -46,6 +46,7 @@ import java.util.List;
 
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.VolleyResponseListener;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.VolleyUtils;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.clsHardCode;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.clsHelper;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsDeviceInfo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsUserLogin;
@@ -404,7 +405,7 @@ public class Login extends clsMainActivity {
             RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
             txtEmail1 = txtLoginEmail.getText().toString();
             txtPassword1 = txtLoginPassword.getText().toString();
-            String strLinkAPI = "http://prm.kalbenutritionals.web.id/VisitPlan/API/VisitPlanAPI/LogIn_J";
+            String strLinkAPI = new clsHardCode().linkLogin;
 //        String nameRole = selectedRole;
             JSONObject resJson = new JSONObject();
             List<clsmVersionApp> dataInfo = new ArrayList<>();
@@ -493,8 +494,6 @@ public class Login extends clsMainActivity {
                                 i = repoLogin.createOrUpdate(data);
                                 if (i > -1) {
                                     Log.d("Data info", "Data info berhasil di simpan");
-                                    startService(new Intent(Login.this, MyTrackingLocationService.class));
-                                    startService(new Intent(Login.this, MyServiceNative.class));
                                     Intent myIntent = new Intent(Login.this, MainMenu.class);
                                     myIntent.putExtra("keyMainMenu", "main_menu");
                                     startActivity(myIntent);
@@ -502,12 +501,8 @@ public class Login extends clsMainActivity {
                                     if (!isMyServiceRunning(MyServiceNative.class)) {
                                         startService(new Intent(Login.this, MyServiceNative.class));
                                     }
-                                    if (!isMyServiceRunning(MyTrackingLocationService.class)) {
-                                        startService(new Intent(Login.this, MyTrackingLocationService.class));
-                                    }
                                     boolean tes,tes2;
                                     tes = isMyServiceRunning(MyServiceNative.class);
-                                    tes2 = isMyServiceRunning(MyTrackingLocationService.class);
                                 }
                             } else {
                                 new clsMainActivity().showCustomToast(getApplicationContext(), warn, false);
@@ -530,7 +525,7 @@ public class Login extends clsMainActivity {
     public void checkVersion() {
         final ProgressDialog Dialog = new ProgressDialog(Login.this);
         RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
-        String strLinkAPI = "http://prm.kalbenutritionals.web.id/VisitPlan/API/VisitPlanAPI/CheckVersionApp_J";
+        String strLinkAPI = new clsHardCode().linkCheckVersion;
         JSONObject resJson = new JSONObject();
         try {
             resJson.put("TxtVersion", pInfo.versionName);

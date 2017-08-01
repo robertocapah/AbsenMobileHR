@@ -160,5 +160,17 @@ public class clsUserLoginRepo implements crud {
         }
         return data;
     }
+    public int getContactsCount(Context context) throws SQLException {
+        List<clsUserLogin> items = null;
+        int num = 0;
+        try {
+            items = helper.getUserLoginDao().queryForAll();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        num = items.size();
+        // return count
+        return num;
+    }
 
 }

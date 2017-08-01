@@ -159,7 +159,7 @@ public class Splash extends AppCompatActivity {
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
-
+//String
                 try {
                     new clsmConfigRepo(getApplicationContext()).InsertDefaultMconfig();
 

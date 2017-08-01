@@ -50,13 +50,9 @@ public class clsMainBL {
             e.printStackTrace();
         }
         List<clsTrackingData> trackingData = new ArrayList<>();
-        try {
-            trackingData = (List<clsTrackingData>) new clsTrackingDataRepo(context).findAll();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        List<clsAbsenData> absenData = new ArrayList<>();
-        absenData = (List<clsAbsenData>) new clsAbsenDataRepo(context).getDataCheckinActive(context);
+        trackingData = (List<clsTrackingData>) new clsTrackingDataRepo(context).getAllDataToPushData(context);
+        clsAbsenData absenData = null;
+        absenData = (clsAbsenData) new clsAbsenDataRepo(context).getDataCheckinActive(context);
 //        try {
 //            absenData = (List<clsAbsenData>) new clsAbsenDataRepo(context).findAll();
 //        } catch (SQLException e) {
@@ -70,7 +66,7 @@ public class clsMainBL {
                 if (trackingData != null && trackingData.size() > 0 && dvalid == false) {
                     dvalid = true;
                 }
-                if (absenData != null && absenData.size() > 0 && dvalid == false) {
+                if (absenData != null && dvalid == false) {
                     dvalid = true;
                 }
                 if (dvalid){

@@ -35,6 +35,7 @@ import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.DatabaseHelper;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.DatabaseManager;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.VolleyResponseListener;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.VolleyUtils;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.clsHardCode;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.clsHelper;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsAbsenData;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsPushData;
@@ -126,7 +127,8 @@ public class FragmentPushData extends Fragment {
     }
 
     private void pushData() {
-        final String val = new Intent().getStringExtra("key_view");
+        Intent i = getActivity().getIntent();
+        final String val = i.getStringExtra("key_view");
         String versionName = "";
         pDialog.getProgressHelper().setBarColor(Color.parseColor("#A5DC86"));
         pDialog.setTitleText("Pushing Data");
@@ -150,7 +152,7 @@ public class FragmentPushData extends Fragment {
             try {
 //                pDialog = new SweetAlertDialog(getActivity(), SweetAlertDialog.PROGRESS_TYPE);
 
-                String strLinkAPI = "http://10.171.11.87/APIEF2/api/PushData/pushData2";
+                String strLinkAPI = new clsHardCode().linkPushData;
                 new VolleyUtils().makeJsonObjectRequestPushData(getActivity().getApplicationContext(), strLinkAPI, dtJson, new VolleyResponseListener() {
                     @Override
                     public void onError(String message) {
@@ -190,15 +192,20 @@ public class FragmentPushData extends Fragment {
                                             valid = false;
                                         }
                                     }
-                                    if (valid){
+                                    Intent intent = getActivity().getIntent();
+                                    String action = intent.getStringExtra("action");
+                                    if (action != null && valid && action.equals("logout")){
                                         new clsMainActivity().showCustomToast(getActivity().getApplicationContext(),"Push Data Completed, Logging out account",true);
                                         logout();
+                                    }else{
+                                        new clsMainActivity().showCustomToast(getActivity().getApplicationContext(),"Push Data Completed",true);
+                                        startActivity(new Intent(getActivity(),Splash.class));
                                     }
                                 }
                             }else{
                                 new clsMainActivity().showCustomToast(getActivity().getApplicationContext(),"Push Data Completed, Logging out account",true);
 
-                                if (val.equals("push_data")){
+                                if (val != null && val.equals("push_data")){
                                     logout();
                                 }else{
                                     new clsTrackingDataRepo(getActivity().getApplicationContext()).updateAllRowTracking();
@@ -249,7 +256,7 @@ public class FragmentPushData extends Fragment {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        String strLinkAPI = "http://prm.kalbenutritionals.web.id/VisitPlan/API/VisitPlanAPI/LogOut_J";
+        String strLinkAPI = new clsHardCode().linkLogout;
 //        String nameRole = selectedRole;
         final JSONObject resJson = new JSONObject();
         List<clsTrackingData> trackingDatas = new ArrayList<>();

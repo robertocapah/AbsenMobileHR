@@ -10,10 +10,12 @@ import org.json.JSONArray;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.channels.FileChannel;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -41,10 +43,45 @@ import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsmCounterDa
 public class clsHelper {
     private static final String TAG = "MainActivity";
     clsHardCode _path = new clsHardCode();
-    public void copyDataBase(Context context) throws IOException {
-        final String CURRENT_DATABASE_PATH = "data/data/" + context.getPackageName() + "/databases/" + _path.dbName;
+
+    public String writeToSD(Context context) throws IOException {
+        File sd = Environment.getExternalStorageDirectory();
+String status = null;
+        if (sd.canWrite()) {
+            final String CURRENT_DATABASE_PATH = "/data/data/"+context.getPackageName()+"/databases/";
+            String currentDBPath = _path.dbName;
+            String backupDBPath = "/sdcard/"+_path.dbName;
+            File currentDB = new File(CURRENT_DATABASE_PATH, currentDBPath);
+            File backupDB = new File(sd, backupDBPath);
+
+            if (currentDB.exists()) {
+                FileChannel src = new FileInputStream(currentDB).getChannel();
+                FileChannel dst = new FileOutputStream(backupDB).getChannel();
+                dst.transferFrom(src, 0, src.size());
+                status = "bisa cuy";
+                src.close();
+                dst.close();
+            }else{
+                status = "ga bisa ah";
+            }
+        }
+        return status;
+    }
+
+    public String copyDataBase(Context context) throws IOException {
+        final String CURRENT_DATABASE_PATH = "/data/data/"+context.getPackageName()+"/databases/"+_path.dbName;
+        File sd = Environment.getExternalStorageDirectory();
+        File data = Environment.getDataDirectory();
 
         //Open your local db as the input stream
+        if(new File(CURRENT_DATABASE_PATH).exists()) {
+            File currentDB = new File(data, CURRENT_DATABASE_PATH);
+            // database access code comes here
+        } else {
+            // database does not exists. Create it!
+            // create directories if needed
+            // and so on
+        }
         InputStream myInput = context.getAssets().open(CURRENT_DATABASE_PATH);
 
         // Path to the just created empty db
@@ -64,7 +101,7 @@ public class clsHelper {
         myOutput.flush();
         myOutput.close();
         myInput.close();
-
+        return outFileName;
     }
     public clsPushData pushData(String versionName, Context context){
         clsPushData dtclsPushData = new clsPushData();
@@ -321,3 +358,4 @@ public class clsHelper {
 
 
 }
+

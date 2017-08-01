@@ -10,8 +10,8 @@ public class MyRebootReceiver extends BroadcastReceiver{
 		/*Intent serviceIntentMyServiceNative = new Intent(context, MyServiceNative.class);
         context.startService(serviceIntentMyServiceNative);*/
 
-		Intent serviceIntentMyTrackingLocationService = new Intent(context, MyTrackingLocationService.class);
-		context.startService(serviceIntentMyTrackingLocationService);
+//		Intent serviceIntentMyTrackingLocationService = new Intent(context, MyTrackingLocationService.class);
+//		context.startService(serviceIntentMyTrackingLocationService);
         /*
         Intent serviceIntentMyNotificationService = new Intent(context, MyNotificationService.class);
         context.startService(serviceIntentMyNotificationService);

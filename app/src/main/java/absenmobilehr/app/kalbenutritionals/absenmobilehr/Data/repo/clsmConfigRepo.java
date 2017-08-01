@@ -30,7 +30,7 @@ public class clsmConfigRepo {
         }
         return item;
     }
-
+//String a;
     public void InsertDefaultMconfig() throws SQLException {
         clsmConfig data1 = new clsmConfig();
         data1.setIntId(1);
