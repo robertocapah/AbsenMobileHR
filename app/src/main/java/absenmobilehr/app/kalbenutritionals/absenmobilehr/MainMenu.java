@@ -307,8 +307,8 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                         try {
 
 //                            String msg = new clsHelper().copyDataBase(getApplicationContext());
-                            String msg2 = new clsHelper().writeToSD(getApplicationContext());
-
+//                            String msg2 = new clsHelper().writeToSD(getApplicationContext());
+                            String msg2 = new clsHelper().copydb(getApplicationContext());
 
                             new clsMainActivity().showCustomToast(getApplicationContext(),"Database sqlite copied to "+msg2,true);
                         } catch (IOException e) {

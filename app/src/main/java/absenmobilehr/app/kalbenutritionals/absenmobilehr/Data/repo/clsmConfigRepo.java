@@ -74,6 +74,34 @@ public class clsmConfigRepo {
         data6.setTxtDefaultValue("Copyright &copy; KN IT 2017");
         data6.setIntEditAdmin(1);
         helper.getmConfigDao().createOrUpdate(data6);
+        clsmConfig data7 = new clsmConfig();
+        data7.setIntId(7);
+        data7.setTxtName("Background Service Online");
+        data7.setTxtValue("1000");
+        data7.setTxtDefaultValue("1000");
+        data7.setIntEditAdmin(1);
+        helper.getmConfigDao().createOrUpdate(data7);
+        clsmConfig data8 = new clsmConfig();
+        data8.setIntId(8);
+        data8.setTxtName("API_GETLASTLOCATION");
+        data8.setTxtValue("http://192.168.66.1/APIEF2/api/TrackingDataAPI/getDataLastLocation/{id}");
+        data8.setTxtDefaultValue("http://10.171.11.87/APIEF2/api/TrackingDataAPI/getDataLastLocation/{id}");
+        data8.setIntEditAdmin(1);
+        helper.getmConfigDao().createOrUpdate(data8);
+        clsmConfig data9 = new clsmConfig();
+        data9.setIntId(9);
+        data9.setTxtName("API_PUSHDATA");
+        data9.setTxtValue("http://192.168.66.1/APIEF2/api/PushData/pushData2");
+        data9.setTxtDefaultValue("http://10.171.11.87/APIEF2/api/PushData/pushData2");
+        data9.setIntEditAdmin(1);
+        helper.getmConfigDao().createOrUpdate(data9);
+        clsmConfig data10 = new clsmConfig();
+        data10.setIntId(10);
+        data10.setTxtName("'WidthScreen");
+        data10.setTxtValue("");
+        data10.setTxtDefaultValue("");
+        data10.setIntEditAdmin(1);
+        helper.getmConfigDao().createOrUpdate(data10);
 
     }
     /*public String getLIVE(Context context){

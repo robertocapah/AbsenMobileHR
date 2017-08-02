@@ -27,12 +27,15 @@ import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.clsHelper;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsAbsenData;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsPushData;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsTrackingData;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsmConfig;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsmCounterData;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.enumCounterData;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsAbsenDataRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsTrackingDataRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsUserLoginRepo;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsmConfigRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsmCounterDataRepo;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.enumConfigData;
 
 import static com.android.volley.VolleyLog.TAG;
 
@@ -100,6 +103,8 @@ public class MyServiceNative extends Service {
             _shutdownService();
         } else {
             try {
+                clsmConfig configData = (clsmConfig) new clsmConfigRepo(getApplicationContext()).findById(enumConfigData.API_PUSHDATA.getidConfigData());
+                String linkPushData = configData.getTxtValue();
                 String strLinkAPI = new clsHardCode().linkPushData;
                 new VolleyUtils().makeJsonObjectRequestPushData(getApplicationContext(), strLinkAPI, dtJson, new VolleyResponseListener() {
                     @Override

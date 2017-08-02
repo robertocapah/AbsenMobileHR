@@ -27,9 +27,12 @@ import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.clsHardCode;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsAbsenData;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsTrackingData;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsUserLogin;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsmConfig;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsAbsenDataRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsTrackingDataRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsUserLoginRepo;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsmConfigRepo;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.enumConfigData;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.R;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Service.MyServiceNative;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Service.MyTrackingLocationService;
@@ -90,6 +93,15 @@ public class FragmentInformation extends Fragment {
 
     private void getLastTrackingData() {
         RequestQueue queue = Volley.newRequestQueue(getActivity().getApplicationContext());
+        clsmConfig configData = null;
+        String linkPushData= "";
+        try {
+            configData = (clsmConfig) new clsmConfigRepo(getActivity().getApplicationContext()).findById(enumConfigData.API_GETLASTLOCATION.getidConfigData());
+            linkPushData = configData.getTxtValue();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
         String strLinkAPI = new clsHardCode().linkGetLastLocation;
 //        String nameRole = selectedRole;
         final JSONObject resJson = new JSONObject();
@@ -170,7 +182,7 @@ public class FragmentInformation extends Fragment {
                             }
                         }
                     } catch (Exception ex) {
-String a;
+String a= "hihi";
                     }
 //                if(!status){
 //                    new clsMainActivity().showCustomToast(getApplicationContext(), strErrorMsg, false);

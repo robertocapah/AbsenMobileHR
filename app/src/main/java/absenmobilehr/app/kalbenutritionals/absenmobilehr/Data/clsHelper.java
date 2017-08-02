@@ -67,6 +67,30 @@ String status = null;
         }
         return status;
     }
+    public String copydb(Context context) throws  IOException{
+        String CURRENT_DATABASE_PATH = "data/data/" + context.getPackageName() + "/databases/" + new DatabaseHelper(context).getDatabaseName();
+
+        try {
+            File dbFile = new File(CURRENT_DATABASE_PATH);
+            FileInputStream fis = new FileInputStream(dbFile);
+            String txtPathUserData= Environment.getExternalStorageDirectory()+File.separator+"backupDb";
+            File yourFile = new File(txtPathUserData);
+            yourFile.createNewFile();
+            OutputStream output = new FileOutputStream(yourFile);
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = fis.read(buffer)) > 0) {
+                output.write(buffer, 0, length);
+            }
+            output.flush();
+            output.close();
+            fis.close();
+        } catch (Exception e) {
+            String s= "hahaha";
+        }
+
+        return "hehe";
+    }
 
     public String copyDataBase(Context context) throws IOException {
         final String CURRENT_DATABASE_PATH = "/data/data/"+context.getPackageName()+"/databases/"+_path.dbName;
