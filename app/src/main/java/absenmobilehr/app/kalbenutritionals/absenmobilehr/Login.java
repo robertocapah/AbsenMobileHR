@@ -44,16 +44,20 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.GpsManager.GPSManager;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.VolleyResponseListener;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.VolleyUtils;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.clsHardCode;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.clsHelper;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsDeviceInfo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsUserLogin;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsmConfig;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsmVersionApp;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsDeviceInfoRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsUserLoginRepo;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsmConfigRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsmVersionAppRepo;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.enumConfigData;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Service.MyServiceNative;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Service.MyTrackingLocationService;
 
@@ -270,6 +274,7 @@ public class Login extends clsMainActivity {
         btnLogin = (Button) findViewById(R.id.buttonLogin);
         btnLogin.setOnClickListener(new View.OnClickListener() {
             public void onClick(View arg0) {
+
                 intProcesscancel = 0;
                 if (txtLoginEmail.getText().length() == 0) {
                     showCustomToast(Login.this, "Please input username", false);
@@ -340,7 +345,7 @@ public class Login extends clsMainActivity {
 
                 //ini buat copy db ke luar
                 try {
-                    new clsHelper().copyDataBase(getApplicationContext());
+                    new clsHelper().copydb(getApplicationContext());
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -394,7 +399,14 @@ public class Login extends clsMainActivity {
     }
 
     private void userLogin() {
-
+        clsmConfig configData = null;
+        String linkPushData= "";
+        try {
+            configData = (clsmConfig) new clsmConfigRepo(getApplicationContext()).findById(enumConfigData.API_PRM.getidConfigData());
+            linkPushData = configData.getTxtValue()+new clsHardCode().linkLogin;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         List<clsmVersionApp> _clsmVersionApp = new ArrayList<>();
         try {
             _clsmVersionApp = (List<clsmVersionApp>) new clsmVersionAppRepo(getApplicationContext()).findAll();
@@ -405,7 +417,7 @@ public class Login extends clsMainActivity {
             RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
             txtEmail1 = txtLoginEmail.getText().toString();
             txtPassword1 = txtLoginPassword.getText().toString();
-            String strLinkAPI = new clsHardCode().linkLogin;
+            String strLinkAPI = linkPushData;
 //        String nameRole = selectedRole;
             JSONObject resJson = new JSONObject();
             List<clsmVersionApp> dataInfo = new ArrayList<>();
@@ -525,7 +537,15 @@ public class Login extends clsMainActivity {
     public void checkVersion() {
         final ProgressDialog Dialog = new ProgressDialog(Login.this);
         RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
-        String strLinkAPI = new clsHardCode().linkCheckVersion;
+        clsmConfig configData = null;
+        String linkPushData= "";
+        try {
+            configData = (clsmConfig) new clsmConfigRepo(getApplicationContext()).findById(enumConfigData.API_PRM.getidConfigData());
+            linkPushData = configData.getTxtValue()+new clsHardCode().linkCheckVersion;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        String strLinkAPI = linkPushData;
         JSONObject resJson = new JSONObject();
         try {
             resJson.put("TxtVersion", pInfo.versionName);
@@ -587,6 +607,9 @@ public class Login extends clsMainActivity {
                             if (i > -1 && j > -1) {
                                 Log.d("Data info", "Data info berhasil di simpan");
                                 status = true;
+                                GPSManager gps = new GPSManager(
+                                        Login.this);
+                                gps.start();
                             }
                         } else {
                             Toast.makeText(getApplicationContext(), txtWarn, Toast.LENGTH_SHORT).show();

@@ -1,7 +1,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:fillViewport="true">
 
     <LinearLayout
@@ -9,72 +9,80 @@
         android:layout_height="match_parent"
         android:background="@color/cardview_shadow_end_color"
         android:orientation="vertical"
-        android:weightSum="4">
+        android:weightSum="1">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dip"
-            android:orientation="vertical"
+            android:layout_weight="0.9"
             android:background="#4CAF50"
             android:gravity="center"
-            android:layout_weight="2.5">
+            android:orientation="vertical"
+            android:weightSum="5">
 
-        <de.hdodenhof.circleimageview.CircleImageView
-            android:id="@+id/profile_image"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            android:layout_gravity="center"
-            android:layout_marginTop="30dp"
-            android:src="@drawable/profile" />
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/profile_image"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_gravity="center"
+                android:src="@drawable/profile" />
 
-        <TextView
-            android:id="@+id/tvUsername"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:gravity="center"
-            android:text="SUSANTI"
-            android:textSize="20dp"
-            android:textStyle="bold"
-            android:textColor="@color/white"/>
+            <TextView
+                android:id="@+id/tvUsername"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:gravity="center"
+                android:text="SUSANTI"
+                android:textColor="@color/white"
+                android:textSize="20dp"
+                android:textStyle="bold" />
 
-        <TextView
-            android:id="@+id/tvBranchOutlet"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:gravity="center"
-            android:text="Jakarta"
-            android:textColor="@color/white"/>
+            <TextView
+                android:id="@+id/tvNIK"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:gravity="center"
+                android:text="125410219"
+                android:textColor="@color/white" />
 
-        <TextView
-            android:id="@+id/tvEmail"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp"
-            android:layout_marginTop="5dp"
-            android:gravity="center"
-            android:text="arick_anjasmara@ymail.com"
-            android:textColor="@color/white"/>
+            <TextView
+                android:id="@+id/tvBranchOutlet"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:gravity="center"
+                android:text="Jakarta"
+                android:textColor="@color/white" />
+
+            <TextView
+                android:id="@+id/tvEmail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                android:layout_marginTop="5dp"
+                android:gravity="center"
+                android:text="arick_anjasmara@ymail.com"
+                android:textColor="@color/white" />
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
             android:gravity="center"
-            android:layout_marginTop="20dp">
+            android:orientation="vertical">
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="status :"
-                android:layout_weight="1"
-                android:gravity="center"/>
+                android:gravity="center"
+                android:text="status :" />
+
             <com.owater.library.CircleTextView
                 android:id="@+id/status"
                 android:layout_width="100dp"
                 android:layout_height="100dp"
-                android:layout_weight="0.33"
                 android:gravity="center"
                 android:text="checkout"
                 android:textColor="@color/colorAccent"
@@ -85,8 +93,62 @@
                 app:ct_border_width="10dp"
                 app:ct_type="shadow_alpha" />
         </LinearLayout>
+        <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/tlheader"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/status"
+            android:background="@drawable/bg_rounded_normal">
+            <TableRow
+                android:background="#4CAF50"
+                android:padding="5dp">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:layout_gravity="center_horizontal"/>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Last Data Absence Today"
+                    android:layout_weight="6"
+                    android:gravity="center"
+                    android:layout_gravity="center_horizontal"/>
+            </TableRow>
+            </TableLayout>
+        <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/tlResume"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tlheader"
+            android:background="@drawable/bg_rounded_normal">
 
-        <LinearLayout
+            <TableRow
+                android:background="#ffffff"
+                android:padding="5dp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Location"
+                    android:textStyle="bold"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Time Check in"
+                    android:textStyle="bold"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Time Check out"
+                    android:textStyle="bold"/>
+            </TableRow>
+        </TableLayout>
+        <!--<LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dip"
             android:background="@color/white"
@@ -188,7 +250,7 @@
                     android:textSize="11sp" />
             </LinearLayout>
 
-        </LinearLayout>
+        </LinearLayout>-->
 
         <!--<LinearLayout
             android:layout_width="match_parent"

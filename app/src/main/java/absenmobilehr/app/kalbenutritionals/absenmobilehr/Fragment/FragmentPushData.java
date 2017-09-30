@@ -41,12 +41,15 @@ import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsAbsenDat
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsPushData;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsTrackingData;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsUserLogin;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsmConfig;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsmVersionApp;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.dataJson;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsAbsenDataRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsTrackingDataRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsUserLoginRepo;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsmConfigRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsmVersionAppRepo;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.enumConfigData;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.MainMenu;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.R;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Service.MyServiceNative;
@@ -128,7 +131,9 @@ public class FragmentPushData extends Fragment {
 
     private void pushData() {
         Intent i = getActivity().getIntent();
-        final String val = i.getStringExtra("key_view");
+        final String StrIntentPushDataFromLogin = i.getStringExtra("key_view");
+        Bundle arguments = getArguments();
+        final String StrFragmentFromMainMenu = arguments.getString("key_view");
         String versionName = "";
         pDialog.getProgressHelper().setBarColor(Color.parseColor("#A5DC86"));
         pDialog.setTitleText("Pushing Data");
@@ -151,8 +156,15 @@ public class FragmentPushData extends Fragment {
         } else {
             try {
 //                pDialog = new SweetAlertDialog(getActivity(), SweetAlertDialog.PROGRESS_TYPE);
-
-                String strLinkAPI = new clsHardCode().linkPushData;
+                clsmConfig configData = null;
+                String linkPushData= "";
+                try {
+                    configData = (clsmConfig) new clsmConfigRepo(getActivity().getApplicationContext()).findById(enumConfigData.API_EF.getidConfigData());
+                    linkPushData = configData.getTxtValue()+new clsHardCode().linkPushData;
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+                String strLinkAPI = linkPushData;
                 new VolleyUtils().makeJsonObjectRequestPushData(getActivity().getApplicationContext(), strLinkAPI, dtJson, new VolleyResponseListener() {
                     @Override
                     public void onError(String message) {
@@ -178,7 +190,8 @@ public class FragmentPushData extends Fragment {
                                     String listMethod = method.getString("PstrMethodRequest");
                                     if (listMethod.equals(trackingData.Property_ListOftrackingLocation)) {
                                         if (method.getString("pBoolValid").equals("1")) {
-                                            new DatabaseHelper(getActivity().getApplicationContext()).clearDataTracking();
+                                            //new DatabaseHelper(getActivity().getApplicationContext()).clearDataTracking();
+                                            new clsTrackingDataRepo(context).updateAllRowTracking();
                                             valid = true;
                                         }else{
                                             valid = false;
@@ -192,22 +205,22 @@ public class FragmentPushData extends Fragment {
                                             valid = false;
                                         }
                                     }
-                                    Intent intent = getActivity().getIntent();
-                                    String action = intent.getStringExtra("action");
-                                    if (action != null && valid && action.equals("logout")){
-                                        new clsMainActivity().showCustomToast(getActivity().getApplicationContext(),"Push Data Completed, Logging out account",true);
-                                        logout();
-                                    }else{
+                                    if (StrIntentPushDataFromLogin != null && StrIntentPushDataFromLogin.equals("push_data")){
                                         new clsMainActivity().showCustomToast(getActivity().getApplicationContext(),"Push Data Completed",true);
-                                        startActivity(new Intent(getActivity(),Splash.class));
+                                        logout();
+                                    }else if(StrFragmentFromMainMenu != null && StrFragmentFromMainMenu.equals("main_menu")){
+                                        new clsMainActivity().showCustomToast(getActivity().getApplicationContext(),"Push Data Completed",true);
+                                        startActivity(new Intent(getActivity(),MainMenu.class));
                                     }
                                 }
                             }else{
-                                new clsMainActivity().showCustomToast(getActivity().getApplicationContext(),"Push Data Completed, Logging out account",true);
+                                new clsMainActivity().showCustomToast(getActivity().getApplicationContext(),"Push Data Completed",true);
 
-                                if (val != null && val.equals("push_data")){
-                                    logout();
-                                }else{
+                                if (StrIntentPushDataFromLogin != null && StrIntentPushDataFromLogin.equals("push_data")){
+                                    new clsAbsenDataRepo(getActivity().getApplicationContext()).updateAllRowAbsen();
+                                    getActivity().finish();
+                                    startActivity(new Intent(getActivity(), MainMenu.class));
+                                }else if(StrFragmentFromMainMenu != null && StrFragmentFromMainMenu.equals("main_menu")){
                                     new clsTrackingDataRepo(getActivity().getApplicationContext()).updateAllRowTracking();
                                     new clsAbsenDataRepo(getActivity().getApplicationContext()).updateAllRowAbsen();
                                     getActivity().finish();
@@ -256,7 +269,15 @@ public class FragmentPushData extends Fragment {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        String strLinkAPI = new clsHardCode().linkLogout;
+        String linkPushData= "";
+        clsmConfig configData = null;
+        try {
+            configData = (clsmConfig) new clsmConfigRepo(getActivity().getApplicationContext()).findById(enumConfigData.API_EF.getidConfigData());
+            linkPushData = configData.getTxtValue()+new clsHardCode().linkPushData;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        String strLinkAPI = linkPushData;
 //        String nameRole = selectedRole;
         final JSONObject resJson = new JSONObject();
         List<clsTrackingData> trackingDatas = new ArrayList<>();

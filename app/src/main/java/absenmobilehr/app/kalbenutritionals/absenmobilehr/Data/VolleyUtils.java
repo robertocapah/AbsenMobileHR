@@ -67,18 +67,19 @@ public class VolleyUtils {
             }
         };
         req.setRetryPolicy(new
-                DefaultRetryPolicy(25000,
+                DefaultRetryPolicy(12000,
                 DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
                 DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
 
         RequestQueue queue = Volley.newRequestQueue(activity.getApplicationContext());
         queue.add(req);
     }
+
     public void makeJsonObjectRequestPushData(final Context ctx, String strLinkAPI, final clsPushData mRequestBody, final VolleyResponseListener listener) {
 
         VolleyMultipartRequest multipartRequest = new VolleyMultipartRequest(Request.Method.POST, strLinkAPI, new Response.Listener<String>() {
             @Override
-               public void onResponse(String response) {
+            public void onResponse(String response) {
                 Boolean status = false;
                 String errorMessage = null;
                 listener.onResponse(response.toString(), status, errorMessage);
@@ -106,10 +107,10 @@ public class VolleyUtils {
                 Map<String, DataPart> params = new HashMap<>();
                 // file name could found file base or direct access from real path
                 // for now just get bitmap data from ImageView
-                if (mRequestBody.getFileUpload().get("FUAbsen-1") != null){
+                if (mRequestBody.getFileUpload().get("FUAbsen-1") != null) {
                     params.put("image1", new DataPart("file_image1.jpg", mRequestBody.getFileUpload().get("FUAbsen-1"), "image/jpeg"));
                 }
-                if (mRequestBody.getFileUpload().get("FUAbsen-2") != null){
+                if (mRequestBody.getFileUpload().get("FUAbsen-2") != null) {
                     params.put("image2", new DataPart("file_image2.jpg", mRequestBody.getFileUpload().get("FUAbsen-2"), "image/jpeg"));
                 }
 
@@ -125,5 +126,51 @@ public class VolleyUtils {
         queue.add(multipartRequest);
     }
 
+    public void makeJsonObjectRequestOutlet(final Activity activity, String strLinkAPI, final String mRequestBody, String progressBarType, final VolleyResponseListener listener) {
 
+        ProgressDialog Dialog = new ProgressDialog(activity);
+//        Dialog.setCancelable(false);
+//        Dialog.show();
+        final SweetAlertDialog pDialog = new SweetAlertDialog(activity, SweetAlertDialog.PROGRESS_TYPE);
+        pDialog.getProgressHelper().setBarColor(Color.parseColor("#A5DC86"));
+        pDialog.setTitleText(progressBarType);
+        pDialog.setCancelable(false);
+        pDialog.show();
+        /*Dialog = ProgressDialog.show(activity, "",
+                progressBarType, true); */
+        final ProgressDialog finalDialog = Dialog;
+        final ProgressDialog finalDialog1 = Dialog;
+        StringRequest req = new StringRequest(Request.Method.POST, strLinkAPI, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                Boolean status = false;
+                String errorMessage = null;
+//                finalDialog.dismiss();
+                listener.onResponse(response, status, errorMessage);
+                pDialog.dismiss();
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+//                finalDialog1.dismiss();
+                listener.onError(error.getMessage());
+                pDialog.dismiss();
+            }
+        }) {
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("txtParam", mRequestBody);
+                return params;
+            }
+        };
+        req.setRetryPolicy(new
+                DefaultRetryPolicy(12000,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+
+        RequestQueue queue = Volley.newRequestQueue(activity.getApplicationContext());
+        queue.add(req);
+
+    }
 }

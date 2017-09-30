@@ -80,6 +80,10 @@ public class MyTrackingLocationService extends Service implements GoogleApiClien
     private static long UPDATE_INTERVAL_TESTING = /*1000 * 60 * 2*/3000; //2 minutes
     private static Timer timer = new Timer();
 
+    Location locationBefore = new Location("point past");
+    Location locationLast = new Location("point now");
+
+
     private void startService() throws JSONException {
         try {
             doService();
@@ -206,7 +210,6 @@ public class MyTrackingLocationService extends Service implements GoogleApiClien
 
 //            }
 
-
             if (new clsTrackingDataRepo(getApplicationContext()).getContactCount() == 0) {
                 if (dataUserActive != null) {
                     dataLocation.setGuiId(new clsMainActivity().GenerateGuid());
@@ -218,7 +221,7 @@ public class MyTrackingLocationService extends Service implements GoogleApiClien
                     dataLocation.setTxtBranchCode(dataUserActive.getTxtKodeCabang());
                     dataLocation.setTxtNIK(dataUserActive.getEmployeeId());
                     dataLocation.setGuiIdLogin(dataUserActive.getTxtGUI());
-                    dataLocation.setIntSequence(String.valueOf(index));
+                    dataLocation.setIntSequence(index);
                     dataLocation.setTxtTime(dateFormat.format(cal.getTime()));
                     dataLocation.setIntSubmit("1");
                     dataLocation.setIntSync("0");
@@ -249,7 +252,7 @@ public class MyTrackingLocationService extends Service implements GoogleApiClien
                     dataLocation.setTxtBranchCode(dataUserActive.getTxtKodeCabang());
                     dataLocation.setTxtNIK(dataUserActive.getEmployeeId());
                     dataLocation.setGuiIdLogin(dataUserActive.getTxtGUI());
-                    dataLocation.setIntSequence(String.valueOf(index));
+                    dataLocation.setIntSequence(index);
                     dataLocation.setTxtTime(dateFormat.format(cal.getTime()));
                     dataLocation.setIntSubmit("1");
                     dataLocation.setIntSync("0");
@@ -331,7 +334,7 @@ public class MyTrackingLocationService extends Service implements GoogleApiClien
 
     @Override
     public void onLocationChanged(Location location) {
-
+        mLastLocation = location;
     }
 
     @Override

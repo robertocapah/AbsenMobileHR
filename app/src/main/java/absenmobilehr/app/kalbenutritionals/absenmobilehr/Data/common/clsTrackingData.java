@@ -30,7 +30,7 @@ public class clsTrackingData implements Serializable {
     @DatabaseField(columnName = "txtNIK")
     private String txtNIK;
     @DatabaseField(columnName = "intSequence")
-    private String intSequence;
+    private Integer intSequence;
     @DatabaseField(columnName = "intSubmit")
     private String intSubmit;
     @DatabaseField(columnName = "intSync")
@@ -161,11 +161,11 @@ public class clsTrackingData implements Serializable {
         this.intSync = intSync;
     }
 
-    public String getIntSequence() {
+    public Integer getIntSequence() {
         return intSequence;
     }
 
-    public void setIntSequence(String intSequence) {
+    public void setIntSequence(Integer intSequence) {
         this.intSequence = intSequence;
     }
 }

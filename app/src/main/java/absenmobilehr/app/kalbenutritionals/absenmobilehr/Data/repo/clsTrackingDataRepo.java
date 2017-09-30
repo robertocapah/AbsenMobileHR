@@ -3,6 +3,7 @@ package absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo;
 import android.content.Context;
 
 import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.dao.GenericRawResults;
 import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.stmt.UpdateBuilder;
 
@@ -43,9 +44,29 @@ public class clsTrackingDataRepo implements crud {
     public int getMaxSequence() throws SQLException{
         QueryBuilder<clsTrackingData, Integer> builder = helper.getTrackingDataDao().queryBuilder();
         builder.orderBy("intSequence", false);  // true or false for ascending so change to true to get min id
+//        builder.selectRaw("MAX(intSequence)");
+        builder.limit(1L);
         clsTrackingData data = helper.getTrackingDataDao().queryForFirst(builder.prepare());
-        String id = data.getIntSequence();
-        return Integer.parseInt(id);
+
+        QueryBuilder<clsTrackingData, Integer> qb = helper.getTrackingDataDao().queryBuilder();
+        qb.selectRaw("MAX(intSequence)");
+
+// the results will contain 2 string values for the min and max
+
+        GenericRawResults<String[]> results = helper.getTrackingDataDao().queryRaw(qb.prepareStatementString());
+
+        String[] values = results.getFirstResult();
+
+
+        int id = data.getIntSequence();
+        return id;
+    }
+    public clsTrackingData getDataByMaxSequence() throws SQLException{
+        QueryBuilder<clsTrackingData, Integer> builder = helper.getTrackingDataDao().queryBuilder();
+        builder.orderBy("intSequence", false);  // true or false for ascending so change to true to get min id
+        clsTrackingData data = helper.getTrackingDataDao().queryForFirst(builder.prepare());
+//        String id = data.getIntSequence();
+        return data;
     }
     public List<clsTrackingData> getLastDataByTime() throws SQLException{
         clsTrackingData data = new clsTrackingData();

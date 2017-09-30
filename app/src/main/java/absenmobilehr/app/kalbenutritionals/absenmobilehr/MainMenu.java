@@ -44,7 +44,10 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.DatabaseHelper;
@@ -54,19 +57,27 @@ import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.VolleyUtils;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.clsHardCode;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.clsHelper;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsAbsenData;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsAbsenOnline;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsDisplayPicture;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsLastCheckingData;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsPushData;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsTrackingData;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsUserLogin;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsmConfig;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsmVersionApp;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsAbsenDataRepo;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsAbsenOnlineRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsDisplayPictureRepo;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsLastCheckingDataRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsTrackingDataRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsUserLoginRepo;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsmConfigRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsmVersionAppRepo;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.enumConfigData;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Fragment.FragmentAbsen;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Fragment.FragmentInformation;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Fragment.FragmentPushData;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Fragment.FragmentReport;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Service.MyServiceNative;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Service.MyTrackingLocationService;
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -131,7 +142,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         setSupportActionBar(toolbar);
         FragmentInformation homeFragment = new FragmentInformation();
         FragmentTransaction fragmentTransactionHome = getSupportFragmentManager().beginTransaction();
-        fragmentTransactionHome.replace(R.id.frame, homeFragment);
+        fragmentTransactionHome.replace(R.id.frame, homeFragment,"FragmentInformation");
         fragmentTransactionHome.commit();
         navigationView = (NavigationView) findViewById(R.id.navigation_view);
         View vwHeader = navigationView.getHeaderView(0);
@@ -146,8 +157,11 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        tvUsername.setText(_clsMainActivity.greetings() + dataLogin.get(0).getTxtName());
-        tvEmail.setText(dataLogin.get(0).getTxtEmail());
+        if(dataLogin.size()>0){
+            tvUsername.setText(_clsMainActivity.greetings() + dataLogin.get(0).getTxtName());
+            tvEmail.setText(dataLogin.get(0).getTxtEmail());
+        }
+
         try {
             tDisplayPictureData = (List<clsDisplayPicture>) new clsDisplayPictureRepo(getApplicationContext()).findAll();
         } catch (SQLException e) {
@@ -163,13 +177,22 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         ivProfile.setOnClickListener(this);
         Menu header = navigationView.getMenu();
         clsAbsenData dataAbsenAktif = new clsAbsenDataRepo(getApplicationContext()).getDataCheckinActive(getApplicationContext());
-        if (dataAbsenAktif!=null){
+//        if (dataAbsenAktif!=null){
+//            header.removeItem(R.id.absen);
+//            header.removeItem(R.id.logout);
+//            header.removeItem(R.id.pushData);
+//        }else{
+//            header.removeItem(R.id.checkout);
+//        }
+        clsAbsenOnline dataAbsenOnline = new clsAbsenOnlineRepo(getApplicationContext()).getDataCheckinActive(getApplicationContext());
+        if (dataAbsenOnline!=null){
             header.removeItem(R.id.absen);
             header.removeItem(R.id.logout);
             header.removeItem(R.id.pushData);
         }else{
             header.removeItem(R.id.checkout);
         }
+
         SubMenu subMenuVersion = header.addSubMenu(R.id.groupVersion, 0, 3, "Version");
         try {
             subMenuVersion.add(getPackageManager().getPackageInfo(getPackageName(), 0).versionName + " \u00a9 KN-IT").setIcon(R.drawable.ic_android).setEnabled(false);
@@ -221,7 +244,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                             if (result){
                                                 logout();
                                             }else{
-                                                new clsMainActivity().showCustomToast(getApplicationContext(),"Internal Server Error", false);
+                                                new clsMainActivity().showCustomToast(getApplicationContext(),"Push Data to Logout", false);
 //                                                logout();
                                             }
 //                                            Intent myIntent = new Intent(MainMenu.this, PushData.class);
@@ -248,11 +271,11 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                         alertD.show();
                         return true;
                     case R.id.absen:
-                        toolbar.setTitle("Kuesioner / Quiz");
+                        toolbar.setTitle("Absen");
                         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-                        FragmentAbsen fragmentKuesioner = new FragmentAbsen();
+                        FragmentAbsen fragmentAbsen = new FragmentAbsen();
                         FragmentTransaction fragmentTransactionKuesioner = getSupportFragmentManager().beginTransaction();
-                        fragmentTransactionKuesioner.replace(R.id.frame, fragmentKuesioner);
+                        fragmentTransactionKuesioner.replace(R.id.frame, fragmentAbsen);
                         fragmentTransactionKuesioner.commit();
                         return true;
                     case R.id.home:
@@ -262,7 +285,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
 
                         FragmentInformation homeFragment = new FragmentInformation();
                         FragmentTransaction fragmentTransactionHome = getSupportFragmentManager().beginTransaction();
-                        fragmentTransactionHome.replace(R.id.frame, homeFragment);
+                        fragmentTransactionHome.replace(R.id.frame, homeFragment,"FragmentInformation");
                         fragmentTransactionHome.commit();
                         selectedId = 99;
 
@@ -273,6 +296,9 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
 
                         FragmentPushData fragmentPush = new FragmentPushData();
+                        Bundle arguments = new Bundle();
+                        arguments.putString( "key_view" , "main_menu");
+                        fragmentPush.setArguments(arguments);
                         FragmentTransaction fragmentTransactionPushData = getSupportFragmentManager().beginTransaction();
                         fragmentTransactionPushData.replace(R.id.frame, fragmentPush);
                         fragmentTransactionPushData.commit();
@@ -318,6 +344,24 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                         selectedId = 99;
 
                         return true;
+                    case R.id.report:
+                        toolbar.setTitle("Report Data");
+                        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
+
+                        FragmentReport fragmentReport = new FragmentReport();
+                        FragmentTransaction fragmentTransactionReport = getSupportFragmentManager().beginTransaction();
+                        fragmentTransactionReport.replace(R.id.frame, fragmentReport);
+                        fragmentTransactionReport.commit();
+//                        try {
+//
+////                            new clsMainActivity().showCustomToast(getApplicationContext(),"Database sqlite copied to "+msg2,true);
+//                        } catch (IOException e) {
+//                            new clsMainActivity().showCustomToast(getApplicationContext(),"Copy Failed",false);
+//                            e.printStackTrace();
+//                        }
+                        selectedId = 99;
+
+                        return true;
                     case R.id.checkout:
                         LayoutInflater _layoutInflater = LayoutInflater.from(MainMenu.this);
                         final View _promptView = _layoutInflater.inflate(R.layout.confirm_data, null);
@@ -334,22 +378,104 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                 .setCancelable(false)
                                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int id) {
-                                        clsAbsenData dataAbsen = new clsAbsenDataRepo(getApplicationContext()).getDataCheckinActive(getApplicationContext());
-
-                                        if (dataAbsen != null) {
-                                            dataAbsen.setDtCheckout(_clsMainActivity.FormatDateDB().toString());
-                                            dataAbsen.setSync("0");
-                                            try {
-                                                new clsAbsenDataRepo(getApplicationContext()).update(dataAbsen);
-                                            } catch (SQLException e) {
-                                                e.printStackTrace();
-                                            }
-                                            finish();
-                                            Intent nextScreen = new Intent(getApplicationContext(), MainMenu.class);
-                                            nextScreen.putExtra("keyMainMenu", "main_menu");
-                                            finish();
-                                            startActivity(nextScreen);
+                                        clsmConfig configData = null;
+                                        String linkCheckinData= "";
+                                        try {
+                                            configData = (clsmConfig) new clsmConfigRepo(getApplicationContext()).findById(enumConfigData.API_EF.getidConfigData());
+                                            linkCheckinData = configData.getTxtValue()+new clsHardCode().linkCheckoutAbsen;
+                                        } catch (SQLException e) {
+                                            e.printStackTrace();
                                         }
+
+                                        final clsUserLogin dataUserActive = new clsUserLoginRepo(getApplicationContext()).getDataLogin(getApplicationContext());
+//                                        clsDeviceInfo dataDeviceInfoUser = new clsDeviceInfoRepo(context).getDataDevice(context);
+                                        clsAbsenOnline dataAbsenOnline = new clsAbsenOnlineRepo(getApplicationContext()).getDataCheckinActive(getApplicationContext());
+                                        String strLinkAPI = linkCheckinData;
+                                        JSONObject resJson = new JSONObject();
+                                        try {
+                                            DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
+                                            Calendar cal = Calendar.getInstance();
+                                            String now = dateFormat.format(cal.getTime());
+
+                                            resJson.put("txtTime", now);
+                                            resJson.put("guiId",dataAbsenOnline.getTxtGuiId());
+                                            resJson.put("guiIdLogin",dataAbsenOnline.getTxtGuiIdLogin());
+                                            resJson.put(dataUserActive.Property_employeeId,dataUserActive.getEmployeeId());
+                                            resJson.put(dataUserActive.Property_txtUserName,dataUserActive.getTxtUserName());
+                                            resJson.put("TxtVersion", pInfo.versionName);
+                                            resJson.put("TxtNameApp", "Android - Absen HR");
+                                        } catch (JSONException e) {
+                                            e.printStackTrace();
+                                        }
+                                        final String mRequestBody =  resJson.toString();
+                                        new VolleyUtils().makeJsonObjectRequest(MainMenu.this, strLinkAPI, mRequestBody, "Checking out please wait !", new VolleyResponseListener() {
+                                            @Override
+                                            public void onError(String response) {
+                                                new clsMainActivity().showCustomToast(getApplicationContext(),"Connection Failed, please check your network !", false);
+//                Toast.makeText(getApplicationContext(), "Connection Failed, please check your network !", Toast.LENGTH_SHORT).show();
+//                Log.d("connection failed", response);
+                                            }
+
+                                            @Override
+                                            public void onResponse(String response, Boolean status, String strErrorMsg) {
+                                                if (response != null) {
+                                                    if (!response.equals("false")){
+                                                        clsAbsenOnline data = new clsAbsenOnline();
+                                                        try {
+                                                            JSONObject obj = new JSONObject(response);
+
+                                                            String txtGUI_ID = obj.getString("txtGUI_ID");
+                                                            data.setTxtGuiId(obj.getString("txtGUI_ID"));
+                                                            data.setTxtGuiIdLogin(obj.getString("txtGuiIdLogin"));
+                                                            data.setSync("1");
+                                                            data.setIntSubmit("1");
+                                                            data.setDtCheckout(obj.getString("dtCheckout"));
+
+                                                            clsLastCheckingData dataChekin = null;
+                                                            try {
+                                                                dataChekin = new clsLastCheckingDataRepo(getApplicationContext()).findByGUIId(txtGUI_ID);
+                                                                dataChekin.setTxtGuiID(obj.getString("txtGUI_ID"));
+                                                                dataChekin.setDtCheckout(obj.getString("dtCheckout"));
+                                                                new clsLastCheckingDataRepo(getApplicationContext()).update(dataChekin);
+                                                            } catch (SQLException e) {
+                                                                e.printStackTrace();
+                                                            }
+
+                                                            try {
+                                                                new clsAbsenOnlineRepo(getApplicationContext()).update(data);
+                                                                Intent myIntent = new Intent(getApplicationContext(), MainMenu.class);
+                                                                startActivity(myIntent);
+                                                                new clsMainActivity().showCustomToast(getApplicationContext(),"Checkout success !", true);
+                                                            } catch (SQLException e) {
+                                                                e.printStackTrace();
+                                                            }
+
+                                                        } catch (JSONException e) {
+                                                            e.printStackTrace();
+                                                        }
+                                                    }else{
+                                                        new clsMainActivity().showCustomToast(getApplicationContext(),"Server Error, please contact your administrator !", false);
+                                                    }
+                                                }
+                                            }
+                                        });
+
+//                                        clsAbsenData dataAbsen = new clsAbsenDataRepo(getApplicationContext()).getDataCheckinActive(getApplicationContext());
+//
+//                                        if (dataAbsen != null) {
+//                                            dataAbsen.setDtCheckout(_clsMainActivity.FormatDateDB().toString());
+//                                            dataAbsen.setSync("0");
+//                                            try {
+//                                                new clsAbsenDataRepo(getApplicationContext()).update(dataAbsen);
+//                                            } catch (SQLException e) {
+//                                                e.printStackTrace();
+//                                            }
+//                                            finish();
+//                                            Intent nextScreen = new Intent(getApplicationContext(), MainMenu.class);
+//                                            nextScreen.putExtra("keyMainMenu", "main_menu");
+//                                            finish();
+//                                            startActivity(nextScreen);
+//                                        }
                                     }
                                 })
                                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -400,7 +526,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
 //                startActivity(intent);
                 finish();
             }
-        } else if (requestCode == 100 || requestCode == 130) {
+        } else if (requestCode == 100 || requestCode == 130 || requestCode == 99) {
             for (Fragment fragment : getSupportFragmentManager().getFragments()) {
                 try{
                     fragment.onActivityResult(requestCode, resultCode, data);
@@ -476,7 +602,16 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
     public void logout(){
         RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
 
-        String strLinkAPI = new clsHardCode().linkLogout;
+        clsmConfig configData = null;
+        String linkPushData= "";
+        try {
+            configData = (clsmConfig) new clsmConfigRepo(getApplicationContext()).findById(enumConfigData.API_PRM.getidConfigData());
+            linkPushData = configData.getTxtValue()+new clsHardCode().linkLogout;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        String strLinkAPI = linkPushData;
 //        String nameRole = selectedRole;
         final JSONObject resJson = new JSONObject();
 
@@ -493,7 +628,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         new VolleyUtils().makeJsonObjectRequest(MainMenu.this, strLinkAPI, mRequestBody,"Logging Out, Please Wait !", new VolleyResponseListener() {
             @Override
             public void onError(String response) {
-                new clsMainActivity().showCustomToast(getApplicationContext(), response, false);
+                new clsMainActivity().showCustomToast(getApplicationContext(), "Connection lost, please check your network", false);
             }
 
             @Override

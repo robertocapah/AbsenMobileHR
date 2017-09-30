@@ -32,6 +32,7 @@ public class clsmConfigRepo {
     }
 //String a;
     public void InsertDefaultMconfig() throws SQLException {
+
         clsmConfig data1 = new clsmConfig();
         data1.setIntId(1);
         data1.setTxtName("android:versionCode");
@@ -41,67 +42,60 @@ public class clsmConfigRepo {
         helper.getmConfigDao().createOrUpdate(data1);
         clsmConfig data2 = new clsmConfig();
         data2.setIntId(2);
-        data2.setTxtName("API_LOGIN");
-        data2.setTxtValue("http://prm.kalbenutritionals.web.id/VisitPlan/API/VisitPlanAPI/LogIn_J");
-        data2.setTxtDefaultValue("http://prm.kalbenutritionals.web.id/VisitPlan/API/VisitPlanAPI/LogIn_J");
+        data2.setTxtName("API_PRM");
+        data2.setTxtValue("http://prm.kalbenutritionals.web.id/VisitPlan/API/VisitPlanAPI/");
+        data2.setTxtDefaultValue("http://prm.kalbenutritionals.web.id/VisitPlan/API/VisitPlanAPI/");
         data2.setIntEditAdmin(1);
         helper.getmConfigDao().createOrUpdate(data2);
         clsmConfig data3 = new clsmConfig();
         data3.setIntId(3);
-        data3.setTxtName("API_VERSION");
-        data3.setTxtValue("http://10.171.11.87:8010/VisitPlan/API/VisitPlanAPI/CheckVersionApp_J");
-        data3.setTxtDefaultValue("http://prm.kalbenutritionals.web.id/VisitPlan/API/VisitPlanAPI/CheckVersionApp_J");
+        data3.setTxtName("Domain Kalbe");
+        data3.setTxtValue("ONEKALBE.LOCAL");
+        data3.setTxtDefaultValue("ONEKALBE.LOCAL");
         data3.setIntEditAdmin(1);
         helper.getmConfigDao().createOrUpdate(data3);
         clsmConfig data4 = new clsmConfig();
         data4.setIntId(4);
-        data4.setTxtName("Domain Kalbe");
-        data4.setTxtValue("ONEKALBE.LOCAL");
-        data4.setTxtDefaultValue("ONEKALBE.LOCAL");
+        data4.setTxtName("Application Name");
+        data4.setTxtValue("Android - Call Plan BR Mobile");
+        data4.setTxtDefaultValue("Android - Call Plan BR Mobile");
         data4.setIntEditAdmin(1);
         helper.getmConfigDao().createOrUpdate(data4);
         clsmConfig data5 = new clsmConfig();
         data5.setIntId(5);
-        data5.setTxtName("Application Name");
-        data5.setTxtValue("Android - Call Plan BR Mobile");
-        data5.setTxtDefaultValue("Android - Call Plan BR Mobile");
+        data5.setTxtName("Text Footer");
+        data5.setTxtValue("Copyright &copy; KN IT 2017");
+        data5.setTxtDefaultValue("Copyright &copy; KN IT 2017");
         data5.setIntEditAdmin(1);
         helper.getmConfigDao().createOrUpdate(data5);
         clsmConfig data6 = new clsmConfig();
         data6.setIntId(6);
-        data6.setTxtName("Text Footer");
-        data6.setTxtValue("Copyright &copy; KN IT 2017");
-        data6.setTxtDefaultValue("Copyright &copy; KN IT 2017");
+        data6.setTxtName("Background Service Online");
+        data6.setTxtValue("1000");
+        data6.setTxtDefaultValue("1000");
         data6.setIntEditAdmin(1);
         helper.getmConfigDao().createOrUpdate(data6);
         clsmConfig data7 = new clsmConfig();
         data7.setIntId(7);
-        data7.setTxtName("Background Service Online");
-        data7.setTxtValue("1000");
-        data7.setTxtDefaultValue("1000");
+        data7.setTxtName("API_EF");
+        data7.setTxtValue("http://10.171.11.87/APIEF2/api/");
+        data7.setTxtDefaultValue("http://10.171.11.87/APIEF2/api/");
         data7.setIntEditAdmin(1);
-        helper.getmConfigDao().createOrUpdate(data7);
-        clsmConfig data8 = new clsmConfig();
-        data8.setIntId(8);
-        data8.setTxtName("API_GETLASTLOCATION");
-        data8.setTxtValue("http://192.168.66.1/APIEF2/api/TrackingDataAPI/getDataLastLocation/{id}");
-        data8.setTxtDefaultValue("http://10.171.11.87/APIEF2/api/TrackingDataAPI/getDataLastLocation/{id}");
-        data8.setIntEditAdmin(1);
-        helper.getmConfigDao().createOrUpdate(data8);
+        helper.getmConfigDao().createOrUpdate(data7);/*
         clsmConfig data9 = new clsmConfig();
         data9.setIntId(9);
         data9.setTxtName("API_PUSHDATA");
         data9.setTxtValue("http://192.168.66.1/APIEF2/api/PushData/pushData2");
         data9.setTxtDefaultValue("http://10.171.11.87/APIEF2/api/PushData/pushData2");
         data9.setIntEditAdmin(1);
-        helper.getmConfigDao().createOrUpdate(data9);
-        clsmConfig data10 = new clsmConfig();
-        data10.setIntId(10);
-        data10.setTxtName("'WidthScreen");
-        data10.setTxtValue("");
-        data10.setTxtDefaultValue("");
-        data10.setIntEditAdmin(1);
-        helper.getmConfigDao().createOrUpdate(data10);
+        helper.getmConfigDao().createOrUpdate(data9);*/
+        clsmConfig data8 = new clsmConfig();
+        data8.setIntId(8);
+        data8.setTxtName("'WidthScreen");
+        data8.setTxtValue("");
+        data8.setTxtDefaultValue("");
+        data8.setIntEditAdmin(1);
+        helper.getmConfigDao().createOrUpdate(data8);
 
     }
     /*public String getLIVE(Context context){
@@ -111,13 +105,15 @@ public class clsmConfigRepo {
         return txtLinkAPI;
     }*/
 
-    public List<clsmConfig> findByName(String name) throws SQLException {
+    public String getLinkById(String id) throws SQLException {
         List<clsmConfig> items = null;
+        String link = "";
         try {
-            items = helper.getmConfigDao().queryForEq("txtName", name);
+            items = helper.getmConfigDao().queryForEq("intId", id);
+            link = items.get(0).getTxtValue();
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return items;
+        return link;
     }
 }

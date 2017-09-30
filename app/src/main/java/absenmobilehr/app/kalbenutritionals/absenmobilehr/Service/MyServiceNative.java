@@ -60,7 +60,7 @@ public class MyServiceNative extends Service {
     private static long UPDATE_INTERVAL = 1 * 360 * 1000;
     ;  //default
     //private static long UPDATE_INTERVAL_DELAY = 180000;  //default
-    private static long UPDATE_INTERVAL_TESTING = 5000;  //2 minutes
+    private static long UPDATE_INTERVAL_TESTING = 60000;  //2 minutes
     private static Timer timer = new Timer();
 
     private void _startService() {
@@ -103,9 +103,15 @@ public class MyServiceNative extends Service {
             _shutdownService();
         } else {
             try {
-                clsmConfig configData = (clsmConfig) new clsmConfigRepo(getApplicationContext()).findById(enumConfigData.API_PUSHDATA.getidConfigData());
-                String linkPushData = configData.getTxtValue();
-                String strLinkAPI = new clsHardCode().linkPushData;
+                clsmConfig configData = null;
+                String linkPushData= "";
+                try {
+                    configData = (clsmConfig) new clsmConfigRepo(getApplicationContext()).findById(enumConfigData.API_EF.getidConfigData());
+                    linkPushData = configData.getTxtValue()+new clsHardCode().linkPushData;
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+                String strLinkAPI = linkPushData;
                 new VolleyUtils().makeJsonObjectRequestPushData(getApplicationContext(), strLinkAPI, dtJson, new VolleyResponseListener() {
                     @Override
                     public void onError(String message) {

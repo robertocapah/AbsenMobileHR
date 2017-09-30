@@ -39,6 +39,11 @@
             android:checked="false"
             android:orderInCategory="2"
             android:title="Copy DB" />
+        <item
+            android:id="@+id/report"
+            android:checked="false"
+            android:orderInCategory="2"
+            android:title="Report" />
 
         <item
             android:id="@+id/logout"
