@@ -11,6 +11,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -33,6 +34,7 @@ import android.view.WindowManager;
 import android.widget.TextView;
 
 import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -60,6 +62,7 @@ import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsAbsenDat
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsAbsenOnline;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsDisplayPicture;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsLastCheckingData;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsLeaveData;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsPushData;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsTrackingData;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsUserLogin;
@@ -69,6 +72,7 @@ import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsAbsenDataR
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsAbsenOnlineRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsDisplayPictureRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsLastCheckingDataRepo;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsLeaveDataRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsTrackingDataRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsUserLoginRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsmConfigRepo;
@@ -76,10 +80,12 @@ import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsmVersionAp
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.enumConfigData;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Fragment.FragmentAbsen;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Fragment.FragmentInformation;
-import absenmobilehr.app.kalbenutritionals.absenmobilehr.Fragment.FragmentPushData;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Fragment.FragmentLeave;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Fragment.FragmentReport;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Service.MyServiceNative;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Service.MyTrackingLocationService;
+import addons.volley.VolleyMultipartRequest;
+import cn.pedant.SweetAlert.SweetAlertDialog;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 import static com.android.volley.VolleyLog.TAG;
@@ -89,6 +95,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
     private NavigationView navigationView;
     private DrawerLayout drawerLayout;
     private clsUserLogin dttAbsenUserData;
+    SweetAlertDialog pDialog;
 
     private TextView tvUsername, tvEmail;
     private CircleImageView ivProfile;
@@ -140,7 +147,13 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle("Home");
         setSupportActionBar(toolbar);
+        String extra = getIntent().getStringExtra("keyMainMenu");
+        Bundle bundle = new Bundle();
+        bundle.putString("keyMainMenu", extra);
+
         FragmentInformation homeFragment = new FragmentInformation();
+
+        homeFragment.setArguments(bundle);
         FragmentTransaction fragmentTransactionHome = getSupportFragmentManager().beginTransaction();
         fragmentTransactionHome.replace(R.id.frame, homeFragment,"FragmentInformation");
         fragmentTransactionHome.commit();
@@ -188,9 +201,27 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         if (dataAbsenOnline!=null){
             header.removeItem(R.id.absen);
             header.removeItem(R.id.logout);
-            header.removeItem(R.id.pushData);
+//            header.removeItem(R.id.pushData);
+            header.removeItem(R.id.leave);
         }else{
             header.removeItem(R.id.checkout);
+        }
+        try {
+            List<clsAbsenOnline> dataAbsenOnline2 = new clsAbsenOnlineRepo(getApplicationContext()).findAll();
+            if ((dataAbsenOnline2.size()>0)){
+                header.removeItem(R.id.leave);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        try {
+            List<clsLeaveData> dataLeave = new clsLeaveDataRepo(getApplicationContext()).findAll();
+            if(dataLeave.size()>0){
+                header.removeItem(R.id.absen);
+                header.removeItem(R.id.leave);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
 
         SubMenu subMenuVersion = header.addSubMenu(R.id.groupVersion, 0, 3, "Version");
@@ -241,12 +272,12 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                         }
                                         if (dvalid){
                                             boolean result = pushData();
-                                            if (result){
-                                                logout();
-                                            }else{
-                                                new clsMainActivity().showCustomToast(getApplicationContext(),"Push Data to Logout", false);
+//                                            if (result){
 //                                                logout();
-                                            }
+//                                            }else{
+//                                                new clsMainActivity().showCustomToast(getApplicationContext(),"Push Data to Logout", false);
+////                                                logout();
+//                                            }
 //                                            Intent myIntent = new Intent(MainMenu.this, PushData.class);
 //                                            myIntent.putExtra("action","logout");
 //
@@ -274,9 +305,17 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                         toolbar.setTitle("Absen");
                         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
                         FragmentAbsen fragmentAbsen = new FragmentAbsen();
-                        FragmentTransaction fragmentTransactionKuesioner = getSupportFragmentManager().beginTransaction();
-                        fragmentTransactionKuesioner.replace(R.id.frame, fragmentAbsen);
-                        fragmentTransactionKuesioner.commit();
+                        FragmentTransaction fragmentTransactionAbsen = getSupportFragmentManager().beginTransaction();
+                        fragmentTransactionAbsen.replace(R.id.frame, fragmentAbsen);
+                        fragmentTransactionAbsen.commit();
+                        return true;
+                    case R.id.leave:
+                        toolbar.setTitle("Leave");
+                        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+                        FragmentLeave fragmentLeave = new FragmentLeave();
+                        FragmentTransaction fragmentTransactionLeave = getSupportFragmentManager().beginTransaction();
+                        fragmentTransactionLeave.replace(R.id.frame, fragmentLeave);
+                        fragmentTransactionLeave.commit();
                         return true;
                     case R.id.home:
                         toolbar.setTitle("Home");
@@ -290,21 +329,21 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                         selectedId = 99;
 
                         return true;
-                    case R.id.pushData:
-                        toolbar.setTitle("Home");
-
-                        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
-
-                        FragmentPushData fragmentPush = new FragmentPushData();
-                        Bundle arguments = new Bundle();
-                        arguments.putString( "key_view" , "main_menu");
-                        fragmentPush.setArguments(arguments);
-                        FragmentTransaction fragmentTransactionPushData = getSupportFragmentManager().beginTransaction();
-                        fragmentTransactionPushData.replace(R.id.frame, fragmentPush);
-                        fragmentTransactionPushData.commit();
-                        selectedId = 99;
-
-                        return true;
+//                    case R.id.pushData:
+//                        toolbar.setTitle("Home");
+//
+//                        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
+//
+//                        FragmentPushData fragmentPush = new FragmentPushData();
+//                        Bundle arguments = new Bundle();
+//                        arguments.putString( "key_view" , "main_menu");
+//                        fragmentPush.setArguments(arguments);
+//                        FragmentTransaction fragmentTransactionPushData = getSupportFragmentManager().beginTransaction();
+//                        fragmentTransactionPushData.replace(R.id.frame, fragmentPush);
+//                        fragmentTransactionPushData.commit();
+//                        selectedId = 99;
+//
+//                        return true;
                     case R.id.copydb:
                         toolbar.setTitle("Home");
 
@@ -397,7 +436,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                             Calendar cal = Calendar.getInstance();
                                             String now = dateFormat.format(cal.getTime());
 
-                                            resJson.put("txtTime", now);
+                                            resJson.put("txtTime", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cal.getTime()));
                                             resJson.put("guiId",dataAbsenOnline.getTxtGuiId());
                                             resJson.put("guiIdLogin",dataAbsenOnline.getTxtGuiIdLogin());
                                             resJson.put(dataUserActive.Property_employeeId,dataUserActive.getEmployeeId());
@@ -429,13 +468,15 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                                             data.setTxtGuiIdLogin(obj.getString("txtGuiIdLogin"));
                                                             data.setSync("1");
                                                             data.setIntSubmit("1");
-                                                            data.setDtCheckout(obj.getString("dtCheckout"));
-
+                                                            SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd-yyyy hh:mm:ss");
+                                                            String dtCheckout = obj.getString("dtCheckout");
+                                                            Calendar cal = Calendar.getInstance();
+                                                            data.setDtCheckout(dateFormat.format(cal.getTime()));
                                                             clsLastCheckingData dataChekin = null;
                                                             try {
                                                                 dataChekin = new clsLastCheckingDataRepo(getApplicationContext()).findByGUIId(txtGUI_ID);
                                                                 dataChekin.setTxtGuiID(obj.getString("txtGUI_ID"));
-                                                                dataChekin.setDtCheckout(obj.getString("dtCheckout"));
+                                                                dataChekin.setDtCheckout(dateFormat.format(cal.getTime()));
                                                                 new clsLastCheckingDataRepo(getApplicationContext()).update(dataChekin);
                                                             } catch (SQLException e) {
                                                                 e.printStackTrace();
@@ -444,6 +485,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                                             try {
                                                                 new clsAbsenOnlineRepo(getApplicationContext()).update(data);
                                                                 Intent myIntent = new Intent(getApplicationContext(), MainMenu.class);
+                                                                myIntent.putExtra("checkout","true");
                                                                 startActivity(myIntent);
                                                                 new clsMainActivity().showCustomToast(getApplicationContext(),"Checkout success !", true);
                                                             } catch (SQLException e) {
@@ -548,9 +590,16 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         clsPushData dtJson = new clsHelper().pushData(versionName, getApplicationContext());
         if (dtJson == null) {
         } else {
+            clsmConfig configData = null;
             try {
-                String strLinkAPI = new clsHardCode().linkPushData;
-                new VolleyUtils().makeJsonObjectRequestPushData(getApplicationContext(), strLinkAPI, dtJson, new VolleyResponseListener() {
+                String linkPushData= "";
+                try {
+                    configData = (clsmConfig) new clsmConfigRepo(getApplicationContext()).findById(enumConfigData.API_EF.getidConfigData());
+                    linkPushData = configData.getTxtValue()+new clsHardCode().linkPushData;
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+                new VolleyUtils().makeJsonObjectRequestPushData(getApplicationContext(), linkPushData, dtJson, new VolleyResponseListener() {
                     @Override
                     public void onError(String message) {
                         String error;
@@ -576,11 +625,14 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                         result[0] = true;
                                     }
                                 }
-                                if (listMethod.equals(absenData.Property_ListOftAbsenUser)) {
-                                    if (method.getString("pBoolValid").equals("1")) {
-                                        new clsAbsenDataRepo(getApplicationContext()).updateAllRowAbsen();
-                                        result[0] = true;
-                                    }
+//                                if (listMethod.equals(absenData.Property_ListOftAbsenUser)) {
+//                                    if (method.getString("pBoolValid").equals("1")) {
+//                                        new clsAbsenDataRepo(getApplicationContext()).updateAllRowAbsen();
+//                                        result[0] = true;
+//                                    }
+//                                }
+                                if (result[0]){
+                                    logout();
                                 }
                             }
                     /*for(Object data : jsonObject1){
@@ -605,7 +657,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         clsmConfig configData = null;
         String linkPushData= "";
         try {
-            configData = (clsmConfig) new clsmConfigRepo(getApplicationContext()).findById(enumConfigData.API_PRM.getidConfigData());
+            configData = (clsmConfig) new clsmConfigRepo(getApplicationContext()).findById(enumConfigData.API_EF.getidConfigData());
             linkPushData = configData.getTxtValue()+new clsHardCode().linkLogout;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -614,18 +666,21 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         String strLinkAPI = linkPushData;
 //        String nameRole = selectedRole;
         final JSONObject resJson = new JSONObject();
-
+        Calendar cal = Calendar.getInstance();
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String now = dateFormat.format(cal.getTime());
         try {
             resJson.put("TxtGUI_trUserLogin", dataLogin.get(0).getTxtGUI());
             resJson.put("TxtUserID", dataLogin.get(0).getTxtUserID());
             resJson.put("TxtGUI_mVersionApp", dataInfo.get(0).getTxtVersion());
             resJson.put("IntCabangID", dataLogin.get(0).getIntCabangID());
+            resJson.put("TxtTime", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cal.getTime()));
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
         final String mRequestBody = "[" + resJson.toString() + "]";
-        new VolleyUtils().makeJsonObjectRequest(MainMenu.this, strLinkAPI, mRequestBody,"Logging Out, Please Wait !", new VolleyResponseListener() {
+        StringRequest req1 = new VolleyUtils().makeJsonObjectRequest222(MainMenu.this, strLinkAPI, mRequestBody,"Logging Out, Please Wait !", new VolleyResponseListener() {
             @Override
             public void onError(String response) {
                 new clsMainActivity().showCustomToast(getApplicationContext(), "Connection lost, please check your network", false);
@@ -637,18 +692,17 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                     JSONObject jsonObject1 = null;
                     try {
                         jsonObject1 = new JSONObject(response);
-                        JSONObject jsn = jsonObject1.getJSONObject("validJson");
-                        String warn = jsn.getString("TxtWarn");
-                        String result = jsn.getString("TxtResult");
+                        String warn = jsonObject1.getString("TxtWarn");
+                        String result = jsonObject1.getString("TxtResult");
                         if (result.equals("1")){
 //                            new DatabaseHelper(getApplicationContext()).clearDataAfterLogout();
                             DatabaseHelper helper = DatabaseManager.getInstance().getHelper();
                             stopService(new Intent(getApplicationContext(), MyTrackingLocationService.class));
                             helper.clearDataAfterLogout();
 //                            helper.close();
-                            finish();
                             Intent nextScreen = new Intent(MainMenu.this, Splash.class);
                             startActivity(nextScreen);
+                            finish();
 
                         }
                     } catch (JSONException e) {
@@ -658,6 +712,105 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                 }
             }
         });
+        //VolleyMultipartRequest req2 = pushData2();
+        //queue.add(req2);
+        queue.add(req1);
+    }
+
+    private VolleyMultipartRequest pushData2() {
+        String versionName = "";
+        VolleyMultipartRequest req2= null;
+        pDialog.getProgressHelper().setBarColor(Color.parseColor("#A5DC86"));
+        pDialog.setTitleText("Pushing Data");
+        pDialog.setCancelable(false);
+        pDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+
+            }
+        });
+        pDialog.show();
+        try {
+            versionName = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+        } catch (PackageManager.NameNotFoundException e2) {
+            // TODO Auto-generated catch block
+            e2.printStackTrace();
+        }
+        clsPushData dtJson = new clsHelper().pushData(versionName, getApplicationContext());
+        if (dtJson == null) {
+        } else {
+            try {
+//                pDialog = new SweetAlertDialog(getActivity(), SweetAlertDialog.PROGRESS_TYPE);
+                clsmConfig configData = null;
+                String linkPushData= "";
+                try {
+                    configData = (clsmConfig) new clsmConfigRepo(getApplicationContext()).findById(enumConfigData.API_EF.getidConfigData());
+                    linkPushData = configData.getTxtValue()+new clsHardCode().linkPushData;
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+                String strLinkAPI = linkPushData;
+                req2 = new VolleyUtils().makeJsonObjectRequestPushData222(getApplicationContext(), strLinkAPI, dtJson, new VolleyResponseListener() {
+                    @Override
+                    public void onError(String message) {
+                        String error;
+                        new clsMainActivity().showCustomToast(getApplicationContext(),"Push Data Failed, Check Your Network",false);
+                        pDialog.dismiss();
+                    }
+
+                    @Override
+                    public void onResponse(String response, Boolean status, String strErrorMsg) {
+                        String res = response;
+
+                        Log.i(TAG, "Ski data from server - " + response);
+                        clsAbsenData absenData = new clsAbsenData();
+                        clsTrackingData trackingData = new clsTrackingData();
+//                clsUserLogin userLogin = new clsUserLogin();
+                        try {
+                            JSONArray jsonArray1 = new JSONArray(response);
+                            boolean valid = false;
+                            if (jsonArray1.length()>1){
+                                for (int i = 0; i < jsonArray1.length(); i++) {
+                                    JSONObject method = jsonArray1.getJSONObject(i);
+                                    String listMethod = method.getString("PstrMethodRequest");
+                                    if (listMethod.equals(trackingData.Property_ListOftrackingLocation)) {
+                                        if (method.getString("pBoolValid").equals("1")) {
+                                            //new DatabaseHelper(getActivity().getApplicationContext()).clearDataTracking();
+                                            new clsTrackingDataRepo(getApplicationContext()).updateAllRowTracking();
+                                            valid = true;
+                                        }else{
+                                            valid = false;
+                                        }
+                                    }
+                                    if (listMethod.equals(absenData.Property_ListOftAbsenUser)) {
+                                        if (method.getString("pBoolValid").equals("1")) {
+                                            new DatabaseHelper(getApplicationContext()).clearDataAbsen();
+                                            valid = true;
+                                        }else{
+                                            valid = false;
+                                        }
+                                    }
+
+                                }
+                            }else{
+
+                            }
+                            pDialog.dismiss();
+
+                    /*for(Object data : jsonObject1){
+
+                    }*/
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+            } catch (Exception e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+        return req2;
     }
 
     @Override
@@ -682,6 +835,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
 
             public void onClick(DialogInterface dialog, int which) {
                 finish();
+                System.exit(0);
             }
         });
 

@@ -2,6 +2,8 @@ package absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo;
 
 import android.content.Context;
 
+import com.j256.ormlite.dao.Dao;
+
 import java.sql.SQLException;
 import java.util.List;
 
@@ -21,7 +23,21 @@ public class clsmConfigRepo {
         helper = DatabaseManager.getInstance().getHelper();
     }
 
-    public Object findById(int id) throws SQLException {
+    public int createOrUpdate(Object item) throws SQLException {
+        int index = -1;
+        clsmConfig object = (clsmConfig) item;
+        try {
+            Dao.CreateOrUpdateStatus status = helper.getmConfigDao().createOrUpdate(object);
+            index = status.getNumLinesChanged();
+//            index = 1;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return index;
+    }
+
+
+    public clsmConfig findById(int id) throws SQLException {
         clsmConfig item = null;
         try {
             item = helper.getmConfigDao().queryForId(id);
@@ -45,6 +61,8 @@ public class clsmConfigRepo {
         data2.setTxtName("API_PRM");
         data2.setTxtValue("http://prm.kalbenutritionals.web.id/VisitPlan/API/VisitPlanAPI/");
         data2.setTxtDefaultValue("http://prm.kalbenutritionals.web.id/VisitPlan/API/VisitPlanAPI/");
+//        data2.setTxtValue("http://10.171.10.27/KN2015_PRM_V2.WEB/VisitPlan/API/VisitPlanAPI/");
+//        data2.setTxtDefaultValue("http://10.171.10.27/KN2015_PRM_V2.WEB/VisitPlan/API/VisitPlanAPI/");
         data2.setIntEditAdmin(1);
         helper.getmConfigDao().createOrUpdate(data2);
         clsmConfig data3 = new clsmConfig();
@@ -80,6 +98,8 @@ public class clsmConfigRepo {
         data7.setTxtName("API_EF");
         data7.setTxtValue("http://10.171.11.87/APIEF2/api/");
         data7.setTxtDefaultValue("http://10.171.11.87/APIEF2/api/");
+//        data7.setTxtValue("http://192.168.43.139/APIEF2/api/");
+//        data7.setTxtDefaultValue("http://192.168.43.139/APIEF2/api/");
         data7.setIntEditAdmin(1);
         helper.getmConfigDao().createOrUpdate(data7);/*
         clsmConfig data9 = new clsmConfig();

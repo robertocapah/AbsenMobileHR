@@ -3,11 +3,13 @@ package absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
+import java.io.Serializable;
+
 /**
  * Created by Robert on 22/06/2017.
  */
 @DatabaseTable
-public class clsmConfig {
+public class clsmConfig implements Serializable {
     @DatabaseField(id = true, columnName = "intId")
     private Integer intId;
     @DatabaseField(columnName = "txtName")

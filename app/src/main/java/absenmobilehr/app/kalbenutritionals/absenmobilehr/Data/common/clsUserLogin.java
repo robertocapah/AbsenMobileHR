@@ -42,6 +42,8 @@ public class clsUserLogin implements Serializable{
     private String txtDeviceId;
     @DatabaseField(columnName = "dtLogout")
     private String dtLogOut;
+    @DatabaseField(columnName = "bitMood")
+    private int bitMood;
     @DatabaseField(columnName = "txtInsertedBy")
     private String txtInsertedBy;
     @DatabaseField(columnName = "dtInserted")
@@ -65,6 +67,7 @@ public class clsUserLogin implements Serializable{
     public String Property_dtLastLogin = "dtLastLogin";
     public String Property_txtDeviceId = "txtDeviceId";
     public String Property_dtLogout = "dtLogout";
+    public String Property_bitMood = "bitMood";
     public String Property_listOfUserLogin = "listOfUserLogin";
 
     public String Property_All=Property_clsUserLogin +","+
@@ -86,6 +89,14 @@ public class clsUserLogin implements Serializable{
 
     public clsUserLogin(){
 
+    }
+
+    public int getBitMood() {
+        return bitMood;
+    }
+
+    public void setBitMood(int bitMood) {
+        this.bitMood = bitMood;
     }
 
     public String getTxtInsertedBy() {

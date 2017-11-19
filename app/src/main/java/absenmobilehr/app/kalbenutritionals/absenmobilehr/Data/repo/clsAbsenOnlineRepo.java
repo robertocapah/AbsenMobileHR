@@ -88,7 +88,7 @@ public class clsAbsenOnlineRepo implements crud {
     }
 
     @Override
-    public List<?> findAll() throws SQLException {
+    public List<clsAbsenOnline> findAll() throws SQLException {
         List<clsAbsenOnline> items = null;
         try {
             items = helper.getUserAbsenOnlineDao().queryForAll();

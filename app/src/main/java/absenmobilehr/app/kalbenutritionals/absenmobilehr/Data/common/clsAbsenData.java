@@ -25,6 +25,10 @@ public class clsAbsenData implements Serializable {
     private String Sync;
     @DatabaseField(columnName = "txtAbsen")
     private String txtAbsen;
+    @DatabaseField(columnName = "mMappingOutletHeaderId")
+    private String mMappingOutletHeaderId;
+    @DatabaseField(columnName = "mMappingOutletDetailId")
+    private String mMappingOutletDetailId;
     @DatabaseField(columnName = "txtLatitude")
     private String txtLatitude;
     @DatabaseField(columnName = "txtLongitude")
@@ -66,6 +70,22 @@ public class clsAbsenData implements Serializable {
             Property_txtUserId;
 
     public clsAbsenData(){}
+
+    public String getmMappingOutletHeaderId() {
+        return mMappingOutletHeaderId;
+    }
+
+    public void setmMappingOutletHeaderId(String mMappingOutletHeaderId) {
+        this.mMappingOutletHeaderId = mMappingOutletHeaderId;
+    }
+
+    public String getmMappingOutletDetailId() {
+        return mMappingOutletDetailId;
+    }
+
+    public void setmMappingOutletDetailId(String mMappingOutletDetailId) {
+        this.mMappingOutletDetailId = mMappingOutletDetailId;
+    }
 
     public String getGuiId() {
         return txtGuiId;

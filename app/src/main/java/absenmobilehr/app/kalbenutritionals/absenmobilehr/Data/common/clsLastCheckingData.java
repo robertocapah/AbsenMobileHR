@@ -3,11 +3,13 @@ package absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
+import java.io.Serializable;
+
 /**
  * Created by Robert on 29/09/2017.
  */
 @DatabaseTable
-public class clsLastCheckingData {
+public class clsLastCheckingData implements Serializable {
     @DatabaseField(id = true)
     private String txtGuiID;
     @DatabaseField

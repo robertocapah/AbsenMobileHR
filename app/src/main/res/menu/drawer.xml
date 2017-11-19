@@ -20,10 +20,15 @@
             android:title="Absen"
             app:actionLayout="@layout/menu_counter"/>
         <item
-            android:id="@+id/pushData"
+            android:id="@+id/leave"
             android:orderInCategory="0"
-            android:title="Push Data"
+            android:title="Leave"
             app:actionLayout="@layout/menu_counter"/>
+        <!--<item-->
+            <!--android:id="@+id/pushData"-->
+            <!--android:orderInCategory="0"-->
+            <!--android:title="Push Data"-->
+            <!--app:actionLayout="@layout/menu_counter"/>-->
     </group>
     <group
         android:checkableBehavior="single"
@@ -38,7 +43,8 @@
             android:id="@+id/copydb"
             android:checked="false"
             android:orderInCategory="2"
-            android:title="Copy DB" />
+            android:title="Copy DB"
+            android:visible="false"/>
         <item
             android:id="@+id/report"
             android:checked="false"

@@ -16,6 +16,7 @@ public class clsGetOutletDataHelper {
 //    private String txtQRCode;
     private String txtDeviceId;
     private String txtUsername;
+    private String txtBranchCode;
 
 
     public String Property_txtIdUserLogin = "txtIdUserLogin";
@@ -23,6 +24,15 @@ public class clsGetOutletDataHelper {
     public String Property_txtLatitude ="txtLatitude";
     public String Property_txtDeviceId ="txtDeviceId";
     public String Property_txtUsername ="txtUsername";
+    public String Property_txtBranchCode = "txtBranchCode";
+    public String Property_AreaAccess = "AreaAccess";
+    public String getTxtBranchCode() {
+        return txtBranchCode;
+    }
+
+    public void setTxtBranchCode(String txtBranchCode) {
+        this.txtBranchCode = txtBranchCode;
+    }
 
     public String getTxtIdUserLogin() {
         return txtIdUserLogin;

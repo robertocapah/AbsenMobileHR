@@ -98,7 +98,7 @@ public class FragmentPushData extends Fragment {
             int count = absenDatas.size();
             ctvStatusAbsen.setText(String.valueOf(count)+" Attendance Datas");
         }else{
-            ctvStatusAbsen.setText("No absen data to push");
+            ctvStatusAbsen.setText("Data Remaining to Push");
         }
         if (trackingDatas != null && trackingDatas.size()>0){
             int count = trackingDatas.size();
@@ -206,10 +206,14 @@ public class FragmentPushData extends Fragment {
                                         }
                                     }
                                     if (StrIntentPushDataFromLogin != null && StrIntentPushDataFromLogin.equals("push_data")){
-                                        new clsMainActivity().showCustomToast(getActivity().getApplicationContext(),"Push Data Completed",true);
-                                        logout();
+//                                        new clsMainActivity().showCustomToast(getActivity().getApplicationContext(),"Push Data Completed",true);
+//                                        new clsAbsenDataRepo(getActivity().getApplicationContext()).updateAllRowAbsen();
+                                        new DatabaseHelper(context).clearAllDataInDatabase();
+                                        startActivity(new Intent(getActivity(),Splash.class));
+//                                        logout();
                                     }else if(StrFragmentFromMainMenu != null && StrFragmentFromMainMenu.equals("main_menu")){
                                         new clsMainActivity().showCustomToast(getActivity().getApplicationContext(),"Push Data Completed",true);
+                                        new clsAbsenDataRepo(getActivity().getApplicationContext()).updateAllRowAbsen();
                                         startActivity(new Intent(getActivity(),MainMenu.class));
                                     }
                                 }
@@ -218,13 +222,13 @@ public class FragmentPushData extends Fragment {
 
                                 if (StrIntentPushDataFromLogin != null && StrIntentPushDataFromLogin.equals("push_data")){
                                     new clsAbsenDataRepo(getActivity().getApplicationContext()).updateAllRowAbsen();
-                                    getActivity().finish();
                                     startActivity(new Intent(getActivity(), MainMenu.class));
+                                    getActivity().finish();
                                 }else if(StrFragmentFromMainMenu != null && StrFragmentFromMainMenu.equals("main_menu")){
                                     new clsTrackingDataRepo(getActivity().getApplicationContext()).updateAllRowTracking();
                                     new clsAbsenDataRepo(getActivity().getApplicationContext()).updateAllRowAbsen();
-                                    getActivity().finish();
                                     startActivity(new Intent(getActivity(), MainMenu.class));
+                                    getActivity().finish();
                                 }
 
                             }

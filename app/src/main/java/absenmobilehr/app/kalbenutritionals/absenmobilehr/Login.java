@@ -10,6 +10,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.telephony.TelephonyManager;
 import android.text.method.HideReturnsTransformationMethod;
 import android.text.method.PasswordTransformationMethod;
@@ -32,6 +33,7 @@ import com.android.volley.toolbox.Volley;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.api.GoogleApiClient;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -41,6 +43,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -49,11 +52,23 @@ import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.VolleyResponseList
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.VolleyUtils;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.clsHardCode;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.clsHelper;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsBranchAccess;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsDeviceInfo;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsLastCheckingData;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsLeaveData;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsReportData;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsTrackingData;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsTypeLeave;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsUserLogin;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsmConfig;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsmVersionApp;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsBranchAccessRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsDeviceInfoRepo;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsLastCheckingDataRepo;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsLeaveDataRepo;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsReportDataRepo;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsTrackingDataRepo;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsTypeLeaveRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsUserLoginRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsmConfigRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsmVersionAppRepo;
@@ -285,7 +300,7 @@ public class Login extends clsMainActivity {
 //                        AsyncCallLogin task = new AsyncCallLogin();
 //                        task.execute();
                     List<clsmVersionApp> _clsmVersionApp = new ArrayList<clsmVersionApp>();
-                        userLogin();
+                    userLogin();
                 }
             }
         });
@@ -307,6 +322,7 @@ public class Login extends clsMainActivity {
 
                     public void onClick(DialogInterface dialog, int which) {
                         finish();
+                        System.exit(0);
                     }
                 });
 
@@ -388,6 +404,8 @@ public class Login extends clsMainActivity {
 //        checkVersion();
     }
 
+
+
     private boolean isMyServiceRunning(Class<?> serviceClass) {
         ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
@@ -400,10 +418,10 @@ public class Login extends clsMainActivity {
 
     private void userLogin() {
         clsmConfig configData = null;
-        String linkPushData= "";
+        String linkPushData = "";
         try {
-            configData = (clsmConfig) new clsmConfigRepo(getApplicationContext()).findById(enumConfigData.API_PRM.getidConfigData());
-            linkPushData = configData.getTxtValue()+new clsHardCode().linkLogin;
+            configData = (clsmConfig) new clsmConfigRepo(getApplicationContext()).findById(enumConfigData.API_EF.getidConfigData());
+            linkPushData = configData.getTxtValue() + new clsHardCode().linkLogin;
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -413,11 +431,11 @@ public class Login extends clsMainActivity {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        if (_clsmVersionApp.size() > 0){
+        if (_clsmVersionApp.size() > 0) {
             RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
             txtEmail1 = txtLoginEmail.getText().toString();
             txtPassword1 = txtLoginPassword.getText().toString();
-            String strLinkAPI = linkPushData;
+            String strLinkAPI = configData.getTxtValue() + new clsHardCode().linkLogin;
 //        String nameRole = selectedRole;
             JSONObject resJson = new JSONObject();
             List<clsmVersionApp> dataInfo = new ArrayList<>();
@@ -452,14 +470,64 @@ public class Login extends clsMainActivity {
                     if (response != null) {
                         try {
                             JSONObject jsonObject1 = new JSONObject(response);
-                            JSONObject jsn = jsonObject1.getJSONObject("validJson");
-                            String warn = jsn.getString("TxtWarn");
-                            String result = jsn.getString("TxtResult");
-
+//                            JSONObject jsn = jsonObject1.getJSONObject("validJson");
+                            String warn = jsonObject1.getString("TxtWarn");
+                            String result = jsonObject1.getString("TxtResult");
+                            JSONObject jsonObject2 = null;
                             if (result.equals("1")) {
-                                JSONObject jsonObject2 = jsn.getJSONObject("TxtData");
+                                jsonObject2 = jsonObject1.getJSONObject("TxtData");
+                                String strLatest = jsonObject1.getString("TxtLatestData");
+                                String bitMood = jsonObject1.getString("bitMood");
+
                                 JSONObject jsonDataUserLogin = jsonObject2.getJSONObject("UserLogin");
+                                JSONArray jsonArrayBranchAccess = jsonObject2.getJSONArray("UserBranch");
+                                String strLeave = jsonObject1.getString("LeaveData");
                                 String nameApp = null;
+                                if (strLeave != null && !strLeave.equals("null")){
+                                    JSONObject jsonLeave = jsonObject1.getJSONObject("LeaveData");
+                                    clsLeaveData dataLeave = new clsLeaveData();
+                                    dataLeave.setBitActive(1);
+                                    dataLeave.setLeaveId(Integer.parseInt(jsonLeave.getString("intLeaveId")));
+                                    dataLeave.setTxtNIK(jsonLeave.getString("txtNIK"));
+                                    dataLeave.setTxtTime(jsonLeave.getString("dtAbsenceDate"));
+                                    dataLeave.setTxtKeterangan(jsonLeave.getString("Description"));
+                                    try {
+                                        new clsLeaveDataRepo(getApplicationContext()).createOrUpdate(dataLeave);
+                                    } catch (SQLException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+
+                                if (jsonArrayBranchAccess.length()>0){
+                                    for (int j=0 ; j<jsonArrayBranchAccess.length();j++){
+                                        JSONObject json_data = jsonArrayBranchAccess.getJSONObject(j);
+                                            String intBranchID = json_data.getString("IntBranchID");
+                                        String txtBranchCode = json_data.getString("TxtBranchCode");
+                                        String txtBranchName = json_data.getString("TxtBranchName");
+                                        String txtBranchSiteId = json_data.getString("TxtBranchSiteId");
+                                        String txtBranchCOA = json_data.getString("TxtBranchCOA");
+                                        String dtNonActive = json_data.getString("DtNonActive");
+
+                                        clsBranchAccess dataBranch = new clsBranchAccess();
+                                        dataBranch.setTxtBranchCode(txtBranchCode);
+                                        dataBranch.setIntBranchID(Integer.parseInt(intBranchID));
+                                        dataBranch.setDtNonActive(dtNonActive);
+                                        if(txtBranchCode.equals("HO")){
+                                            dataBranch.setTxtBranchName("Head Office");
+                                        }else{
+                                            dataBranch.setTxtBranchName(txtBranchName);
+                                        }
+
+                                        dataBranch.setTxtBranchCOA(txtBranchCOA);
+
+                                        try {
+                                            new clsBranchAccessRepo(getApplicationContext()).createOrUpdate(dataBranch);
+                                        } catch (SQLException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                }
+
                                 try {
                                     List<clsmVersionApp> appInfo = (List<clsmVersionApp>) repoVersionApp.findAll();
                                     nameApp = appInfo.get(0).getTxtNameApp();
@@ -481,6 +549,12 @@ public class Login extends clsMainActivity {
                                 String TxtDeviceId = jsonDataUserLogin.getString("TxtDeviceId");
                                 String TxtInsertedBy = jsonDataUserLogin.getString("TxtInsertedBy");
                                 clsUserLogin data = new clsUserLogin();
+
+                                if (!bitMood.equals("null") && bitMood != null) {
+                                        int mood = Integer.parseInt(bitMood);
+                                        data.setBitMood(mood);
+                                }
+
                                 data.setTxtNameApp(nameApp);
                                 data.setTxtGUI(TxtGUI);
                                 data.setTxtUserID(TxtUserID);
@@ -494,10 +568,10 @@ public class Login extends clsMainActivity {
                                 data.setIntCabangID(IntCabangID);
                                 data.setTxtKodeCabang(TxtKodeCabang);
                                 data.setTxtNamaCabang(TxtNamaCabang);
-                                DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                                DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
                                 Calendar cal = Calendar.getInstance();
                                 data.setDtLastLogin(DtLastLogin);
-                                data.setTxtDeviceId(TxtDeviceId);
+                                data.setTxtDeviceId(android.os.Build.MANUFACTURER + " " + android.os.Build.MODEL);
                                 data.setTxtInsertedBy(TxtInsertedBy);
                                 data.setDtInserted(dateFormat.format(cal.getTime()));
 
@@ -507,14 +581,168 @@ public class Login extends clsMainActivity {
                                 if (i > -1) {
                                     Log.d("Data info", "Data info berhasil di simpan");
                                     Intent myIntent = new Intent(Login.this, MainMenu.class);
-                                    myIntent.putExtra("keyMainMenu", "main_menu");
+                                    myIntent.putExtra("keyMainMenu", "login");
                                     startActivity(myIntent);
                                     finish();
                                     if (!isMyServiceRunning(MyServiceNative.class)) {
                                         startService(new Intent(Login.this, MyServiceNative.class));
                                     }
-                                    boolean tes,tes2;
+                                    boolean tes, tes2;
                                     tes = isMyServiceRunning(MyServiceNative.class);
+                                }
+                                try {
+                                    if (!strLatest.equals("null") && strLatest != null) {
+                                        clsTrackingData trackingData = new clsTrackingData();
+                                        JSONObject jsonLatest = new JSONObject(strLatest);
+                                        trackingData.setGuiId(new clsMainActivity().GenerateGuid());
+                                        trackingData.setIntSubmit("1");
+                                        trackingData.setIntSync("0");
+                                        trackingData.setGuiIdLogin(jsonLatest.getString("txtGuiIdLogin"));
+                                        trackingData.setTxtBranchCode(jsonLatest.getString("txtBranchCode"));
+                                        int intSeq = Integer.parseInt(jsonLatest.getString("intSequence")) + 1;
+                                        trackingData.setIntSequence(intSeq);
+                                        trackingData.setTxtDeviceId(jsonLatest.getString("txtDeviceId"));
+                                        trackingData.setTxtTime(jsonLatest.getString("dtDate"));
+                                        trackingData.setTxtLatitude(jsonLatest.getString("txtLatitude"));
+                                        trackingData.setTxtLongitude(jsonLatest.getString("txtLongitude"));
+                                        trackingData.setTxtNIK(jsonLatest.getString("txtNIK"));
+                                        trackingData.setIntSync("1");
+                                        trackingData.setTxtUserId(jsonLatest.getString("txtUserId"));
+                                        trackingData.setTxtUsername(jsonLatest.getString("txtUsername"));
+
+                                        if (!jsonLatest.getString("ltAbsen").equals("null")) {
+                                            JSONArray jArray = jsonLatest.getJSONArray("ltAbsen");
+                                            int jACount = jArray.length();
+                                            if (jACount > 0) {
+                                                for (int a = 0; a < jArray.length(); a++) {
+                                                    JSONObject json_data = jArray.getJSONObject(a);
+                                                    String guiID = json_data.getString("txtGUI_ID");
+                                                    String outlet = json_data.getString("txtOutletName");
+                                                    String outletId = json_data.getString("txtOutletId");
+                                                    String dtCheckin = json_data.getString("dtCheckin");
+                                                    String dtCheckout = json_data.getString("dtCheckout");
+
+                                                    clsLastCheckingData dataCheckin = new clsLastCheckingData();
+                                                    dataCheckin.setTxtGuiID(guiID);
+                                                    dataCheckin.setTxtOutletId(outletId);
+                                                    dataCheckin.setTxtOutletName(outlet);
+                                                    dataCheckin.setDtCheckin(dtCheckin);
+                                                    dataCheckin.setDtCheckout(dtCheckout);
+                                                    new clsLastCheckingDataRepo(getApplicationContext()).createOrUpdate(dataCheckin);
+                                                }
+                                            }
+
+                                        }
+                                        if (!jsonLatest.getString("ltAbsenAll").equals("null")) {
+                                            JSONArray jArrayAll = jsonLatest.getJSONArray("ltAbsenAll");
+                                            if (jArrayAll.length() > 0) {
+                                                for (int a = 0; a < jArrayAll.length(); a++) {
+                                                    JSONObject json_data = jArrayAll.getJSONObject(a);
+                                                    String guiID = json_data.getString("txtGUI_ID");
+                                                    String outlet = json_data.getString("txtOutletName");
+                                                    String outletId = json_data.getString("txtOutletId");
+                                                    String dtCheckin = json_data.getString("dtCheckin");
+                                                    String dtCheckout = json_data.getString("dtCheckout");
+                                                    String txtLongitude = json_data.getString("txtLongitude");
+                                                    String txtLatitude = json_data.getString("txtLatitude");
+                                                    String txtDeviceId = json_data.getString("txtDeviceId");
+                                                    String txtDeviceName = json_data.getString("txtDeviceName");
+                                                    String txtUserId = json_data.getString("txtUserId");
+
+//                                    String dateString = "22/05/2014 11:49:00 AM";
+                                                    SimpleDateFormat dateFormat2 = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+                                                    Date convertedDate = new Date();
+//                                                    try {
+//                                                        convertedDate = dateFormat.parse(dateString);
+//                                                    } catch (ParseException e) {
+//                                                        // TODO Auto-generated catch block
+//                                                        e.printStackTrace();
+//                                                    }
+                                                    Date dtCheckinD = null;
+                                                    if (!dtCheckin.equals("null")) {
+                                                        dtCheckinD = dateFormat2.parse(dtCheckin);
+                                                    }
+                                                    Date dtCheckoutD = null;
+                                                    if (!dtCheckout.equals("null")) {
+                                                        dtCheckoutD = dateFormat2.parse(dtCheckout);
+                                                    }
+                                                    clsReportData dataCheckin = new clsReportData();
+                                                    dataCheckin.setTxtGuiID(guiID);
+                                                    dataCheckin.setTxtOutletId(outletId);
+                                                    dataCheckin.setTxtOutletName(outlet);
+                                                    dataCheckin.setDtCheckin(dtCheckinD);
+                                                    dataCheckin.setDtCheckout(dtCheckoutD);
+                                                    dataCheckin.setTxtLongitude(txtLongitude);
+                                                    dataCheckin.setTxtLatitude(txtLatitude);
+                                                    dataCheckin.setTxtDeviceId(txtDeviceId);
+                                                    dataCheckin.setTxtDeviceName(txtDeviceName);
+                                                    dataCheckin.setTxtUserId(txtUserId);
+                                                    new clsReportDataRepo(getApplicationContext()).createOrUpdate(dataCheckin);
+
+
+                                                }
+                                            }
+                                        }
+                                         if (!jsonLatest.getString("ltTypeLeave").equals("null")) {
+                                            JSONArray jArrayAll = jsonLatest.getJSONArray("ltTypeLeave");
+                                            if (jArrayAll.length() > 0) {
+                                                for (int a = 0; a < jArrayAll.length(); a++) {
+                                                    JSONObject json_data = jArrayAll.getJSONObject(a);
+                                                    String typeLeaveId = json_data.getString("typeLeaveId");
+                                                    String typeLeaveCode = json_data.getString("txtleaveCode");
+                                                    String typeLeaveName = json_data.getString("txtleaveName");
+                                                    String typeLevaeKeterangan = json_data.getString("txtKeterangan");
+                                                    String bitactive = json_data.getString("bitActive");
+
+                                                    clsTypeLeave dataLeave  = new clsTypeLeave();
+                                                    dataLeave.setIntLeaveID(Integer.parseInt(typeLeaveId));
+                                                    dataLeave.setBitActive(Integer.parseInt(bitactive));
+                                                    dataLeave.setTxtLeaveCode(typeLeaveCode);
+                                                    dataLeave.setTxtKeterangan(typeLevaeKeterangan);
+                                                    dataLeave.setTxtLeaveName(typeLeaveName);
+
+                                                    new clsTypeLeaveRepo(getApplicationContext()).createOrUpdate(dataLeave);
+                                                }
+                                            }
+                                        }
+
+
+                                        int done = new clsTrackingDataRepo(getApplicationContext()).create(trackingData);
+                                        if (done > -1) {
+                                            new clsMainActivity().showCustomToast(getApplicationContext(), "Done", true);
+                                            if (!isMyServiceRunning(MyTrackingLocationService.class)) {
+                                                Intent a = new Intent(Login.this, MyTrackingLocationService.class);
+                                                startService(a);
+                                            }
+                                            if (!isMyServiceRunning(MyServiceNative.class)) {
+                                                Intent a = new Intent(Login.this, MyServiceNative.class);
+
+                                                startService(a);
+                                            }
+                                            boolean tes, tes2;
+                                            tes2 = isMyServiceRunning(MyTrackingLocationService.class);
+                                            // Reload current fragment
+                                            Fragment frg = null;
+//                                            frg = getFragmentManager().findFragmentByTag("FragmentInformation");
+//                                            final FragmentTransaction ft = getFragmentManager().beginTransaction();
+//
+// ft.detach(frg);
+//                                            ft.attach(frg);
+//                                            ft.commit();
+                                        }
+
+                                    } else {
+                                        if (!isMyServiceRunning(MyTrackingLocationService.class)) {
+                                            Intent a = new Intent(Login.this, MyTrackingLocationService.class);
+                                            startService(a);
+                                        }
+                                        if (!isMyServiceRunning(MyServiceNative.class)) {
+                                            Intent a = new Intent(Login.this, MyServiceNative.class);
+                                            startService(a);
+                                        }
+                                    }
+                                } catch (Exception ex) {
+                                    String a = "hihi";
                                 }
                             } else {
                                 new clsMainActivity().showCustomToast(getApplicationContext(), warn, false);
@@ -528,7 +756,7 @@ public class Login extends clsMainActivity {
 //                }
                 }
             });
-        }else{
+        } else {
             checkVersion();
         }
 
@@ -538,18 +766,19 @@ public class Login extends clsMainActivity {
         final ProgressDialog Dialog = new ProgressDialog(Login.this);
         RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
         clsmConfig configData = null;
-        String linkPushData= "";
+        String linkPushData = "";
         try {
             configData = (clsmConfig) new clsmConfigRepo(getApplicationContext()).findById(enumConfigData.API_PRM.getidConfigData());
-            linkPushData = configData.getTxtValue()+new clsHardCode().linkCheckVersion;
+            linkPushData = configData.getTxtValue() + new clsHardCode().linkCheckVersion;
         } catch (SQLException e) {
             e.printStackTrace();
         }
         String strLinkAPI = linkPushData;
         JSONObject resJson = new JSONObject();
+        String nameApp = new clsHardCode().name_app;
         try {
             resJson.put("TxtVersion", pInfo.versionName);
-            resJson.put("TxtNameApp", "Android - Call Plan BR Mobile");
+            resJson.put("TxtNameApp", nameApp);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -561,7 +790,7 @@ public class Login extends clsMainActivity {
         new VolleyUtils().makeJsonObjectRequest(Login.this, strLinkAPI, mRequestBody, "Checking Version !", new VolleyResponseListener() {
             @Override
             public void onError(String response) {
-                new clsMainActivity().showCustomToast(getApplicationContext(),"Connection Failed, please check your network !", false);
+                new clsMainActivity().showCustomToast(getApplicationContext(), "Connection Failed, please check your network !", false);
 //                Toast.makeText(getApplicationContext(), "Connection Failed, please check your network !", Toast.LENGTH_SHORT).show();
 //                Log.d("connection failed", response);
             }
@@ -624,9 +853,9 @@ public class Login extends clsMainActivity {
                     }
                 }
                 if (!status) {
-                    new clsMainActivity().showCustomToast(getApplicationContext(),"Connection Failed, please check your network !", false);
-                }else{
-                    new clsMainActivity().showCustomToast(getApplicationContext(),"Connected, you ready to login", true);
+                    new clsMainActivity().showCustomToast(getApplicationContext(), "Connection Failed, please check your network !", false);
+                } else {
+                    new clsMainActivity().showCustomToast(getApplicationContext(), "Connected, you ready to login", true);
                 }
             }
         });

@@ -17,7 +17,7 @@
         android:layout_height="150dp"
         android:layout_weight="0.33"
         android:gravity="center"
-        android:text="1234"
+        android:text="Last Data"
         android:textColor="@color/colorAccent"
         android:textSize="15dp"
         app:ct_backgroundColor="#FFFFFF"
@@ -41,7 +41,8 @@
         app:ct_border_color="@color/colorAccent"
         app:ct_border_width="10dp"
         app:ct_type="shadow_alpha"
-        android:layout_gravity="center"/>
+        android:layout_gravity="center"
+        android:visibility="gone"/>
 
         <Button
             android:id="@+id/btnPush"

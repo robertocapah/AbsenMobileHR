@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:custom="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -8,127 +8,126 @@
     android:padding="10dp">
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/rlSearch"
-        android:paddingBottom="20dp">
-
-        <Spinner
-            android:id="@+id/spnPeriode"
+        android:layout_height="match_parent">
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:background="@drawable/bg_edtext"
-            android:layout_toEndOf="@+id/textView34"
-            android:layout_toRightOf="@+id/textView34"
-            android:layout_marginLeft="30dp" />
+            android:id="@+id/rlSearch"
+            android:paddingBottom="20dp"
+            android:visibility="gone">
 
-
-        <TextView
-            android:text="Periode"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
-            android:id="@+id/textView34" />
-
-    </RelativeLayout>
-
-    <Button
-        android:text="Search"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/rlSearch"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:id="@+id/btnsearch"
-        android:background="@drawable/btn_download_all"
-        android:textColor="@color/white"/>
-    <Button
-        android:text="Hide"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/btnsearch"
-        android:layout_toRightOf="@+id/btnsearch"
-        android:layout_toEndOf="@+id/btnsearch"
-        android:background="@drawable/btn_download_all"
-        android:textColor="@color/white"
-        android:id="@+id/btnHide"
-        android:layout_marginLeft="10dp" />
-
-    <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/tlheader"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/btnHide"
-        android:background="@drawable/bg_rounded_normal"
-        android:layout_marginTop="5dp">
-        <TableRow
-            android:background="#4CAF50"
-            android:padding="5dp">
-            <TextView
+            <Spinner
+                android:id="@+id/spnPeriode"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text=""
-                android:layout_weight="1"
-                android:gravity="center"
-                android:layout_gravity="center_horizontal"/>
+                android:layout_marginTop="5dp"
+                android:background="@drawable/bg_edtext"
+                android:layout_toEndOf="@+id/textView34"
+                android:layout_toRightOf="@+id/textView34"
+                android:layout_marginLeft="30dp" />
+
+
             <TextView
-                android:layout_width="match_parent"
+                android:text="Periode"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/history_absence"
-                android:layout_weight="6"
-                android:gravity="center"
-                android:layout_gravity="center_horizontal"/>
-        </TableRow>
+                android:layout_alignParentTop="true"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
+                android:id="@+id/textView34" />
+            <Button
+                android:text="Search"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/textView34"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
+                android:id="@+id/btnsearch"
+                android:background="@drawable/btn_download_all"
+                android:textColor="@color/white"/>
+            <Button
+                android:text="Hide"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignTop="@+id/btnsearch"
+                android:layout_toRightOf="@+id/btnsearch"
+                android:layout_toEndOf="@+id/btnsearch"
+                android:background="@drawable/btn_download_all"
+                android:textColor="@color/white"
+                android:id="@+id/btnHide"
+                android:layout_marginLeft="10dp" />
+        </RelativeLayout>
+
+
         <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
-            android:id="@+id/tlResume"
+            android:id="@+id/tlheader"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/tlheader"
-            android:background="@drawable/bg_rounded_normal">
-
+            android:layout_below="@+id/rlSearch"
+            android:background="@drawable/bg_rounded_normal"
+            android:layout_marginTop="5dp">
             <TableRow
-                android:background="#ffffff"
+                android:background="#4CAF50"
                 android:padding="5dp">
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:text=""
                     android:layout_weight="1"
-                    android:text="Date"
-                    android:textStyle="bold"/>
+                    android:gravity="center"
+                    android:layout_gravity="center_horizontal"/>
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Location"
-                    android:textStyle="bold"/>
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Time Check in"
-                    android:textStyle="bold"/>
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Time Check out"
-                    android:textStyle="bold"/>
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Longitude"
-                    android:textStyle="bold"/>
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Latitude"
-                    android:textStyle="bold"/>
+                    android:text="@string/history_absence"
+                    android:layout_weight="6"
+                    android:gravity="center"
+                    android:layout_gravity="center_horizontal"/>
             </TableRow>
-        </TableLayout>
-    </TableLayout>
+            <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:id="@+id/tlResume"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/tlheader"
+                android:background="@drawable/bg_rounded_normal">
 
-</RelativeLayout>
+                <TableRow
+                    android:background="#ffffff"
+                    android:padding="5dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Location"
+                        android:textStyle="bold"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Time Check in"
+                        android:textStyle="bold"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Time Check out"
+                        android:textStyle="bold"/>
+                    <!--<TextView-->
+                        <!--android:layout_width="wrap_content"-->
+                        <!--android:layout_height="wrap_content"-->
+                        <!--android:layout_weight="1"-->
+                        <!--android:text="Longitude"-->
+                        <!--android:textStyle="bold"/>-->
+                    <!--<TextView-->
+                        <!--android:layout_width="wrap_content"-->
+                        <!--android:layout_height="wrap_content"-->
+                        <!--android:layout_weight="1"-->
+                        <!--android:text="Latitude"-->
+                        <!--android:textStyle="bold"/>-->
+                </TableRow>
+            </TableLayout>
+        </TableLayout>
+    </RelativeLayout>
+
+
+</ScrollView>

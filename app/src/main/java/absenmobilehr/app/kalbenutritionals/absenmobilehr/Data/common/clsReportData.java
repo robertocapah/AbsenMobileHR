@@ -1,23 +1,27 @@
 package absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common;
 
+import com.j256.ormlite.field.DataType;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
+
+import java.io.Serializable;
+import java.util.Date;
 
 /**
  * Created by Robert on 29/09/2017.
  */
 @DatabaseTable
-public class clsReportData {
+public class clsReportData implements Serializable {
     @DatabaseField(id = true)
     private String txtGuiID;
     @DatabaseField
     private String txtOutletId;
     @DatabaseField
     private String txtOutletName;
-    @DatabaseField
-    private String dtCheckin;
-    @DatabaseField
-    private String dtCheckout;
+    @DatabaseField(dataType = DataType.DATE_LONG)
+    private Date dtCheckin;
+    @DatabaseField(dataType = DataType.DATE_LONG)
+    private Date dtCheckout;
     @DatabaseField
     private String txtLatitude;
     @DatabaseField
@@ -55,19 +59,19 @@ public class clsReportData {
         this.txtOutletName = txtOutletName;
     }
 
-    public String getDtCheckin() {
+    public Date getDtCheckin() {
         return dtCheckin;
     }
 
-    public void setDtCheckin(String dtCheckin) {
+    public void setDtCheckin(Date dtCheckin) {
         this.dtCheckin = dtCheckin;
     }
 
-    public String getDtCheckout() {
+    public Date getDtCheckout() {
         return dtCheckout;
     }
 
-    public void setDtCheckout(String dtCheckout) {
+    public void setDtCheckout(Date dtCheckout) {
         this.dtCheckout = dtCheckout;
     }
 

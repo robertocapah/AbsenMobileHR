@@ -39,8 +39,10 @@ import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsUserLoginR
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsmCounterDataRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.clsMainActivity;
 
+import static com.android.volley.VolleyLog.TAG;
+
 /**
- * Created by Robert on 07/06/2018.
+ * Created by Robert on 07/06/2017.
  */
 
 public class MyTrackingLocationService extends Service implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
@@ -193,7 +195,7 @@ public class MyTrackingLocationService extends Service implements GoogleApiClien
         clsTrackingData dataLocation = new clsTrackingData();
         clsUserLogin dataUserActive = new clsUserLoginRepo(getApplicationContext()).getDataLogin(getApplicationContext());
         final int index;
-        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
         Calendar cal = Calendar.getInstance();
         try {
 //            String intSquence = new Intent().getStringExtra("intSequence");
@@ -228,6 +230,7 @@ public class MyTrackingLocationService extends Service implements GoogleApiClien
                     if (dataUserActive.getTxtGUI() != null){
                         try{
                             new clsTrackingDataRepo(getApplicationContext()).create(dataLocation);
+                            Log.i(TAG, "Tracking jam : - " + dataLocation.getTxtTime() +" sequence ke "+dataLocation.getIntSequence()+".. baper gw ");
                         }catch (SQLException e){
                             e.printStackTrace();
                         }
@@ -259,12 +262,14 @@ public class MyTrackingLocationService extends Service implements GoogleApiClien
                     if (dataUserActive.getTxtGUI() != null){
                         try{
                             new clsTrackingDataRepo(getApplicationContext()).create(dataLocation);
+                            Log.i(TAG, "Tracking jam : - " + dataLocation.getTxtTime() +" sequence ke "+dataLocation.getIntSequence()+".. baper gw ");
                         }catch (SQLException e){
                             e.printStackTrace();
                         }
                     }
                 } else {
                     shutdownService();
+
                 }
             }
         } catch (SQLException e) {
@@ -288,8 +293,11 @@ public class MyTrackingLocationService extends Service implements GoogleApiClien
     }
 
     public void shutdownService() {
-        if (timer != null) mHandler.removeCallbacks(mHandlerTask);
-        Log.i(getClass().getSimpleName(), "Timer stopped...");
+        if(mHandler != null){
+            mHandler.removeCallbacks(mHandlerTask);
+            Log.i(getClass().getSimpleName(), "Service Tracking stopped...");
+        }
+
     }
 
     @Override

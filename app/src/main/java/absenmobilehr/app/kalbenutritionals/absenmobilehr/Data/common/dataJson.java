@@ -158,8 +158,11 @@ public class dataJson {
                 item1.put(dttUserLogin.Property_txtName, String.valueOf(data.getTxtName()));
                 item1.put(dttUserLogin.Property_txtUserName, String.valueOf(data.getTxtUserName()));
                 item1.put(dttUserLogin.Property_cabangId, String.valueOf(data.getIntCabangID()));
+                item1.put(dttUserLogin.Property_txtKodeCabang, String.valueOf(data.getTxtKodeCabang()));
+                item1.put(dttUserLogin.Property_txtNameApp, String.valueOf(data.getTxtNameApp()));
                 item1.put(dttUserLogin.Property_txtNamaCabang, String.valueOf(data.getTxtNamaCabang()));
-                item1.put(dttUserLogin.Property_dtLastLogin, String.valueOf(data.getDtLastLogin()));
+                item1.put(dttUserLogin.Property_dtLastLogin, String.valueOf(data.getDtInserted()));
+                item1.put(dttUserLogin.Property_jabatanId, String.valueOf(data.getJabatanId()));
                 item1.put(dttUserLogin.Property_txtDeviceId, String.valueOf(data.getTxtDeviceId()));
                 item1.put(dttUserLogin.Property_txtUserId, String.valueOf(data.getTxtUserID()));
                 item1.put(dttUserLogin.Property_txtEmail, String.valueOf(data.getTxtEmail()));

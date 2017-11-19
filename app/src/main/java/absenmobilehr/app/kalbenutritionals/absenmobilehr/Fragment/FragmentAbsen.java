@@ -26,12 +26,15 @@ import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.MeasureSpec;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ListAdapter;
+import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -54,6 +57,7 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.gson.Gson;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -66,6 +70,7 @@ import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -78,6 +83,7 @@ import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.bl.clsMainBL;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.clsHardCode;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsAbsenData;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsAbsenOnline;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsBranchAccess;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsDeviceInfo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsGetOutletDataHelper;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsLastCheckingData;
@@ -85,6 +91,7 @@ import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsUserLogi
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsmConfig;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsAbsenDataRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsAbsenOnlineRepo;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsBranchAccessRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsDeviceInfoRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsLastCheckingDataRepo;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.clsUserLoginRepo;
@@ -118,6 +125,7 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
     private Spinner spnOutlet;
     private Context context = null;
     private List<String> arrData;
+    private String[] arrData2;
     private String Long;
     private String Lat;
     private String Acc;
@@ -128,9 +136,12 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
     private ImageView imgScaner;
     private static final String IMAGE_DIRECTORY_NAME = "Image Sales";
     private HashMap<String, String> HMbranch = new HashMap<String, String>();
+    private HashMap<String, String> HMbranchCode = new HashMap<String, String>();
     private HashMap<String, String> HMoutletId = new HashMap<String, String>();
     private HashMap<String, String> HMoutletLong = new HashMap<String, String>();
     private HashMap<String, String> HMoutletLat = new HashMap<String, String>();
+    private HashMap<String, String> HMoutletMappingHeader = new HashMap<String, String>();
+    private HashMap<String, String> HMoutletMappingDetail = new HashMap<String, String>();
     final String finalFile = null;
     private TextView lblLong;
     private TextView lblLang;
@@ -141,6 +152,7 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
     private TextView txtHDId;
     private ArrayAdapter<String> dataAdapterBranch;
     private ArrayAdapter<String> dataAdapterOutlet;
+    private ListView lvBranch;
     Options options;
     private Button btnRefreshMaps, btnPopupMap;
     private Button btnCheckIn;
@@ -280,7 +292,26 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
         }
 
     }
+    public static void setListViewHeightBasedOnChildren(ListView listView) {
+        ListAdapter listAdapter = listView.getAdapter();
+        if (listAdapter == null)
+            return;
 
+        int desiredWidth = MeasureSpec.makeMeasureSpec(listView.getWidth(), MeasureSpec.UNSPECIFIED);
+        int totalHeight = 0;
+        View view = null;
+        for (int i = 0; i < listAdapter.getCount(); i++) {
+            view = listAdapter.getView(i, view, listView);
+            if (i == 0)
+                view.setLayoutParams(new ViewGroup.LayoutParams(desiredWidth, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+            view.measure(desiredWidth, MeasureSpec.UNSPECIFIED);
+            totalHeight += view.getMeasuredHeight();
+        }
+        ViewGroup.LayoutParams params = listView.getLayoutParams();
+        params.height = totalHeight + (listView.getDividerHeight() * (listAdapter.getCount() - 1));
+        listView.setLayoutParams(params);
+    }
     @Override
     public View onCreateView(LayoutInflater inflater, final ViewGroup container, Bundle savedInstanceState) {
         v = inflater.inflate(R.layout.activity_absen, container, false);
@@ -308,6 +339,26 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
         lblLang.setText("");
         lblAcc.setText("");
         lblDistance.setText("");
+        lvBranch = (ListView) v.findViewById(R.id.listBranch);
+        try {
+            List<clsBranchAccess> branches = new clsBranchAccessRepo(context).findAll();
+            int arr = 0;
+            arrData2 = new String[branches.size()];
+            if (branches.size()>0){
+                for(clsBranchAccess dt : branches){
+                    arrData2[arr]= dt.getTxtBranchName();
+                    arr++;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        final List<String> listBranch = new ArrayList<String>(Arrays.asList(arrData2));
+        ArrayAdapter arrayAdapter = new ArrayAdapter<String>(getActivity(), R.layout.custom_listitem, listBranch);
+        final ArrayAdapter<String> adapterAA = new ArrayAdapter<String>
+                (getActivity(), android.R.layout.simple_list_item_1, listBranch);
+        lvBranch.setAdapter(arrayAdapter);
+        setListViewHeightBasedOnChildren(lvBranch);
         try {
             pInfo = getActivity().getPackageManager().getPackageInfo(getActivity().getPackageName(), 0);
         } catch (PackageManager.NameNotFoundException e2) {
@@ -317,7 +368,12 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
         imgScaner.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                IntentIntegrator.initiateScan(getActivity(), zxingLibConfig);
+                if(spnOutlet.getSelectedItem()!= null){
+                    IntentIntegrator.initiateScan(getActivity(), zxingLibConfig);
+                }else{
+                    getOutlet();
+                }
+
             }
         });
         try {
@@ -346,6 +402,7 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
                         countDistance(latitudeOutlet, longitudeOutlet);
                         displayLocation(mLastLocation);
                         getLocation();
+//                        Location myLocation = getLastKnownLocation();
                         if (mLastLocation != null) {
                             displayLocation(mLastLocation);
                         }
@@ -366,6 +423,7 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
         btnRefreshMaps.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
+                getOutlet();
                 displayLocation(mLastLocation);
                 getLocation();
                 if (mLastLocation != null) {
@@ -847,12 +905,23 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
         } catch (JSONException e) {
             e.printStackTrace();
         }*/
+        List<clsBranchAccess> ltBranch = new ArrayList<>();
+        try {
+            ltBranch = new clsBranchAccessRepo(context).findAll();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        JSONArray branchArray = new JSONArray(ltBranch);
+        Gson jsn = new Gson();
+        String branchAreaJson = jsn.toJson(ltBranch);
         JSONObject json = new JSONObject();
         try {
             json.put(dataPush.Property_txtIdUserLogin,String.valueOf(dataLogin.getEmployeeId()));
             json.put(dataPush.Property_txtDeviceId,String.valueOf(deviceInfo.getIdDevice()));
+            json.put(dataPush.Property_txtBranchCode,String.valueOf(dataLogin.getTxtKodeCabang()));
             json.put(dataPush.Property_txtLatitude,String.valueOf(lblLang.getText()));
             json.put(dataPush.Property_txtLongitude,String.valueOf(lblLong.getText()));
+            json.put(dataPush.Property_AreaAccess,branchAreaJson);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -884,7 +953,8 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
                 a = a.replace("\\", "");
                 if(!a.equals("")){
                     try {
-                        JSONArray result = new JSONArray(a);
+                        JSONObject object = new JSONObject(a);
+                        JSONArray result = object.getJSONArray("listOutlet");
                         arrData = new ArrayList<>();
                         for(int i = 0; i<result.length();i++ ){
                             JSONObject obj = result.getJSONObject(i);
@@ -892,11 +962,26 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
                             String txtOutletName = obj.getString("txtOutletName");
                             String txtLongitude = obj.getString("txtLongitude");
                             String txtLatitude = obj.getString("txtLatitude");
+                            String mmapingHeaderId = obj.getString("intHeaderMappingOutlet");
+                            String mmappingDetailId = obj.getString("intDetailIdMappingOutlet");
 
                             arrData.add(txtOutletName);
                             HMoutletId.put(txtOutletName, intOutletId);
                             HMoutletLong.put(txtOutletName, txtLongitude);
                             HMoutletLat.put(txtOutletName, txtLatitude);
+                            HMoutletMappingHeader.put(txtOutletName,mmapingHeaderId);
+                            HMoutletMappingDetail.put(txtOutletName,mmappingDetailId);
+
+                        }
+                        JSONObject mconfig = object.getJSONObject("radius");
+                        clsmConfig config = new clsmConfig();
+                        config.setIntId(9);
+                        config.setTxtName(mconfig.getString("txtKeyID"));
+                        config.setTxtValue(mconfig.getString("txtValue"));
+                        try {
+                            new clsmConfigRepo(context).createOrUpdate(config);
+                        } catch (SQLException e) {
+                            e.printStackTrace();
                         }
                         ArrayAdapter<String> dataAdapterOutlet = new MyAdapter(getContext(), R.layout.custom_spinner, arrData);
                         spnOutlet.setAdapter(dataAdapterOutlet);
@@ -938,6 +1023,9 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
         locationManager.requestLocationUpdates(provider, 1000, 0, this);
     }
 
+    LocationManager mLocationManager2;
+
+
     public Location getLocation() {
         try {
             LocationManager locationManager = (LocationManager) getActivity()
@@ -951,13 +1039,14 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
             boolean isNetworkEnabled = locationManager
                     .isProviderEnabled(LocationManager.NETWORK_PROVIDER);
             boolean canGetLocation = false;
-            Location location = null;
+
 
             if (!isGPSEnabled && !isNetworkEnabled) {
                 // no network provider is enabled
                 new clsMainActivity().showCustomToast(getContext(), "no network provider is enabled", false);
             } else {
                 canGetLocation = true;
+                Location location = null;
                 if (isNetworkEnabled) {
                     if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                     }
@@ -967,9 +1056,10 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
                             0, this);
                     Log.d("Network", "Network Enabled");
                     if (locationManager != null) {
-                        mLastLocation = locationManager
+                        location = locationManager
                                 .getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
                         if (location != null) {
+                            mLastLocation = location;
                             double latitude = location.getLatitude();
                             double longitude = location.getLongitude();
                         }
@@ -977,6 +1067,7 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
                 }
                 // if GPS Enabled get lat/long using GPS Services
                 if (isGPSEnabled) {
+                    Location location2 = null;
                     if (mLastLocation == null) {
                         locationManager.requestLocationUpdates(
                                 LocationManager.GPS_PROVIDER,
@@ -984,11 +1075,13 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
                                 0, this);
                         Log.d("GPS", "GPS Enabled");
                         if (locationManager != null) {
-                            mLastLocation = locationManager
-                                    .getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                            location2 = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
                             if (location != null) {
+                                mLastLocation = location2;
                                 double latitude = location.getLatitude();
                                 double longitude = location.getLongitude();
+                            }else{
+                                new clsMainActivity().showCustomToast(context,"Your GPS off", false);
                             }
                         }
                     }
@@ -1001,6 +1094,7 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
 
         return mLastLocation;
     }
+
 
     @SuppressWarnings("deprecation")
     private void displayLocation(Location mLastLocation) {
@@ -1180,6 +1274,8 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
             String txtOutletId = HMoutletId.get(txtOutlet);
             double latitudeOutlet = Double.parseDouble(HMoutletLat.get(txtOutlet));
             double longitudeOutlet = Double.parseDouble(HMoutletLong.get(txtOutlet));
+            int mappingHeaderId = Integer.parseInt(HMoutletMappingHeader.get(txtOutlet));
+            int mappingDetailId = Integer.parseInt(HMoutletMappingDetail.get(txtOutlet));
 
             Location locationA = new Location("point A");
             Location locationB = new Location(("point B"));
@@ -1187,10 +1283,15 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
             locationA.setLongitude(longitude);
             locationB.setLongitude(longitudeOutlet);
             locationB.setLatitude(latitudeOutlet);
-
+            clsmConfig mradius = new clsmConfig();
+            try {
+                mradius = new clsmConfigRepo(context).findById(9);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
             float distance = locationA.distanceTo(locationB);
-            if (distance<20){
-               new clsMainActivity().showCustomToast(getActivity().getApplicationContext(),"Youre too far from outlet",false);
+            if (distance>Integer.parseInt(mradius.getTxtValue())){
+               new clsMainActivity().showCustomToast(getActivity().getApplicationContext(),"You're too far from outlet",false);
             }else{
                 final clsUserLogin dataUserActive = new clsUserLoginRepo(context).getDataLogin(context);
                 clsDeviceInfo dataDeviceInfoUser = new clsDeviceInfoRepo(context).getDataDevice(context);
@@ -1207,11 +1308,15 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
                     resJson.put("outletName",txtOutlet);
                     resJson.put("qrCode",result);
                     resJson.put("txtTime", now);
+                    resJson.put("mappingHeaderId",mappingHeaderId);
+                    resJson.put("mappingDetailId",mappingDetailId);
+                    resJson.put("txtTimeDetail",new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cal.getTime()));
                     resJson.put("guiId",guiId);
                     resJson.put("guiIdLogin",dataUserActive.getTxtGUI());
                     resJson.put(dataUserActive.Property_employeeId,dataUserActive.getEmployeeId());
                     resJson.put(dataUserActive.Property_txtUserName,dataUserActive.getTxtUserName());
-                    resJson.put("deviceInfo",dataDeviceInfoUser.getTxtDevice());
+                    resJson.put(dataUserActive.Property_txtName,dataUserActive.getTxtName());
+                    resJson.put("deviceInfo",dataDeviceInfoUser.getTxtModel());
                     resJson.put("deviceId",dataDeviceInfoUser.getIdDevice());
                     resJson.put("TxtVersion", pInfo.versionName);
                     resJson.put("TxtNameApp", "Android - Absen HR");
@@ -1235,7 +1340,7 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
                             if (response.equals("0")){
                                 new clsMainActivity().showCustomToast(getActivity().getApplicationContext(),"Outlet doesn't match !", false);
                             }else if(response.equals("1")){
-                                new clsMainActivity().showCustomToast(getActivity().getApplicationContext(),"Barcode Expired !", false);
+                                new clsMainActivity().showCustomToast(getActivity().getApplicationContext(),"Barcode Error, Check your outlet and try again !", false);
                             }else{
                                 try {
                                     JSONArray array = new JSONArray(response);
@@ -1247,7 +1352,11 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
                                     data.setTxtLatitude(obj.getString("txtLatitude"));
                                     data.setTxtLongitude(obj.getString("txtLongitude"));
                                     data.setTxtDeviceId(obj.getString("txtDeviceId"));
-                                    data.setDtCheckin(obj.getString("dtCheckin"));
+                                    SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd-yyyy hh:mm:ss");
+                                    String dateCheckin = obj.getString("dtCheckin");
+
+                                    Calendar cal = Calendar.getInstance();
+                                    data.setDtCheckin(dateFormat.format(cal.getTime()));
                                     data.setQrCode(obj.getString("qrCode"));
                                     data.setQrId(obj.getString("qrCode"));
                                     data.setSync("0");
@@ -1255,14 +1364,21 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
 
                                     dataCheckin.setTxtOutletName(txtOutlet);
                                     dataCheckin.setTxtGuiID(obj.getString("txtGUI_ID"));
-                                    dataCheckin.setDtCheckin(obj.getString("dtCheckin"));
+                                    dataCheckin.setDtCheckin(dateFormat.format(cal.getTime()));
                                     dataCheckin.setDtCheckout("-");
                                     try {
                                         new clsAbsenOnlineRepo(context).createOrUpdate(data);
                                         new clsLastCheckingDataRepo(context).createOrUpdate(dataCheckin);
                                         Intent myIntent = new Intent(getContext(), MainMenu.class);
+                                        myIntent.putExtra(new clsHardCode().INTENT,true);
+                                        myIntent.putExtra(new clsHardCode().GUI,obj.getString("txtGUI_ID"));
+                                        Bundle bundleAbsen = new Bundle();
+                                        bundleAbsen.putString(new clsHardCode().INTENT,"1");
+                                        bundleAbsen.putString(new clsHardCode().GUI,obj.getString("txtGUI_ID"));
+                                        Fragment fragment = new FragmentInformation();
+                                        fragment.setArguments(bundleAbsen);
                                         startActivity(myIntent);
-                                        new clsMainActivity().showCustomToast(getActivity().getApplicationContext(),"Checkin succes !", true);
+                                        new clsMainActivity().showCustomToast(getActivity().getApplicationContext(),"Checkin success !", true);
                                     } catch (SQLException e) {
                                         e.printStackTrace();
                                     }

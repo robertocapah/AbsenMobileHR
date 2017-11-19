@@ -9,24 +9,25 @@ import java.util.List;
 
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.DatabaseHelper;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.DatabaseManager;
-import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsReportData;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsTypeLeave;
 
 /**
- * Created by Robert on 29/09/2017.
+ * Created by Robert on 13/10/2017.
  */
 
-public class clsReportDataRepo implements crud {
+public class clsTypeLeaveRepo implements crud {
     private DatabaseHelper helper;
-    public clsReportDataRepo(Context context){
+
+    public clsTypeLeaveRepo(Context context){
         DatabaseManager.init(context);
         helper = DatabaseManager.getInstance().getHelper();
     }
     @Override
     public int create(Object item) throws SQLException {
         int index = -1;
-        clsReportData object = (clsReportData) item;
+        clsTypeLeave object = (clsTypeLeave) item;
         try {
-            index = helper.getReportDataDao().create(object);
+            index = helper.getTypeLeaveDao().create(object);
         }catch (SQLException e){
             e.printStackTrace();
         }
@@ -36,9 +37,9 @@ public class clsReportDataRepo implements crud {
     @Override
     public int createOrUpdate(Object item) throws SQLException {
         int index = -1;
-        clsReportData object = (clsReportData) item;
+        clsTypeLeave object = (clsTypeLeave) item;
         try {
-            Dao.CreateOrUpdateStatus status = helper.getReportDataDao().createOrUpdate(object);
+            Dao.CreateOrUpdateStatus status = helper.getTypeLeaveDao().createOrUpdate(object);
             index = status.getNumLinesChanged();
 //            index = 1;
         } catch (SQLException e) {
@@ -50,9 +51,9 @@ public class clsReportDataRepo implements crud {
     @Override
     public int update(Object item) throws SQLException {
         int index = -1;
-        clsReportData object = (clsReportData) item;
+        clsTypeLeave object = (clsTypeLeave) item;
         try {
-            index = helper.getReportDataDao().create(object);
+            index = helper.getTypeLeaveDao().create(object);
         }catch (SQLException e){
             e.printStackTrace();
         }
@@ -61,32 +62,19 @@ public class clsReportDataRepo implements crud {
 
     @Override
     public int delete(Object item) throws SQLException {
-        int index = -1;
-        clsReportData object = (clsReportData) item;
-        try {
-            index = helper.getReportDataDao().update(object);
-        }catch (SQLException e){
-            e.printStackTrace();
-        }
-        return index;
+        return 0;
     }
 
     @Override
     public Object findById(int id) throws SQLException {
-        clsReportData item = null;
-        try{
-            item = helper.getReportDataDao().queryForId(id);
-        }catch (SQLException e){
-            e.printStackTrace();
-        }
-        return item;
+        return null;
     }
 
     @Override
-    public List<clsReportData> findAll() throws SQLException {
-        List<clsReportData> items = null;
+    public List<clsTypeLeave> findAll() throws SQLException {
+        List<clsTypeLeave> items = null;
         try{
-            items = helper.getReportDataDao().queryForAll();
+            items = helper.getTypeLeaveDao().queryForAll();
         }catch (SQLException e){
             e.printStackTrace();
         }

@@ -9,25 +9,25 @@ import java.util.List;
 
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.DatabaseHelper;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.DatabaseManager;
-import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsReportData;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsBranchAccess;
 
 /**
- * Created by Robert on 29/09/2017.
+ * Created by Robert on 18/10/2017.
  */
 
-public class clsReportDataRepo implements crud {
-    private DatabaseHelper helper;
-    public clsReportDataRepo(Context context){
+public class clsBranchAccessRepo implements crud {
+    DatabaseHelper helper;
+    public clsBranchAccessRepo(Context context) {
         DatabaseManager.init(context);
         helper = DatabaseManager.getInstance().getHelper();
     }
     @Override
     public int create(Object item) throws SQLException {
         int index = -1;
-        clsReportData object = (clsReportData) item;
+        clsBranchAccess object = (clsBranchAccess) item;
         try {
-            index = helper.getReportDataDao().create(object);
-        }catch (SQLException e){
+            index = helper.getBranchAccessDao().create(object);
+        } catch (SQLException e) {
             e.printStackTrace();
         }
         return index;
@@ -36,9 +36,9 @@ public class clsReportDataRepo implements crud {
     @Override
     public int createOrUpdate(Object item) throws SQLException {
         int index = -1;
-        clsReportData object = (clsReportData) item;
+        clsBranchAccess object = (clsBranchAccess) item;
         try {
-            Dao.CreateOrUpdateStatus status = helper.getReportDataDao().createOrUpdate(object);
+            Dao.CreateOrUpdateStatus status = helper.getBranchAccessDao().createOrUpdate(object);
             index = status.getNumLinesChanged();
 //            index = 1;
         } catch (SQLException e) {
@@ -50,10 +50,10 @@ public class clsReportDataRepo implements crud {
     @Override
     public int update(Object item) throws SQLException {
         int index = -1;
-        clsReportData object = (clsReportData) item;
+        clsBranchAccess object = (clsBranchAccess) item;
         try {
-            index = helper.getReportDataDao().create(object);
-        }catch (SQLException e){
+            index = helper.getBranchAccessDao().update(object);
+        } catch (SQLException e) {
             e.printStackTrace();
         }
         return index;
@@ -61,32 +61,19 @@ public class clsReportDataRepo implements crud {
 
     @Override
     public int delete(Object item) throws SQLException {
-        int index = -1;
-        clsReportData object = (clsReportData) item;
-        try {
-            index = helper.getReportDataDao().update(object);
-        }catch (SQLException e){
-            e.printStackTrace();
-        }
-        return index;
+        return 0;
     }
 
     @Override
     public Object findById(int id) throws SQLException {
-        clsReportData item = null;
-        try{
-            item = helper.getReportDataDao().queryForId(id);
-        }catch (SQLException e){
-            e.printStackTrace();
-        }
-        return item;
+        return null;
     }
 
     @Override
-    public List<clsReportData> findAll() throws SQLException {
-        List<clsReportData> items = null;
+    public List<clsBranchAccess> findAll() throws SQLException {
+        List<clsBranchAccess> items = null;
         try{
-            items = helper.getReportDataDao().queryForAll();
+            items = helper.getBranchAccessDao().queryForAll();
         }catch (SQLException e){
             e.printStackTrace();
         }
