@@ -37,6 +37,7 @@
                 android:background="#bfbfbf" />
             <TextView
                 android:id="@+id/tvArea"
+                android:visibility="gone"
                 android:layout_below="@+id/view0"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

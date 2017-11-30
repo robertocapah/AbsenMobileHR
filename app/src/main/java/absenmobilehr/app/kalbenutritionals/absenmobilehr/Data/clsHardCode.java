@@ -24,6 +24,8 @@ public class clsHardCode {
     public String linkCheckVersion = "CheckVersionApp_J";
     public String linkPushData = "PushData/pushData2";
     public String linkGetOutlet = "TrackingDataAPI/getOutlet";
+    public String linkGetOutletReporting = "ReportingMobile/getOutlet";
+    public String linkGetReport = "ReportingMobile/getReportPeriode";
     public String linkAbsen = "AbsenAPI/AbsenOnline";
     public String linkMoodSurveyCheckin ="LoginAPI/moodSurvey";
     public String linkMoodSurveyCheckout ="AbsenAPI/moodSurveyCheckout";
@@ -32,6 +34,7 @@ public class clsHardCode {
 //    public String linkLogout = "LogOut_J";
     public String leave_sick = "SICK";
     public String leave_trn = "TRAINING";
-    public String name_app = "Android - Call Plan BR Mobile";
+    public String name_app = "Android - HR Mobile";
     public String linkLogout = "LoginAPI/Logout";
+    public String apkName = "absenMobileHR.apk";
 }

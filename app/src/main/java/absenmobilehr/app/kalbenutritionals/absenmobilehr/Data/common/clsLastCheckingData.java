@@ -1,9 +1,11 @@
 package absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common;
 
+import com.j256.ormlite.field.DataType;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * Created by Robert on 29/09/2017.
@@ -16,12 +18,36 @@ public class clsLastCheckingData implements Serializable {
     private String txtOutletId;
     @DatabaseField
     private String txtOutletName;
+    @DatabaseField(columnName = "dtCheckin", dataType = DataType.DATE_STRING,format = "yyyy-MM-dd HH:mm:ss")
+    private Date dtCheckin;
+    @DatabaseField(columnName = "dtCheckout", dataType = DataType.DATE_STRING,format = "yyyy-MM-dd HH:mm:ss")
+    private Date dtCheckout;
     @DatabaseField
-    private String dtCheckin;
+    private Integer intCheckoutMood;
     @DatabaseField
-    private String dtCheckout;
+    private String boolMoodCheckout;
 
     public String Property_txtGuiID = "txtGuiID";
+    public String Property_boolMoodCheckout = "boolMoodCheckout";
+    public String Property_dtCheckout = "dtCheckout";
+    public String Property_dtCheckin = "dtCheckin";
+    public String Property_intCheckoutMood = "intCheckoutMood";
+
+    public Integer getIntCheckoutMood() {
+        return intCheckoutMood;
+    }
+
+    public void setIntCheckoutMood(Integer intCheckoutMood) {
+        this.intCheckoutMood = intCheckoutMood;
+    }
+
+    public String getBoolMoodCheckout() {
+        return boolMoodCheckout;
+    }
+
+    public void setBoolMoodCheckout(String boolMoodCheckout) {
+        this.boolMoodCheckout = boolMoodCheckout;
+    }
 
     public String getTxtGuiID() {
         return txtGuiID;
@@ -47,19 +73,19 @@ public class clsLastCheckingData implements Serializable {
         this.txtOutletName = txtOutletName;
     }
 
-    public String getDtCheckin() {
+    public Date getDtCheckin() {
         return dtCheckin;
     }
 
-    public void setDtCheckin(String dtCheckin) {
+    public void setDtCheckin(Date dtCheckin) {
         this.dtCheckin = dtCheckin;
     }
 
-    public String getDtCheckout() {
+    public Date getDtCheckout() {
         return dtCheckout;
     }
 
-    public void setDtCheckout(String dtCheckout) {
+    public void setDtCheckout(Date dtCheckout) {
         this.dtCheckout = dtCheckout;
     }
 }

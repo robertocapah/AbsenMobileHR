@@ -21,7 +21,30 @@
         <item name="android:orientation">horizontal</item>
         <item name="android:background">@color/title_background</item>
     </style>
-
+    <style name="MyButtonOK" parent="Theme.AppCompat.Light">
+        <item name="colorControlHighlight">#4B0082</item>
+        <item name="colorButtonNormal">#FFFFFF</item>
+    </style>
+    <style name="MyButtonSick" parent="Theme.AppCompat.Light">
+        <item name="colorControlHighlight">#FFFFFF</item>
+        <item name="colorButtonNormal">#FF218716</item>
+    </style>
+    <style name="MyButtonLazy" parent="Theme.AppCompat.Light">
+        <item name="colorControlHighlight">#FFFFFF</item>
+        <item name="colorButtonNormal">#FF3D56C2</item>
+    </style>
+    <style name="MyButtonSad" parent="Theme.AppCompat.Light">
+        <item name="colorControlHighlight">#FFFFFF</item>
+        <item name="colorButtonNormal">#FFDFA209</item>
+    </style>
+    <style name="MyButtonCool" parent="Theme.AppCompat.Light">
+        <item name="colorControlHighlight">#FFFFFF</item>
+        <item name="colorButtonNormal">#FF36F4E7</item>
+    </style>
+    <style name="MyButtonHappy" parent="Theme.AppCompat.Light">
+        <item name="colorControlHighlight">#FFFFFF</item>
+        <item name="colorButtonNormal">#FFDBFF5B</item>
+    </style>
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />

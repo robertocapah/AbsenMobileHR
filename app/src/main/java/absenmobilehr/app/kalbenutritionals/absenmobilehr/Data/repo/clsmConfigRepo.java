@@ -96,10 +96,10 @@ public class clsmConfigRepo {
         clsmConfig data7 = new clsmConfig();
         data7.setIntId(7);
         data7.setTxtName("API_EF");
-        data7.setTxtValue("http://10.171.11.87/APIEF2/api/");
-        data7.setTxtDefaultValue("http://10.171.11.87/APIEF2/api/");
-//        data7.setTxtValue("http://192.168.43.139/APIEF2/api/");
-//        data7.setTxtDefaultValue("http://192.168.43.139/APIEF2/api/");
+//        data7.setTxtValue("http://10.171.11.87/APIEF2/api/");
+//        data7.setTxtDefaultValue("http://10.171.11.87/APIEF2/api/");
+        data7.setTxtValue("http://10.171.52.236/APIEF2/api/");
+        data7.setTxtDefaultValue("http://10.171.52.236/APIEF2/api/");
         data7.setIntEditAdmin(1);
         helper.getmConfigDao().createOrUpdate(data7);/*
         clsmConfig data9 = new clsmConfig();

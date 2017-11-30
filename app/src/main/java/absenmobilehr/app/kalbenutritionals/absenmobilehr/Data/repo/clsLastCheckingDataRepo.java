@@ -96,12 +96,64 @@ public class clsLastCheckingDataRepo implements crud{
         }
         return item.get(0);
     }
+    public clsLastCheckingData findCheckoutNotMoodyYet() throws SQLException {
+        List<clsLastCheckingData> item = null;
+        clsLastCheckingData data = new clsLastCheckingData();
+        QueryBuilder<clsLastCheckingData, Integer> queryBuilder = null;
+        try {
+//            item = helper.getLastCheckingDataDao().queryForId(id);
+            queryBuilder = helper.getLastCheckingDataDao().queryBuilder();
+            queryBuilder.where().eq(data.Property_boolMoodCheckout, "0").and().isNotNull(data.Property_dtCheckout);
+            item = queryBuilder.query();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        if (item == null || item.size()==0){
+            return null;
+        }else{
+            return item.get(0);
+        }
+
+    }
+    public clsLastCheckingData findLastDataByDate() throws SQLException {
+        List<clsLastCheckingData> item = null;
+        clsLastCheckingData data = new clsLastCheckingData();
+        QueryBuilder<clsLastCheckingData, Integer> queryBuilder = null;
+        try {
+//            item = helper.getLastCheckingDataDao().queryForId(id);
+            queryBuilder = helper.getLastCheckingDataDao().queryBuilder();
+            queryBuilder.orderBy(data.Property_dtCheckin,false).where().eq(data.Property_boolMoodCheckout,"1").and().isNotNull(data.Property_intCheckoutMood).queryForFirst();
+            item = queryBuilder.query();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        if (item == null || item.size()==0){
+            return null;
+        }else{
+            return item.get(0);
+        }
+
+    }
 
     @Override
     public List<clsLastCheckingData> findAll() throws SQLException {
         List<clsLastCheckingData> items = null;
         try {
             items = helper.getLastCheckingDataDao().queryForAll();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return items;
+    }
+    public List<clsLastCheckingData> findAllDataCheckin() throws SQLException {
+        List<clsLastCheckingData> items = null;
+        clsLastCheckingData data = new clsLastCheckingData();
+        QueryBuilder<clsLastCheckingData, Integer> queryBuilder = null;
+        try {
+//            item = helper.getLastCheckingDataDao().queryForId(id);
+            queryBuilder = helper.getLastCheckingDataDao().queryBuilder();
+            queryBuilder.orderBy(data.Property_dtCheckin,false).queryForFirst();
+            items = queryBuilder.query();
         } catch (SQLException e) {
             e.printStackTrace();
         }

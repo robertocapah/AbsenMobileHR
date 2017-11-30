@@ -17,7 +17,7 @@
         <item
             android:id="@+id/absen"
             android:orderInCategory="0"
-            android:title="Absen"
+            android:title="Presence"
             app:actionLayout="@layout/menu_counter"/>
         <item
             android:id="@+id/leave"
@@ -44,7 +44,7 @@
             android:checked="false"
             android:orderInCategory="2"
             android:title="Copy DB"
-            android:visible="false"/>
+            android:visible="true"/>
         <item
             android:id="@+id/report"
             android:checked="false"

@@ -8,7 +8,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/iv_anim"
-        android:text="AbsenMobileHR"
+        android:text="Presence Mobile HR"
         android:textSize="@dimen/text_size_large"
         android:textColor="@color/white"
         android:textStyle="bold"

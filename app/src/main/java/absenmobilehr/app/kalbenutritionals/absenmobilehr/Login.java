@@ -9,8 +9,13 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.net.Uri;
+import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.FileProvider;
 import android.telephony.TelephonyManager;
 import android.text.method.HideReturnsTransformationMethod;
 import android.text.method.PasswordTransformationMethod;
@@ -37,9 +42,16 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.sql.SQLException;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -47,6 +59,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.DatabaseHelper;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.GpsManager.GPSManager;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.VolleyResponseListener;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.VolleyUtils;
@@ -211,6 +224,7 @@ public class Login extends clsMainActivity {
 
 //        AsyncCallAppVesion task1 = new AsyncCallAppVesion();
 //        task1.execute();
+        new DatabaseHelper(getApplicationContext()).clearDataAfterLogout();
         checkVersion();
         txtLoginPassword.setOnTouchListener(new DrawableClickListener.RightDrawableClickListener(txtLoginPassword) {
             public boolean onDrawableClick() {
@@ -405,7 +419,6 @@ public class Login extends clsMainActivity {
     }
 
 
-
     private boolean isMyServiceRunning(Class<?> serviceClass) {
         ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
@@ -474,16 +487,48 @@ public class Login extends clsMainActivity {
                             String warn = jsonObject1.getString("TxtWarn");
                             String result = jsonObject1.getString("TxtResult");
                             JSONObject jsonObject2 = null;
+                            String strTypeLeave = jsonObject1.getString("ltTypeLeave");
+
                             if (result.equals("1")) {
                                 jsonObject2 = jsonObject1.getJSONObject("TxtData");
                                 String strLatest = jsonObject1.getString("TxtLatestData");
                                 String bitMood = jsonObject1.getString("bitMood");
+                                String bitMoodId = jsonObject1.getString("bitMoodId");
 
                                 JSONObject jsonDataUserLogin = jsonObject2.getJSONObject("UserLogin");
                                 JSONArray jsonArrayBranchAccess = jsonObject2.getJSONArray("UserBranch");
                                 String strLeave = jsonObject1.getString("LeaveData");
                                 String nameApp = null;
-                                if (strLeave != null && !strLeave.equals("null")){
+
+
+                                if (!strTypeLeave.equals("null")) {
+                                    JSONArray jArrayAll = jsonObject1.getJSONArray("ltTypeLeave");
+                                    if (jArrayAll.length() > 0) {
+                                        for (int a = 0; a < jArrayAll.length(); a++) {
+                                            JSONObject json_data = jArrayAll.getJSONObject(a);
+                                            String typeLeaveId = json_data.getString("typeLeaveId");
+                                            String typeLeaveCode = json_data.getString("txtleaveCode");
+                                            String typeLeaveName = json_data.getString("txtleaveName");
+                                            String typeLevaeKeterangan = json_data.getString("txtKeterangan");
+                                            String bitactive = json_data.getString("bitActive");
+
+                                            clsTypeLeave dataLeave = new clsTypeLeave();
+                                            dataLeave.setIntLeaveID(Integer.parseInt(typeLeaveId));
+                                            dataLeave.setBitActive(Integer.parseInt(bitactive));
+                                            dataLeave.setTxtLeaveCode(typeLeaveCode);
+                                            dataLeave.setTxtKeterangan(typeLevaeKeterangan);
+                                            dataLeave.setTxtLeaveName(typeLeaveName);
+
+                                            try {
+                                                new clsTypeLeaveRepo(getApplicationContext()).createOrUpdate(dataLeave);
+                                            } catch (SQLException e) {
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if (strLeave != null && !strLeave.equals("null")) {
                                     JSONObject jsonLeave = jsonObject1.getJSONObject("LeaveData");
                                     clsLeaveData dataLeave = new clsLeaveData();
                                     dataLeave.setBitActive(1);
@@ -498,10 +543,10 @@ public class Login extends clsMainActivity {
                                     }
                                 }
 
-                                if (jsonArrayBranchAccess.length()>0){
-                                    for (int j=0 ; j<jsonArrayBranchAccess.length();j++){
+                                if (jsonArrayBranchAccess.length() > 0) {
+                                    for (int j = 0; j < jsonArrayBranchAccess.length(); j++) {
                                         JSONObject json_data = jsonArrayBranchAccess.getJSONObject(j);
-                                            String intBranchID = json_data.getString("IntBranchID");
+                                        String intBranchID = json_data.getString("IntBranchID");
                                         String txtBranchCode = json_data.getString("TxtBranchCode");
                                         String txtBranchName = json_data.getString("TxtBranchName");
                                         String txtBranchSiteId = json_data.getString("TxtBranchSiteId");
@@ -512,9 +557,9 @@ public class Login extends clsMainActivity {
                                         dataBranch.setTxtBranchCode(txtBranchCode);
                                         dataBranch.setIntBranchID(Integer.parseInt(intBranchID));
                                         dataBranch.setDtNonActive(dtNonActive);
-                                        if(txtBranchCode.equals("HO")){
+                                        if (txtBranchCode.equals("HO")) {
                                             dataBranch.setTxtBranchName("Head Office");
-                                        }else{
+                                        } else {
                                             dataBranch.setTxtBranchName(txtBranchName);
                                         }
 
@@ -551,8 +596,10 @@ public class Login extends clsMainActivity {
                                 clsUserLogin data = new clsUserLogin();
 
                                 if (!bitMood.equals("null") && bitMood != null) {
-                                        int mood = Integer.parseInt(bitMood);
-                                        data.setBitMood(mood);
+                                    int mood = Integer.parseInt(bitMood);
+                                    data.setBitMood(mood);
+                                    int moodId = Integer.parseInt(bitMoodId);
+                                    data.setIntMoodLogin(moodId);
                                 }
 
                                 data.setTxtNameApp(nameApp);
@@ -590,25 +637,29 @@ public class Login extends clsMainActivity {
                                     boolean tes, tes2;
                                     tes = isMyServiceRunning(MyServiceNative.class);
                                 }
+                                int done = -1;
                                 try {
                                     if (!strLatest.equals("null") && strLatest != null) {
                                         clsTrackingData trackingData = new clsTrackingData();
                                         JSONObject jsonLatest = new JSONObject(strLatest);
-                                        trackingData.setGuiId(new clsMainActivity().GenerateGuid());
-                                        trackingData.setIntSubmit("1");
-                                        trackingData.setIntSync("0");
-                                        trackingData.setGuiIdLogin(jsonLatest.getString("txtGuiIdLogin"));
-                                        trackingData.setTxtBranchCode(jsonLatest.getString("txtBranchCode"));
-                                        int intSeq = Integer.parseInt(jsonLatest.getString("intSequence")) + 1;
-                                        trackingData.setIntSequence(intSeq);
-                                        trackingData.setTxtDeviceId(jsonLatest.getString("txtDeviceId"));
-                                        trackingData.setTxtTime(jsonLatest.getString("dtDate"));
-                                        trackingData.setTxtLatitude(jsonLatest.getString("txtLatitude"));
-                                        trackingData.setTxtLongitude(jsonLatest.getString("txtLongitude"));
-                                        trackingData.setTxtNIK(jsonLatest.getString("txtNIK"));
-                                        trackingData.setIntSync("1");
-                                        trackingData.setTxtUserId(jsonLatest.getString("txtUserId"));
-                                        trackingData.setTxtUsername(jsonLatest.getString("txtUsername"));
+                                        if (!jsonLatest.getString("txtGuiIdLogin").equals("null") && jsonLatest.getString("txtGuiIdLogin") != null) {
+                                            trackingData.setGuiId(new clsMainActivity().GenerateGuid());
+                                            trackingData.setIntSubmit("1");
+                                            trackingData.setIntSync("0");
+                                            trackingData.setGuiIdLogin(jsonLatest.getString("txtGuiIdLogin"));
+                                            trackingData.setTxtBranchCode(jsonLatest.getString("txtBranchCode"));
+                                            int intSeq = Integer.parseInt(jsonLatest.getString("intSequence")) + 1;
+                                            trackingData.setIntSequence(intSeq);
+                                            trackingData.setTxtDeviceId(jsonLatest.getString("txtDeviceId"));
+                                            trackingData.setTxtTime(jsonLatest.getString("dtDate"));
+                                            trackingData.setTxtLatitude(jsonLatest.getString("txtLatitude"));
+                                            trackingData.setTxtLongitude(jsonLatest.getString("txtLongitude"));
+                                            trackingData.setTxtNIK(jsonLatest.getString("txtNIK"));
+                                            trackingData.setIntSync("1");
+                                            trackingData.setTxtUserId(jsonLatest.getString("txtUserId"));
+                                            trackingData.setTxtUsername(jsonLatest.getString("txtUsername"));
+                                            done = new clsTrackingDataRepo(getApplicationContext()).create(trackingData);
+                                        }
 
                                         if (!jsonLatest.getString("ltAbsen").equals("null")) {
                                             JSONArray jArray = jsonLatest.getJSONArray("ltAbsen");
@@ -621,13 +672,29 @@ public class Login extends clsMainActivity {
                                                     String outletId = json_data.getString("txtOutletId");
                                                     String dtCheckin = json_data.getString("dtCheckin");
                                                     String dtCheckout = json_data.getString("dtCheckout");
-
+                                                    String intBitMoodIdlastCheckout = jsonLatest.getString("intBitMoodIdlastCheckout");
                                                     clsLastCheckingData dataCheckin = new clsLastCheckingData();
                                                     dataCheckin.setTxtGuiID(guiID);
                                                     dataCheckin.setTxtOutletId(outletId);
                                                     dataCheckin.setTxtOutletName(outlet);
-                                                    dataCheckin.setDtCheckin(dtCheckin);
-                                                    dataCheckin.setDtCheckout(dtCheckout);
+                                                    if (a==jArray.length()-1){
+                                                        dataCheckin.setIntCheckoutMood(Integer.parseInt(intBitMoodIdlastCheckout));
+                                                    }
+                                                    String dateString = "22/05/2014 11:49:00 AM";
+                                                    Date strdtCheckin = new Date();
+                                                    Date strdtCheckout = new Date();
+                                                    try {
+                                                        strdtCheckin = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").parse(dtCheckin);
+                                                        strdtCheckout= new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").parse(dtCheckout);
+                                                    } catch (ParseException e) {
+                                                        // TODO Auto-generated catch block
+                                                        e.printStackTrace();
+                                                    }
+
+                                                    dataCheckin.setDtCheckin(strdtCheckin);
+                                                    dataCheckin.setDtCheckout(strdtCheckout);
+                                                    dataCheckin.setBoolMoodCheckout("1");
+
                                                     new clsLastCheckingDataRepo(getApplicationContext()).createOrUpdate(dataCheckin);
                                                 }
                                             }
@@ -683,31 +750,8 @@ public class Login extends clsMainActivity {
                                                 }
                                             }
                                         }
-                                         if (!jsonLatest.getString("ltTypeLeave").equals("null")) {
-                                            JSONArray jArrayAll = jsonLatest.getJSONArray("ltTypeLeave");
-                                            if (jArrayAll.length() > 0) {
-                                                for (int a = 0; a < jArrayAll.length(); a++) {
-                                                    JSONObject json_data = jArrayAll.getJSONObject(a);
-                                                    String typeLeaveId = json_data.getString("typeLeaveId");
-                                                    String typeLeaveCode = json_data.getString("txtleaveCode");
-                                                    String typeLeaveName = json_data.getString("txtleaveName");
-                                                    String typeLevaeKeterangan = json_data.getString("txtKeterangan");
-                                                    String bitactive = json_data.getString("bitActive");
-
-                                                    clsTypeLeave dataLeave  = new clsTypeLeave();
-                                                    dataLeave.setIntLeaveID(Integer.parseInt(typeLeaveId));
-                                                    dataLeave.setBitActive(Integer.parseInt(bitactive));
-                                                    dataLeave.setTxtLeaveCode(typeLeaveCode);
-                                                    dataLeave.setTxtKeterangan(typeLevaeKeterangan);
-                                                    dataLeave.setTxtLeaveName(typeLeaveName);
-
-                                                    new clsTypeLeaveRepo(getApplicationContext()).createOrUpdate(dataLeave);
-                                                }
-                                            }
-                                        }
 
 
-                                        int done = new clsTrackingDataRepo(getApplicationContext()).create(trackingData);
                                         if (done > -1) {
                                             new clsMainActivity().showCustomToast(getApplicationContext(), "Done", true);
                                             if (!isMyServiceRunning(MyTrackingLocationService.class)) {
@@ -804,11 +848,40 @@ public class Login extends clsMainActivity {
 
                         String result = jsonObject2.getString("TxtResult");
                         String txtWarn = jsonObject2.getString("TxtWarn");
+                        String linkDownload = "";
+
+                        clsmConfig configData = null;
+
+                        try {
+                            configData = (clsmConfig) new clsmConfigRepo(getApplicationContext()).findById(enumConfigData.API_EF.getidConfigData());
+                            linkDownload = configData.getTxtValue() + new clsHardCode().apkName;
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
                         if (result.equals("1")) {
                             JSONObject jsonObject3 = jsonObject2.getJSONObject("TxtData");
                             String txtGUI = jsonObject3.getString("TxtGUI");
                             String txtNameApp = jsonObject3.getString("TxtNameApp");
                             String txtVersion = jsonObject3.getString("TxtVersion");
+                            String versionNow = pInfo.versionName;
+//                            if  (!txtVersion.equals(versionNow)){
+//                                mProgressDialog = new ProgressDialog(Login.this);
+//                                mProgressDialog.setMessage("Please Wait For Downloading File....");
+//                                mProgressDialog.setIndeterminate(true);
+//                                mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+//                                mProgressDialog.setCancelable(false);
+//
+//                                // execute this when the downloader must be fired
+//                                final DownloadTask downloadTask = new DownloadTask(Login.this);
+//                                downloadTask.execute(linkDownload);
+//
+//                                mProgressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+//                                    @Override
+//                                    public void onCancel(DialogInterface dialog) {
+//                                        downloadTask.cancel(true);
+//                                    }
+//                                });
+//                            }
                             String txtFile = jsonObject3.getString("TxtFile");
                             String bitActive = jsonObject3.getString("BitActive");
                             String txtInsertedBy = jsonObject3.getString("TxtInsertedBy");
@@ -870,45 +943,166 @@ public class Login extends clsMainActivity {
     int intProcesscancel = 0;
     ProgressDialog mProgressDialog;
 
-   /* @Override
-    public void onStart() {
-        super.onStart();
+    /* @Override
+     public void onStart() {
+         super.onStart();
 
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client.connect();
-        Action viewAction = Action.newAction(
-                Action.TYPE_VIEW, // TODO: choose an action type.
-                "Login Page", // TODO: Define a title for the content shown.
-                // TODO: If you have web page content that matches this app activity's content,
-                // make sure this auto-generated web page URL is correct.
-                // Otherwise, set the URL to null.
-                Uri.parse("http://host/path"),
-                // TODO: Make sure this auto-generated app URL is correct.
-                Uri.parse("android-app://spgmobile/http/host/path")
-        );
-        AppIndex.AppIndexApi.start(client, viewAction);
+         // ATTENTION: This was auto-generated to implement the App Indexing API.
+         // See https://g.co/AppIndexing/AndroidStudio for more information.
+         client.connect();
+         Action viewAction = Action.newAction(
+                 Action.TYPE_VIEW, // TODO: choose an action type.
+                 "Login Page", // TODO: Define a title for the content shown.
+                 // TODO: If you have web page content that matches this app activity's content,
+                 // make sure this auto-generated web page URL is correct.
+                 // Otherwise, set the URL to null.
+                 Uri.parse("http://host/path"),
+                 // TODO: Make sure this auto-generated app URL is correct.
+                 Uri.parse("android-app://spgmobile/http/host/path")
+         );
+         AppIndex.AppIndexApi.start(client, viewAction);
+     }
+
+     @Override
+     public void onStop() {
+         super.onStop();
+
+         // ATTENTION: This was auto-generated to implement the App Indexing API.
+         // See https://g.co/AppIndexing/AndroidStudio for more information.
+         Action viewAction = Action.newAction(
+                 Action.TYPE_VIEW, // TODO: choose an action type.
+                 "Login Page", // TODO: Define a title for the content shown.
+                 // TODO: If you have web page content that matches this app activity's content,
+                 // make sure this auto-generated web page URL is correct.
+                 // Otherwise, set the URL to null.
+                 Uri.parse("http://host/path"),
+                 // TODO: Make sure this auto-generated app URL is correct.
+                 Uri.parse("android-app://spgmobile/http/host/path")
+         );
+         AppIndex.AppIndexApi.end(client, viewAction);
+         client.disconnect();
+     }*/
+    private class DownloadTask extends AsyncTask<String, Integer, String> {
+        private Context context;
+        private PowerManager.WakeLock mWakeLock;
+
+        public DownloadTask(Context context) {
+            this.context = context;
+        }
+
+        @Override
+        protected String doInBackground(String... sUrl) {
+            InputStream input = null;
+            OutputStream output = null;
+            HttpURLConnection connection = null;
+            try {
+                URL url = new URL(sUrl[0]);
+                connection = (HttpURLConnection) url.openConnection();
+                connection.connect();
+
+                // expect HTTP 200 OK, so we don't mistakenly save error report
+                // instead of the file
+                if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                    return "Server returned HTTP " + connection.getResponseCode()
+                            + " " + connection.getResponseMessage();
+                }
+
+                // this will be useful to display download percentage
+                // might be -1: server did not report the length
+                int fileLength = connection.getContentLength();
+
+                // download the file
+                input = connection.getInputStream();
+                String txtPath = new clsHardCode().txtPathUserData;
+                File mediaStorageDir = new File(txtPath);
+                // Create the storage directory if it does not exist
+                if (!mediaStorageDir.exists()) {
+                    if (!mediaStorageDir.mkdirs()) {
+                        return null;
+                    }
+                }
+                output = new FileOutputStream(txtPath + "kalbespgmobile.apk");
+
+                byte data[] = new byte[4096];
+                long total = 0;
+                int count;
+                while ((count = input.read(data)) != -1) {
+                    // allow canceling with back button
+                    if (isCancelled()) {
+                        input.close();
+                        return null;
+                    }
+                    total += count;
+                    // publishing the progress....
+                    if (fileLength > 0) // only if total length is known
+                        publishProgress((int) (total * 100 / fileLength));
+                    output.write(data, 0, count);
+                }
+            } catch (Exception e) {
+                return e.toString();
+            } finally {
+                try {
+                    if (output != null)
+                        output.close();
+                    if (input != null)
+                        input.close();
+                } catch (IOException ignored) {
+                }
+
+                if (connection != null)
+                    connection.disconnect();
+            }
+            return null;
+        }
+
+        int intProcesscancel = 0;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            // take CPU lock to prevent CPU from going off if the user
+            // presses the power button during download
+            PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+            mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
+                    getClass().getName());
+            mWakeLock.acquire();
+            mProgressDialog.show();
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... progress) {
+            super.onProgressUpdate(progress);
+            // if we get here, length is known, now set indeterminate to false
+            mProgressDialog.setIndeterminate(false);
+            mProgressDialog.setMax(100);
+            mProgressDialog.setProgress(progress[0]);
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            mWakeLock.release();
+            mProgressDialog.dismiss();
+            if (result != null)
+                showToast(context, "Download error: " + result);
+            else {
+                showToast(context, "File downloaded");
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                String txtPath = new clsHardCode().txtPathUserData + "kalbespgmobile.apk";
+                intent.setDataAndType(Uri.fromFile(new File(txtPath)), "application/vnd.android.package-archive");
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                if (Build.VERSION.SDK_INT >= 24) {
+                    intent.setDataAndType(FileProvider.getUriForFile(context, context.getApplicationContext().getPackageName() + ".provider", new File(txtPath)), "application/vnd.android.package-archive");
+                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                } else {
+                    intent.setDataAndType(Uri.fromFile(new File(txtPath)), "application/vnd.android.package-archive");
+                }
+                //intent.setDataAndType(Uri.fromFile(new File(txtPath)), "application/vnd.android.package-archive");
+
+                startActivity(intent);
+            }
+        }
     }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        Action viewAction = Action.newAction(
-                Action.TYPE_VIEW, // TODO: choose an action type.
-                "Login Page", // TODO: Define a title for the content shown.
-                // TODO: If you have web page content that matches this app activity's content,
-                // make sure this auto-generated web page URL is correct.
-                // Otherwise, set the URL to null.
-                Uri.parse("http://host/path"),
-                // TODO: Make sure this auto-generated app URL is correct.
-                Uri.parse("android-app://spgmobile/http/host/path")
-        );
-        AppIndex.AppIndexApi.end(client, viewAction);
-        client.disconnect();
-    }*/
 
     public class MyAdapter extends ArrayAdapter<String> {
         public MyAdapter(Context context, int textViewResourceId, List<String> objects) {

@@ -8,7 +8,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="How's Day?"
+        android:text="How is your feeling now?"
         android:layout_gravity="center"
         android:background="@drawable/bg_edtext"
         android:padding="20dp"/>
@@ -66,8 +66,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/custom_button_round_joy"
-            android:text="Joy"
-            android:id="@+id/btnJoy"
+            android:text="Cool"
+            android:id="@+id/btnCool"
             android:layout_margin="5dp"/>
         <Button
             android:layout_width="wrap_content"
@@ -77,6 +77,19 @@
             android:id="@+id/btnHappy"
             android:layout_margin="5dp"/>
         </LinearLayout>
-
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right"
+        android:layout_marginTop="20dp"
+        android:layout_marginRight="20dp">
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:theme="@style/MyButtonOK"
+            android:text="OK"
+            android:id="@+id/btnOKCheckout"
+            android:layout_margin="5dp"/>
+    </LinearLayout>
 
 </LinearLayout>

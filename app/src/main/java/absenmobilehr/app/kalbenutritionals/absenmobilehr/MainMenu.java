@@ -9,12 +9,11 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
@@ -84,7 +83,6 @@ import absenmobilehr.app.kalbenutritionals.absenmobilehr.Fragment.FragmentLeave;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Fragment.FragmentReport;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Service.MyServiceNative;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Service.MyTrackingLocationService;
-import addons.volley.VolleyMultipartRequest;
 import cn.pedant.SweetAlert.SweetAlertDialog;
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -126,11 +124,33 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         }
         return false;
     }
+    public void showAlertDialogAndExitApp(String message) {
+
+        AlertDialog alertDialog = new AlertDialog.Builder(MainMenu.this).create();
+        alertDialog.setTitle("Alert");
+        alertDialog.setMessage(message);
+        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        Intent intent = new Intent(Intent.ACTION_MAIN);
+                        intent.addCategory(Intent.CATEGORY_HOME);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(intent);
+                        finish();
+                    }
+                });
+
+        alertDialog.show();
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         selectedId = 0;
-
+        pDialog = new SweetAlertDialog(this, SweetAlertDialog.PROGRESS_TYPE);
+        if(new DeviceUtils().isDeviceRooted(getApplicationContext())){
+            showAlertDialogAndExitApp("This device is rooted. You can't use this app.");
+        }
         if (!isMyServiceRunning(MyServiceNative.class)) {
             startService(new Intent(MainMenu.this, MyServiceNative.class));
         }
@@ -180,14 +200,14 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        if (tDisplayPictureData.size() > 0 && tDisplayPictureData.get(0).getImage() != null) {
-            Bitmap bitmap = BitmapFactory.decodeByteArray(tDisplayPictureData.get(0).getImage(), 0, tDisplayPictureData.get(0).getImage().length);
-            ivProfile.setImageBitmap(bitmap);
-        } else {
-            ivProfile.setImageBitmap(BitmapFactory.decodeResource(getApplicationContext().getResources(),
-                    R.drawable.profile));
-        }
-        ivProfile.setOnClickListener(this);
+//        if (tDisplayPictureData.size() > 0 && tDisplayPictureData.get(0).getImage() != null) {
+//            Bitmap bitmap = BitmapFactory.decodeByteArray(tDisplayPictureData.get(0).getImage(), 0, tDisplayPictureData.get(0).getImage().length);
+//            ivProfile.setImageBitmap(bitmap);
+//        } else {
+//            ivProfile.setImageBitmap(BitmapFactory.decodeResource(getApplicationContext().getResources(),
+//                    R.drawable.profile));
+//        }
+//        ivProfile.setOnClickListener(this);
         Menu header = navigationView.getMenu();
         clsAbsenData dataAbsenAktif = new clsAbsenDataRepo(getApplicationContext()).getDataCheckinActive(getApplicationContext());
 //        if (dataAbsenAktif!=null){
@@ -197,6 +217,12 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
 //        }else{
 //            header.removeItem(R.id.checkout);
 //        }
+        List<clsLastCheckingData> datasChecking = null;
+        try {
+            datasChecking = new clsLastCheckingDataRepo(getApplicationContext()).findAll();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         clsAbsenOnline dataAbsenOnline = new clsAbsenOnlineRepo(getApplicationContext()).getDataCheckinActive(getApplicationContext());
         if (dataAbsenOnline!=null){
             header.removeItem(R.id.absen);
@@ -205,6 +231,9 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
             header.removeItem(R.id.leave);
         }else{
             header.removeItem(R.id.checkout);
+        }
+        if(datasChecking != null && datasChecking.size()>0){
+            header.removeItem(R.id.leave);
         }
         try {
             List<clsAbsenOnline> dataAbsenOnline2 = new clsAbsenOnlineRepo(getApplicationContext()).findAll();
@@ -271,7 +300,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                             dvalid = true;
                                         }
                                         if (dvalid){
-                                            boolean result = pushData();
+                                            pushData2();
 //                                            if (result){
 //                                                logout();
 //                                            }else{
@@ -476,8 +505,11 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                                             try {
                                                                 dataChekin = new clsLastCheckingDataRepo(getApplicationContext()).findByGUIId(txtGUI_ID);
                                                                 dataChekin.setTxtGuiID(obj.getString("txtGUI_ID"));
-                                                                dataChekin.setDtCheckout(dateFormat.format(cal.getTime()));
+                                                                dataChekin.setDtCheckout(cal.getTime());
                                                                 new clsLastCheckingDataRepo(getApplicationContext()).update(dataChekin);
+                                                                Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+                                                                // Vibrate for 500 milliseconds
+                                                                v.vibrate(500);
                                                             } catch (SQLException e) {
                                                                 e.printStackTrace();
                                                             }
@@ -486,6 +518,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                                                 new clsAbsenOnlineRepo(getApplicationContext()).update(data);
                                                                 Intent myIntent = new Intent(getApplicationContext(), MainMenu.class);
                                                                 myIntent.putExtra("checkout","true");
+                                                                myIntent.putExtra("GUI",txtGUI_ID);
                                                                 startActivity(myIntent);
                                                                 new clsMainActivity().showCustomToast(getApplicationContext(),"Checkout success !", true);
                                                             } catch (SQLException e) {
@@ -651,6 +684,102 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         return result[0];
     }
 
+    private void pushData2() {
+        String versionName = "";
+        pDialog.getProgressHelper().setBarColor(Color.parseColor("#A5DC86"));
+        pDialog.setTitleText("Pushing Data");
+        pDialog.setCancelable(false);
+        pDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+
+            }
+        });
+        pDialog.show();
+        try {
+            versionName = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+        } catch (PackageManager.NameNotFoundException e2) {
+            // TODO Auto-generated catch block
+            e2.printStackTrace();
+        }
+        clsPushData dtJson = new clsHelper().pushData(versionName, getApplicationContext());
+        if (dtJson == null) {
+        } else {
+            try {
+//                pDialog = new SweetAlertDialog(getActivity(), SweetAlertDialog.PROGRESS_TYPE);
+                clsmConfig configData = null;
+                String linkPushData= "";
+                try {
+                    configData = (clsmConfig) new clsmConfigRepo(getApplicationContext()).findById(enumConfigData.API_EF.getidConfigData());
+                    linkPushData = configData.getTxtValue()+new clsHardCode().linkPushData;
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+                String strLinkAPI = linkPushData;
+                new VolleyUtils().makeJsonObjectRequestPushData(getApplicationContext(), strLinkAPI, dtJson, new VolleyResponseListener() {
+                    @Override
+                    public void onError(String message) {
+                        String error;
+                        new clsMainActivity().showCustomToast(getApplicationContext(),"Push Data Failed, Check Your Network",false);
+                        pDialog.dismiss();
+                    }
+
+                    @Override
+                    public void onResponse(String response, Boolean status, String strErrorMsg) {
+                        String res = response;
+
+                        Log.i(TAG, "Ski data from server - " + response);
+                        clsAbsenData absenData = new clsAbsenData();
+                        clsTrackingData trackingData = new clsTrackingData();
+//                clsUserLogin userLogin = new clsUserLogin();
+                        try {
+                            JSONArray jsonArray1 = new JSONArray(response);
+                            boolean valid = false;
+                            if (jsonArray1.length()>1){
+                                for (int i = 0; i < jsonArray1.length(); i++) {
+                                    JSONObject method = jsonArray1.getJSONObject(i);
+                                    String listMethod = method.getString("PstrMethodRequest");
+                                    if (listMethod.equals(trackingData.Property_ListOftrackingLocation)) {
+                                        if (method.getString("pBoolValid").equals("1")) {
+                                            logout();
+                                        }else{
+                                            valid = false;
+                                        }
+                                    }
+                                }
+                            }else{
+                                new clsMainActivity().showCustomToast(getApplicationContext(),"Push Data Completed",true);
+                                logout();
+                            }
+                            pDialog.dismiss();
+
+                    /*for(Object data : jsonObject1){
+
+                    }*/
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+            } catch (Exception e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+        /*FragmentPushData fragment = new FragmentPushData();
+        fragment.getView().setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                if( keyCode == KeyEvent.KEYCODE_BACK )
+                {
+                    pDialog.dismiss();
+                    return true;
+                }
+                return false;
+            }
+        });*/
+    }
+
     public void logout(){
         RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
 
@@ -717,109 +846,109 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         queue.add(req1);
     }
 
-    private VolleyMultipartRequest pushData2() {
-        String versionName = "";
-        VolleyMultipartRequest req2= null;
-        pDialog.getProgressHelper().setBarColor(Color.parseColor("#A5DC86"));
-        pDialog.setTitleText("Pushing Data");
-        pDialog.setCancelable(false);
-        pDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
-            @Override
-            public void onCancel(DialogInterface dialog) {
-
-            }
-        });
-        pDialog.show();
-        try {
-            versionName = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
-        } catch (PackageManager.NameNotFoundException e2) {
-            // TODO Auto-generated catch block
-            e2.printStackTrace();
-        }
-        clsPushData dtJson = new clsHelper().pushData(versionName, getApplicationContext());
-        if (dtJson == null) {
-        } else {
-            try {
-//                pDialog = new SweetAlertDialog(getActivity(), SweetAlertDialog.PROGRESS_TYPE);
-                clsmConfig configData = null;
-                String linkPushData= "";
-                try {
-                    configData = (clsmConfig) new clsmConfigRepo(getApplicationContext()).findById(enumConfigData.API_EF.getidConfigData());
-                    linkPushData = configData.getTxtValue()+new clsHardCode().linkPushData;
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-                String strLinkAPI = linkPushData;
-                req2 = new VolleyUtils().makeJsonObjectRequestPushData222(getApplicationContext(), strLinkAPI, dtJson, new VolleyResponseListener() {
-                    @Override
-                    public void onError(String message) {
-                        String error;
-                        new clsMainActivity().showCustomToast(getApplicationContext(),"Push Data Failed, Check Your Network",false);
-                        pDialog.dismiss();
-                    }
-
-                    @Override
-                    public void onResponse(String response, Boolean status, String strErrorMsg) {
-                        String res = response;
-
-                        Log.i(TAG, "Ski data from server - " + response);
-                        clsAbsenData absenData = new clsAbsenData();
-                        clsTrackingData trackingData = new clsTrackingData();
-//                clsUserLogin userLogin = new clsUserLogin();
-                        try {
-                            JSONArray jsonArray1 = new JSONArray(response);
-                            boolean valid = false;
-                            if (jsonArray1.length()>1){
-                                for (int i = 0; i < jsonArray1.length(); i++) {
-                                    JSONObject method = jsonArray1.getJSONObject(i);
-                                    String listMethod = method.getString("PstrMethodRequest");
-                                    if (listMethod.equals(trackingData.Property_ListOftrackingLocation)) {
-                                        if (method.getString("pBoolValid").equals("1")) {
-                                            //new DatabaseHelper(getActivity().getApplicationContext()).clearDataTracking();
-                                            new clsTrackingDataRepo(getApplicationContext()).updateAllRowTracking();
-                                            valid = true;
-                                        }else{
-                                            valid = false;
-                                        }
-                                    }
-                                    if (listMethod.equals(absenData.Property_ListOftAbsenUser)) {
-                                        if (method.getString("pBoolValid").equals("1")) {
-                                            new DatabaseHelper(getApplicationContext()).clearDataAbsen();
-                                            valid = true;
-                                        }else{
-                                            valid = false;
-                                        }
-                                    }
-
-                                }
-                            }else{
-
-                            }
-                            pDialog.dismiss();
-
-                    /*for(Object data : jsonObject1){
-
-                    }*/
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                });
-            } catch (Exception e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-        }
-        return req2;
-    }
+//    private VolleyMultipartRequest pushData2() {
+//        String versionName = "";
+//        VolleyMultipartRequest req2= null;
+//        pDialog.getProgressHelper().setBarColor(Color.parseColor("#A5DC86"));
+//        pDialog.setTitleText("Pushing Data");
+//        pDialog.setCancelable(false);
+//        pDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+//            @Override
+//            public void onCancel(DialogInterface dialog) {
+//
+//            }
+//        });
+//        pDialog.show();
+//        try {
+//            versionName = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+//        } catch (PackageManager.NameNotFoundException e2) {
+//            // TODO Auto-generated catch block
+//            e2.printStackTrace();
+//        }
+//        clsPushData dtJson = new clsHelper().pushData(versionName, getApplicationContext());
+//        if (dtJson == null) {
+//        } else {
+//            try {
+////                pDialog = new SweetAlertDialog(getActivity(), SweetAlertDialog.PROGRESS_TYPE);
+//                clsmConfig configData = null;
+//                String linkPushData= "";
+//                try {
+//                    configData = (clsmConfig) new clsmConfigRepo(getApplicationContext()).findById(enumConfigData.API_EF.getidConfigData());
+//                    linkPushData = configData.getTxtValue()+new clsHardCode().linkPushData;
+//                } catch (SQLException e) {
+//                    e.printStackTrace();
+//                }
+//                String strLinkAPI = linkPushData;
+//                req2 = new VolleyUtils().makeJsonObjectRequestPushData222(getApplicationContext(), strLinkAPI, dtJson, new VolleyResponseListener() {
+//                    @Override
+//                    public void onError(String message) {
+//                        String error;
+//                        new clsMainActivity().showCustomToast(getApplicationContext(),"Push Data Failed, Check Your Network",false);
+//                        pDialog.dismiss();
+//                    }
+//
+//                    @Override
+//                    public void onResponse(String response, Boolean status, String strErrorMsg) {
+//                        String res = response;
+//
+//                        Log.i(TAG, "Ski data from server - " + response);
+//                        clsAbsenData absenData = new clsAbsenData();
+//                        clsTrackingData trackingData = new clsTrackingData();
+////                clsUserLogin userLogin = new clsUserLogin();
+//                        try {
+//                            JSONArray jsonArray1 = new JSONArray(response);
+//                            boolean valid = false;
+//                            if (jsonArray1.length()>1){
+//                                for (int i = 0; i < jsonArray1.length(); i++) {
+//                                    JSONObject method = jsonArray1.getJSONObject(i);
+//                                    String listMethod = method.getString("PstrMethodRequest");
+//                                    if (listMethod.equals(trackingData.Property_ListOftrackingLocation)) {
+//                                        if (method.getString("pBoolValid").equals("1")) {
+//                                            //new DatabaseHelper(getActivity().getApplicationContext()).clearDataTracking();
+//                                            new clsTrackingDataRepo(getApplicationContext()).updateAllRowTracking();
+//                                            valid = true;
+//                                        }else{
+//                                            valid = false;
+//                                        }
+//                                    }
+//                                    if (listMethod.equals(absenData.Property_ListOftAbsenUser)) {
+//                                        if (method.getString("pBoolValid").equals("1")) {
+//                                            new DatabaseHelper(getApplicationContext()).clearDataAbsen();
+//                                            valid = true;
+//                                        }else{
+//                                            valid = false;
+//                                        }
+//                                    }
+//
+//                                }
+//                            }else{
+//
+//                            }
+//                            pDialog.dismiss();
+//
+//                    /*for(Object data : jsonObject1){
+//
+//                    }*/
+//                        } catch (JSONException e) {
+//                            e.printStackTrace();
+//                        }
+//                    }
+//                });
+//            } catch (Exception e) {
+//                // TODO Auto-generated catch block
+//                e.printStackTrace();
+//            }
+//        }
+//        return req2;
+//    }
 
     @Override
     public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.profile_image:
-                pickImage2();
-                break;
-        }
+//        switch (v.getId()) {
+//            case R.id.profile_image:
+//                pickImage2();
+//                break;
+//        }
     }
     public void pickImage2() {
         CropImage.startPickImageActivity(this);
