@@ -39,6 +39,7 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
@@ -1132,6 +1133,10 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
         mockStatus = mLastLocation.isFromMockProvider();
         if (mockStatus){
             new clsMainActivity().showCustomToast(getActivity().getApplicationContext(), "Fake GPS detected, !", false);
+            Toast.makeText(context,"Please Turn Off Fake Location, And Restart Your Phone",Toast.LENGTH_LONG);
+            Vibrator v = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
+            // Vibrate for 500 milliseconds
+            v.vibrate(5000);
         }
         return mLastLocation;
     }

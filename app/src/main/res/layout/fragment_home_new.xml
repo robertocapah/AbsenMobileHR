@@ -15,56 +15,65 @@
             android:layout_width="match_parent"
             android:layout_height="0dip"
             android:layout_weight="0.9"
-            android:background="#4CAF50"
+            android:background="@drawable/batik_jumat_mini"
             android:gravity="center"
             android:orientation="vertical"
             android:weightSum="5">
-
-            <de.hdodenhof.circleimageview.CircleImageView
-                android:id="@+id/profile_image"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
-                android:layout_gravity="center"
-                android:src="@drawable/ic_kalbe_phonegap" />
-
-            <TextView
-                android:id="@+id/tvUsername"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
+                android:layout_height="match_parent"
                 android:gravity="center"
-                android:text="SUSANTI"
-                android:textColor="@color/white"
-                android:textSize="20dp"
-                android:textStyle="bold" />
+                android:layout_weight="10"
+                android:orientation="vertical"
+                android:background="@color/translucte">
+                <de.hdodenhof.circleimageview.CircleImageView
+                    android:id="@+id/profile_image"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_kalbe_phonegap" />
 
-            <TextView
-                android:id="@+id/tvNIK"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:gravity="center"
-                android:text="125410219"
-                android:textColor="@color/white" />
+                <TextView
+                    android:id="@+id/tvUsername"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:gravity="center"
+                    android:text="SUSANTI"
+                    android:textColor="@color/white"
+                    android:textSize="20dp"
+                    android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/tvBranchOutlet"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:gravity="center"
-                android:text="Jakarta"
-                android:textColor="@color/white" />
+                <TextView
+                    android:id="@+id/tvNIK"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:gravity="center"
+                    android:text="125410219"
+                    android:textColor="@color/white" />
 
-            <TextView
-                android:id="@+id/tvEmail"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="20dp"
-                android:layout_marginTop="5dp"
-                android:gravity="center"
-                android:text="arick_anjasmara@ymail.com"
-                android:textColor="@color/white" />
+                <TextView
+                    android:id="@+id/tvBranchOutlet"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:gravity="center"
+                    android:text="Jakarta"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:id="@+id/tvEmail"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="20dp"
+                    android:layout_marginTop="5dp"
+                    android:gravity="center"
+                    android:text="arick_anjasmara@ymail.com"
+                    android:textColor="@color/white" />
+                </LinearLayout>
+
+
         </LinearLayout>
 
         <LinearLayout
@@ -186,7 +195,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
+                    android:layout_weight="0.9"
                     android:text="Location"
                     android:textStyle="bold"/>
                 <TextView

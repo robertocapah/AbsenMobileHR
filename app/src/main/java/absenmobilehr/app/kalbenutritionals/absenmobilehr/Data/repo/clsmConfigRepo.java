@@ -98,8 +98,8 @@ public class clsmConfigRepo {
         data7.setTxtName("API_EF");
 //        data7.setTxtValue("http://10.171.11.87/APIEF2/api/");
 //        data7.setTxtDefaultValue("http://10.171.11.87/APIEF2/api/");
-        data7.setTxtValue("http://10.171.52.236/APIEF2/api/");
-        data7.setTxtDefaultValue("http://10.171.52.236/APIEF2/api/");
+        data7.setTxtValue("http://apiabsensi.kalbenutritionals.web.id/api/");
+        data7.setTxtDefaultValue("http://apiabsensi.kalbenutritionals.web.id/api/");
         data7.setIntEditAdmin(1);
         helper.getmConfigDao().createOrUpdate(data7);/*
         clsmConfig data9 = new clsmConfig();
@@ -111,7 +111,7 @@ public class clsmConfigRepo {
         helper.getmConfigDao().createOrUpdate(data9);*/
         clsmConfig data8 = new clsmConfig();
         data8.setIntId(8);
-        data8.setTxtName("'WidthScreen");
+        data8.setTxtName("WidthScreen");
         data8.setTxtValue("");
         data8.setTxtDefaultValue("");
         data8.setIntEditAdmin(1);

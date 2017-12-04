@@ -173,11 +173,11 @@
     <color name="table_data_row_odd">#ecf0f1</color>
     <color name="red">#f40e02</color>
 
-    <color name="primary_color_theme">#4CAF50</color>
+    <color name="primary_color_theme">#449e47</color>
     <color name="color_select_tab">#1ea010
     </color>
 
     <color name="back_splash">#171b21</color>
 
-    <color name="translucte">#8Bbfbfbf</color>
+    <color name="translucte">#8b1bb321</color>
 </resources>

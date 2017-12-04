@@ -137,7 +137,7 @@ public class FragmentInformation extends Fragment {
                     CiMoodImage.setImageResource(R.drawable.happy);
                     tvLatestMood.setText("happy");
                 }
-            }else{
+            }else if (lastMood == true){
                 if(dataLastCheckOut.getIntCheckoutMood() == 1){
                     CiMoodImage.setImageResource(R.drawable.sad);
                     tvLatestMood.setText("Sad");
@@ -154,6 +154,8 @@ public class FragmentInformation extends Fragment {
                     CiMoodImage.setImageResource(R.drawable.happy);
                     tvLatestMood.setText("happy");
                 }
+            }else{
+                CiMoodImage.setImageResource(R.drawable.joy);
             }
 
             String brancheshehe = "";
@@ -514,6 +516,9 @@ public class FragmentInformation extends Fragment {
             public void onResponse(String response, Boolean status, String strErrorMsg) {
                 validMood = true;
                 alertD.dismiss();
+                FragmentTransaction ft = getFragmentManager().beginTransaction();
+                ft.detach(FragmentInformation.this).attach(FragmentInformation.this).commit();
+
                 clsUserLogin dataLogin2 = new clsUserLoginRepo(context).getDataLogin(context);
                 dataLogin2.setBitMood(1);
                 dataLogin2.setIntMoodLogin(moodId);
