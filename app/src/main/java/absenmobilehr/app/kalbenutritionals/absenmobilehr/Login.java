@@ -841,6 +841,7 @@ public class Login extends clsMainActivity {
 
             @Override
             public void onResponse(String response, Boolean status, String strErrorMsg) {
+                boolean boolVersion = false;
                 if (response != null) {
                     try {
                         JSONObject jsonObject1 = new JSONObject(response);
@@ -854,7 +855,9 @@ public class Login extends clsMainActivity {
 
                         try {
                             configData = (clsmConfig) new clsmConfigRepo(getApplicationContext()).findById(enumConfigData.API_EF.getidConfigData());
-                            linkDownload = configData.getTxtValue() + new clsHardCode().apkName;
+                            String linkOdd = configData.getTxtValue();
+                            String linkConvert = linkOdd.replace("api/","");
+                            linkDownload = linkConvert + new clsHardCode().linkDownloadApk;
                         } catch (SQLException e) {
                             e.printStackTrace();
                         }
@@ -864,55 +867,58 @@ public class Login extends clsMainActivity {
                             String txtNameApp = jsonObject3.getString("TxtNameApp");
                             String txtVersion = jsonObject3.getString("TxtVersion");
                             String versionNow = pInfo.versionName;
-//                            if  (!txtVersion.equals(versionNow)){
-//                                mProgressDialog = new ProgressDialog(Login.this);
-//                                mProgressDialog.setMessage("Please Wait For Downloading File....");
-//                                mProgressDialog.setIndeterminate(true);
-//                                mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-//                                mProgressDialog.setCancelable(false);
-//
-//                                // execute this when the downloader must be fired
-//                                final DownloadTask downloadTask = new DownloadTask(Login.this);
-//                                downloadTask.execute(linkDownload);
-//
-//                                mProgressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
-//                                    @Override
-//                                    public void onCancel(DialogInterface dialog) {
-//                                        downloadTask.cancel(true);
-//                                    }
-//                                });
-//                            }
-                            String txtFile = jsonObject3.getString("TxtFile");
-                            String bitActive = jsonObject3.getString("BitActive");
-                            String txtInsertedBy = jsonObject3.getString("TxtInsertedBy");
-                            TelephonyManager tm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-                            String imeiNumber = tm.getDeviceId();
-                            clsDeviceInfo data = new clsDeviceInfo();
-                            clsmVersionApp dataVersion = new clsmVersionApp();
-                            dataVersion.setTxtGUI(txtGUI);
-                            dataVersion.setTxtNameApp(txtNameApp);
-                            dataVersion.setTxtVersion(txtVersion);
-                            dataVersion.setTxtFile(txtFile);
-                            dataVersion.setBitActive(bitActive);
-                            data.setTxtDevice(android.os.Build.DEVICE);
-                            data.setTxtInsertedBy(txtInsertedBy);
-                            data.setIdDevice(imeiNumber);
-                            data.setTxtModel(android.os.Build.MANUFACTURER + " " + android.os.Build.MODEL);
-                            int i = 0;
-                            int j = 0;
-                            try {
-                                i = repoDeviceInfo.createOrUpdate(data);
-                                j = repoVersionApp.createOrUpdate(dataVersion);
-                            } catch (SQLException e) {
-                                e.printStackTrace();
+                            if  (!txtVersion.equals(versionNow)){
+                                boolVersion = true;
+                                mProgressDialog = new ProgressDialog(Login.this);
+                                mProgressDialog.setMessage("Please Wait For Downloading File....");
+                                mProgressDialog.setIndeterminate(true);
+                                mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+                                mProgressDialog.setCancelable(false);
+
+                                // execute this when the downloader must be fired
+                                final DownloadTask downloadTask = new DownloadTask(Login.this);
+                                downloadTask.execute(linkDownload);
+
+                                mProgressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                                    @Override
+                                    public void onCancel(DialogInterface dialog) {
+                                        downloadTask.cancel(true);
+                                    }
+                                });
+                            }else {
+                                String txtFile = jsonObject3.getString("TxtFile");
+                                String bitActive = jsonObject3.getString("BitActive");
+                                String txtInsertedBy = jsonObject3.getString("TxtInsertedBy");
+                                TelephonyManager tm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+                                String imeiNumber = tm.getDeviceId();
+                                clsDeviceInfo data = new clsDeviceInfo();
+                                clsmVersionApp dataVersion = new clsmVersionApp();
+                                dataVersion.setTxtGUI(txtGUI);
+                                dataVersion.setTxtNameApp(txtNameApp);
+                                dataVersion.setTxtVersion(txtVersion);
+                                dataVersion.setTxtFile(txtFile);
+                                dataVersion.setBitActive(bitActive);
+                                data.setTxtDevice(android.os.Build.DEVICE);
+                                data.setTxtInsertedBy(txtInsertedBy);
+                                data.setIdDevice(imeiNumber);
+                                data.setTxtModel(android.os.Build.MANUFACTURER + " " + android.os.Build.MODEL);
+                                int i = 0;
+                                int j = 0;
+                                try {
+                                    i = repoDeviceInfo.createOrUpdate(data);
+                                    j = repoVersionApp.createOrUpdate(dataVersion);
+                                } catch (SQLException e) {
+                                    e.printStackTrace();
+                                }
+                                if (i > -1 && j > -1 ) {
+                                    Log.d("Data info", "Data info berhasil di simpan");
+                                    status = true;
+                                    GPSManager gps = new GPSManager(
+                                            Login.this);
+                                    gps.start();
+                                }
                             }
-                            if (i > -1 && j > -1) {
-                                Log.d("Data info", "Data info berhasil di simpan");
-                                status = true;
-                                GPSManager gps = new GPSManager(
-                                        Login.this);
-                                gps.start();
-                            }
+
                         } else {
                             Toast.makeText(getApplicationContext(), txtWarn, Toast.LENGTH_SHORT).show();
                         }
@@ -925,11 +931,16 @@ public class Login extends clsMainActivity {
                         e.printStackTrace();
                     }
                 }
-                if (!status) {
-                    new clsMainActivity().showCustomToast(getApplicationContext(), "Connection Failed, please check your network !", false);
-                } else {
-                    new clsMainActivity().showCustomToast(getApplicationContext(), "Connected, you ready to login", true);
+                if(!boolVersion){
+                    if (!status) {
+                        new clsMainActivity().showCustomToast(getApplicationContext(), "Connection Failed, please check your network !", false);
+                    } else {
+                        new clsMainActivity().showCustomToast(getApplicationContext(), "Connected, you ready to login", true);
+                    }
+                }else{
+                    new clsMainActivity().showCustomToast(getApplicationContext(), "Updating App", true);
                 }
+
             }
         });
 

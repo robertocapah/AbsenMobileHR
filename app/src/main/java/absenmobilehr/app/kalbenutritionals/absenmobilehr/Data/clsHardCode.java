@@ -37,4 +37,5 @@ public class clsHardCode {
     public String name_app = "Android - HR Mobile";
     public String linkLogout = "LoginAPI/Logout";
     public String apkName = "absenMobileHR.apk";
+    public String linkDownloadApk = "files/KalbeNutritionalsHRIS.apk";
 }
