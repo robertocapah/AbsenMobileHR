@@ -6,6 +6,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -18,6 +19,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.os.Vibrator;
 import android.provider.MediaStore;
 import android.provider.Settings;
@@ -60,8 +62,6 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.Polyline;
-import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.gson.Gson;
 
 import org.json.JSONArray;
@@ -73,6 +73,7 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -111,6 +112,7 @@ import jim.h.common.android.lib.zxing.integrator.IntentIntegrator;
 import jim.h.common.android.lib.zxing.integrator.IntentResult;
 
 import static android.content.Context.LOCATION_SERVICE;
+import static android.content.Context.MODE_PRIVATE;
 
 public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnConnectionFailedListener, LocationListener {
 
@@ -264,11 +266,10 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
             Ctx = ctx;
         }
 
-        public MyAdapter(Context context, int textViewResourceId, List<String> objects) {
+        public MyAdapter(Context context, int   textViewResourceId, List<String> objects) {
             super(context, textViewResourceId, objects);
             setCtx(context);
             setArrayDataAdapyter(objects);
-            // TODO Auto-generated constructor stub
         }
 
         @Override
@@ -407,6 +408,7 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
                     tvLongOutlet.setText(longitudeOutlet+"");
                     tvLatOutlet.setText(latitudeOutlet+"");
 
+                    getLocation();
                     if (longitudeOutlet != 0 && latitudeOutlet != 0) {
                         countDistance(latitudeOutlet, longitudeOutlet);
                         displayLocation(mLastLocation);
@@ -432,7 +434,7 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
         btnRefreshMaps.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                getOutlet();
+//                getOutlet();
                 displayLocation(mLastLocation);
                 getLocation();
                 if (mLastLocation != null) {
@@ -447,27 +449,33 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
         if (mLastLocation != null) {
             displayLocation(mLastLocation);
         }
-        getOutlet();
+//        getOutlet();
         btnPopupMap.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
 
                 Boolean valid = true;
-
+                btnPopupMap.setClickable(false);
                 double latitude = 0;
                 double longitude = 0;
-                double latitudeOutlet = 0;
-                double longitudeOutlet = 0;
+//                double latitudeOutlet = 0;
+//                double longitudeOutlet = 0;
 
                 try {
-                    latitude = Double.parseDouble(String.valueOf(lblLang.getText()));
-                    longitude = Double.parseDouble(String.valueOf(lblLong.getText()));
+                    if (mLastLocation != null){
+                        latitude = mLastLocation.getLatitude();
+                        longitude = mLastLocation.getLongitude();
+                    }else{
+                        latitude = Double.parseDouble(String.valueOf(lblLang.getText()));
+                        longitude = Double.parseDouble(String.valueOf(lblLong.getText()));
+                    }
+
                 } catch (Exception ex) {
                     valid = false;
                     new clsMainActivity().showCustomToast(getContext(), "Your location not found", false);
                 }
 
-                if (valid) {
+                /*if (valid) {
                     try {
                         latitudeOutlet = Double.parseDouble(HMoutletLat.get(spnOutlet.getSelectedItem().toString()));
                         longitudeOutlet = Double.parseDouble(HMoutletLong.get(spnOutlet.getSelectedItem().toString()));
@@ -476,7 +484,7 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
 
                         new clsMainActivity().showCustomToast(getContext(), "Outlet location not found", false);
                     }
-                }
+                }*/
 
                 if (valid) {
 
@@ -498,23 +506,23 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
 
                     MarkerOptions marker = new MarkerOptions().position(new LatLng(latitude, longitude)).title("Your Location");
 
-                    String outletName = spnOutlet.getSelectedItem().toString();
-                    MarkerOptions markerOutlet = new MarkerOptions().position(new LatLng(latitudeOutlet, longitudeOutlet)).title("Outlet Location").snippet(outletName);
+//                    String outletName = spnOutlet.getSelectedItem().toString();
+//                    MarkerOptions markerOutlet = new MarkerOptions().position(new LatLng(latitudeOutlet, longitudeOutlet)).title("Outlet Location").snippet(outletName);
 
 
                     marker.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
 
                     final LatLngBounds.Builder builder = new LatLngBounds.Builder();
                     builder.include(marker.getPosition());
-                    builder.include(markerOutlet.getPosition());
+//                    builder.include(markerOutlet.getPosition());
                     LatLngBounds bounds = builder.build();
 
                     mMap.clear();
                     mMap.addMarker(marker);
-                    mMap.addMarker(markerOutlet);
-                    PolylineOptions rectOptions = new PolylineOptions().add(new LatLng(latitude, longitude))
-                            .add(new LatLng(latitudeOutlet, longitudeOutlet));
-                    Polyline polyline = mMap.addPolyline(rectOptions);
+//                    mMap.addMarker(markerOutlet);
+//                    PolylineOptions rectOptions = new PolylineOptions().add(new LatLng(latitude, longitude))
+//                            .add(new LatLng(latitudeOutlet, longitudeOutlet));
+//                    Polyline polyline = mMap.addPolyline(rectOptions);
                     //CameraPosition cameraPosition = new CameraPosition.Builder().target(new LatLng(latitude, longitude)).zoom(19).build();
 
                     final GoogleMap finalMMap = mMap;
@@ -540,7 +548,7 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
                                             if (f != null) {
                                                 (getActivity()).getFragmentManager().beginTransaction().remove(f).commit();
                                             }
-
+                                            btnPopupMap.setClickable(true);
                                             dialog.dismiss();
                                         }
                                     });
@@ -553,12 +561,13 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
 
                     Location locationB = new Location("point B");
 
-                    locationB.setLatitude(latitudeOutlet);
-                    locationB.setLongitude(longitudeOutlet);
+//                    locationB.setLatitude(latitudeOutlet);
+//                    locationB.setLongitude(longitudeOutlet);
 
-                    float distance = locationA.distanceTo(locationB);
-
-                    alertD.setTitle("Distance : "+String.valueOf((int) Math.ceil(distance)) + " meters");
+//                    float distance = locationA.distanceTo(locationB);
+//
+//                    alertD.setTitle("Distance : "+String.valueOf((int) Math.ceil(distance)) + " meters");
+                    alertD.setTitle("Your Position");
                     alertD.show();
                 }
 
@@ -772,118 +781,293 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
 
         if (mockStatus){
             imgScaner.setClickable(false);
+            btnCheckIn.setClickable(false);
         }else{
             imgScaner.setClickable(true);
+            btnCheckIn.setClickable(true);
         }
+        // TODO: 24/01/2018 untuk checkin/absen action 
         btnCheckIn.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
+                String langlbl = String.valueOf(lblLang.getText());
+                String longlbl = String.valueOf(lblLong.getText());
+                if  (longlbl.equals("")||langlbl.equals("")){
+                    new clsMainActivity().showCustomToast(context,"Please turn on GPS",false);
+                }else{
+                    myClass = "absenmobilehr.app.kalbenutritionals.absenmobilehr.MainMenu";
+                    ;
+                    MenuID = "mnCheckinKBN";
+                    clazz = null;
 
-                myClass = "absenmobilehr.app.kalbenutritionals.absenmobilehr.MainMenu";
-                ;
-                MenuID = "mnCheckinKBN";
-                clazz = null;
+                    myClass = "absenmobilehr.app.kalbenutritionals.absenmobilehr.MainMenu";
+                    MenuID = "mnCheckinKBN";
+                    LayoutInflater layoutInflater = LayoutInflater.from(getContext());
+                    final View promptView = layoutInflater.inflate(R.layout.confirm_data, null);
 
-                myClass = "absenmobilehr.app.kalbenutritionals.absenmobilehr.MainMenu";
-                MenuID = "mnCheckinKBN";
-                LayoutInflater layoutInflater = LayoutInflater.from(getContext());
-                final View promptView = layoutInflater.inflate(R.layout.confirm_data, null);
+                    final TextView _tvConfirm = (TextView) promptView.findViewById(R.id.tvTitle);
+                    final TextView _tvDesc = (TextView) promptView.findViewById(R.id.tvDesc);
+                    _tvDesc.setVisibility(View.INVISIBLE);
+                    _tvConfirm.setText("Check In Data ?");
+                    _tvConfirm.setTextSize(18);
 
-                final TextView _tvConfirm = (TextView) promptView.findViewById(R.id.tvTitle);
-                final TextView _tvDesc = (TextView) promptView.findViewById(R.id.tvDesc);
-                _tvDesc.setVisibility(View.INVISIBLE);
-                _tvConfirm.setText("Check In Data ?");
-                _tvConfirm.setTextSize(18);
-
-                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getContext());
-                alertDialogBuilder.setView(promptView);
-                alertDialogBuilder
-                        .setCancelable(false)
-                        .setPositiveButton("OK",
-                                new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog, int id) {
-                                        Boolean pRes = true;
-                                        if (_clsAbsenData == null) {
-
-                                            pRes = false;
-
-                                        } else {
-                                            if ((_clsAbsenData.getTxtImg1() == null)
-                                                    && (_clsAbsenData.getTxtImg2() == null)) {
-
-                                                pRes = false;
-                                            }
-                                        }
-                                        if (pRes) {
-                                            double latitude = Double.parseDouble(String.valueOf(lblLang.getText()));
-                                            double longitude = Double.parseDouble(String.valueOf(lblLong.getText()));
-                                            Location locationA = new Location("point A");
-
-                                            locationA.setLatitude(latitude);
-                                            locationA.setLongitude(longitude);
-
-
-                                            clsUserLogin checkLocation = new clsUserLoginRepo(context).getDataLogin(context);
-                                            if (_clsAbsenData == null) {
-                                                _clsAbsenData = new clsAbsenData();
-                                            }
-                                            clsAbsenData datatAbsenUserData = _clsAbsenData;
-                                            clsUserLogin dataUserActive = new clsUserLoginRepo(context).getDataLogin(context);
-                                            String idUserActive = String.valueOf(dataUserActive.getTxtUserID());
-                                            clsDeviceInfo dataDeviceInfoUser = new clsDeviceInfoRepo(context).getDataDevice(context);
-                                            clsAbsenData absenUserDatas = new clsAbsenData();
-                                            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                                            Calendar cal = Calendar.getInstance();
-                                            datatAbsenUserData.setDtCheckin(dateFormat.format(cal.getTime()));
-//                                            datatAbsenUserData.setIntId(txtHDId.getText().toString());
-                                            datatAbsenUserData.setGuiId(GuiID);
-                                            datatAbsenUserData.setIntSubmit("1");
-                                            datatAbsenUserData.setSync("0");
-                                            datatAbsenUserData.setTxtAbsen("0");
-                                            datatAbsenUserData.setTxtLatitude(lblLang.getText().toString());
-                                            datatAbsenUserData.setTxtLongitude(lblLong.getText().toString());
-                                            datatAbsenUserData.setTxtDeviceId(dataDeviceInfoUser.getTxtDevice());
-                                            datatAbsenUserData.setTxtUserId(idUserActive);
-                                            datatAbsenUserData.setTxtGuiIdLogin(dataUserActive.getTxtGUI());
-                                            datatAbsenUserData.setDtCheckout(null);
+                    AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getContext());
+                    alertDialogBuilder.setView(promptView);
+                    alertDialogBuilder
+                            .setCancelable(false)
+                            .setPositiveButton("OK",
+                                    new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int id) {
+                                            final String guiId = new clsMainBL().GenerateGuid();
+//                                        IntentResult scanResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
+//                                        if (scanResult.getContents() == null && scanResult.getFormatName() == null) {
+//                                            return;
+//                                        }
+//                                        final String result = scanResult.getContents();
+                                            final String result = "";
+                                            Log.d("Data info", "Scanning Success result = "+result);
+                                            clsmConfig configData = null;
+                                            String linkCheckinData= "";
                                             try {
-                                                new clsAbsenDataRepo(context).createOrUpdate(datatAbsenUserData);
+                                                configData = (clsmConfig) new clsmConfigRepo(getActivity().getApplicationContext()).findById(enumConfigData.API_EF.getidConfigData());
+                                                linkCheckinData = configData.getTxtValue()+new clsHardCode().linkAbsen;
                                             } catch (SQLException e) {
                                                 e.printStackTrace();
                                             }
-                                            imgPrevNoImg1.setClickable(false);
-                                            imgPrevNoImg2.setClickable(false);
-                                            btnRefreshMaps.setClickable(false);
-                                            btnRefreshMaps.setVisibility(View.GONE);
+                                            double latitude = Double.parseDouble(String.valueOf(lblLang.getText()));
+                                            double longitude = Double.parseDouble(String.valueOf(lblLong.getText()));
+//                                        final String txtOutlet = spnOutlet.getSelectedItem().toString();
+//                                        String txtOutletId = HMoutletId.get(txtOutlet);
+//                                        double latitudeOutlet = Double.parseDouble(HMoutletLat.get(txtOutlet));
+//                                        double longitudeOutlet = Double.parseDouble(HMoutletLong.get(txtOutlet));
+//                                        int mappingHeaderId = Integer.parseInt(HMoutletMappingHeader.get(txtOutlet));
+//                                        int mappingDetailId = Integer.parseInt(HMoutletMappingDetail.get(txtOutlet));
 
-
-                                            _clsMainActivity.showCustomToast(getContext(), "Saved", true);
+                                            Location locationA = new Location("point A");
+                                            Location locationB = new Location(("point B"));
+                                            locationA.setLatitude(latitude);
+                                            locationA.setLongitude(longitude);
+//                                        locationB.setLongitude(longitudeOutlet);
+//                                        locationB.setLatitude(latitudeOutlet);
+                                            clsmConfig mradius = new clsmConfig();
                                             try {
-                                                clazz = Class.forName(myClass);
-                                                Intent myIntent = new Intent(getContext(), MainMenu.class);
-//                                                myIntent.putExtra(clsParameterPutExtra.MenuID, MenuID);
-//                                                myIntent.putExtra(clsParameterPutExtra.BranchCode, branchCode);
-//                                                myIntent.putExtra(clsParameterPutExtra.OutletCode, outletCode);
-                                                getActivity().finish();
-                                                startActivity(myIntent);
-                                            } catch (ClassNotFoundException e) {
-                                                // TODO Auto-generated catch block
+                                                mradius = new clsmConfigRepo(context).findById(9);
+                                            } catch (SQLException e) {
                                                 e.printStackTrace();
                                             }
+                                            float distance = locationA.distanceTo(locationB);
+//                                        if (distance>Integer.parseInt(mradius.getTxtValue())){
+//                                            new clsMainActivity().showCustomToast(getActivity().getApplicationContext(),"You're too far from outlet",false);
+//                                        }else{
+                                            final clsUserLogin dataUserActive = new clsUserLoginRepo(context).getDataLogin(context);
+                                            clsDeviceInfo dataDeviceInfoUser = new clsDeviceInfoRepo(context).getDataDevice(context);
+                                            String strLinkAPI = linkCheckinData;
+                                            String versionName = "";
+                                            try {
+                                                versionName = getActivity().getPackageManager().getPackageInfo(getActivity().getPackageName(), 0).versionName;
+                                            } catch (PackageManager.NameNotFoundException e2) {
+                                                // TODO Auto-generated catch block
+                                                e2.printStackTrace();
+                                            }
+                                            JSONObject resJson = new JSONObject();
+                                            try {
+                                                DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                                                Calendar cal = Calendar.getInstance();
+                                                String now = dateFormat.format(cal.getTime());
 
-                                        } else {
-                                            _clsMainActivity.showCustomToast(getContext(), "Please Photo at least 1 photo..", false);
+                                                resJson.put("longitude",longitude);
+                                                resJson.put("latitude",latitude);
+                                                resJson.put("versionName",versionName);
+//                                                resJson.put("outletId",txtOutletId);
+//                                                resJson.put("outletName",txtOutlet);
+                                                resJson.put("qrCode",result);
+                                                resJson.put("txtTime", now);
+//                                                resJson.put("mappingHeaderId",mappingHeaderId);
+//                                                resJson.put("mappingDetailId",mappingDetailId);
+                                                resJson.put("txtTimeDetail",new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cal.getTime()));
+                                                resJson.put("guiId",guiId);
+                                                resJson.put("guiIdLogin",dataUserActive.getTxtGUI());
+                                                resJson.put(dataUserActive.Property_employeeId,dataUserActive.getEmployeeId());
+                                                resJson.put(dataUserActive.Property_txtUserName,dataUserActive.getTxtUserName());
+                                                resJson.put(dataUserActive.Property_txtName,dataUserActive.getTxtName());
+                                                resJson.put("deviceInfo",dataDeviceInfoUser.getTxtModel());
+                                                resJson.put("deviceId",dataDeviceInfoUser.getIdDevice());
+                                                resJson.put("TxtVersion", pInfo.versionName);
+                                                resJson.put("TxtNameApp", dataUserActive.getTxtNameApp());
+                                            } catch (JSONException e) {
+                                                e.printStackTrace();
+                                            }
+                                            final String mRequestBody =  resJson.toString();
+                                            new VolleyUtils().makeJsonObjectRequest(getActivity(), strLinkAPI, mRequestBody, "Checking in please wait !", new VolleyResponseListener() {
+                                                @Override
+                                                public void onError(String response) {
+                                                    new clsMainActivity().showCustomToast(getActivity().getApplicationContext(),"Connection Failed, please check your network !", false);
+//                Toast.makeText(getApplicationContext(), "Connection Failed, please check your network !", Toast.LENGTH_SHORT).show();
+//                Log.d("connection failed", response);
+                                                }
+
+                                                @Override
+                                                public void onResponse(String response, Boolean status, String strErrorMsg) {
+                                                    if (response != null || !response.equals("false")) {
+                                                        clsAbsenOnline data = new clsAbsenOnline();
+                                                        clsLastCheckingData dataCheckin = new clsLastCheckingData();
+                                                        if (response.equals("0")){
+                                                            new clsMainActivity().showCustomToast(getActivity().getApplicationContext(),"Outlet doesn't match !", false);
+                                                        }else if(response.equals("1")){
+                                                            new clsMainActivity().showCustomToast(getActivity().getApplicationContext(),"Barcode Error, Check your outlet and try again !", false);
+                                                        }else{
+                                                            try {
+                                                                JSONArray array = new JSONArray(response);
+
+                                                                JSONObject obj = array.getJSONObject(0);
+                                                                String txtGUI_ID = obj.getString("txtGUI_ID");
+                                                                data.setTxtGuiId(obj.getString("txtGUI_ID"));
+                                                                data.setTxtGuiIdLogin(obj.getString("txtGuiIdLogin"));
+                                                                data.setTxtLatitude(obj.getString("txtLatitude"));
+                                                                data.setTxtLongitude(obj.getString("txtLongitude"));
+                                                                data.setTxtDeviceId(obj.getString("txtDeviceId"));
+                                                                SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd-yyyy hh:mm:ss");
+                                                                String dateCheckin = obj.getString("dtCheckin");
+                                                                String dtInserted = obj.getString("dtInserted");
+                                                                SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+                                                                Date date = null;
+
+                                                                try {
+                                                                     date= sdf2.parse(dtInserted);
+                                                                } catch (ParseException e) {
+                                                                    e.printStackTrace();
+                                                                }
+                                                                Calendar cal = Calendar.getInstance();
+                                                                data.setDtCheckin(dateFormat.format(cal.getTime()));
+//                                                                data.setQrCode(obj.getString("qrCode"));
+//                                                                data.setQrId(obj.getString("qrCode"));
+                                                                data.setSync("0");
+                                                                data.setIntSubmit("1");
+
+//                                                                dataCheckin.setTxtOutletName(txtOutlet);
+                                                                dataCheckin.setTxtGuiID(obj.getString("txtGUI_ID"));
+                                                                dataCheckin.setDtCheckin(date);
+                                                                dataCheckin.setDtCheckout(null);
+                                                                dataCheckin.setBoolMoodCheckout("0");
+                                                                try {
+                                                                    new clsAbsenOnlineRepo(context).createOrUpdate(data);
+                                                                    new clsLastCheckingDataRepo(context).createOrUpdate(dataCheckin);
+                                                                    Intent myIntent = new Intent(getContext(), MainMenu.class);
+                                                                    myIntent.putExtra(new clsHardCode().INTENT,true);
+                                                                    myIntent.putExtra(new clsHardCode().GUI,obj.getString("txtGUI_ID"));
+                                                                    Bundle bundleAbsen = new Bundle();
+                                                                    bundleAbsen.putString(new clsHardCode().INTENT,"1");
+                                                                    bundleAbsen.putString(new clsHardCode().GUI,obj.getString("txtGUI_ID"));
+                                                                    Fragment fragment = new FragmentInformation();
+                                                                    fragment.setArguments(bundleAbsen);
+//                                                                    Vibrator v = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
+//                                                                    // Vibrate for 500 milliseconds
+//                                                                    v.vibrate(500);
+                                                                    startActivity(myIntent);
+                                                                    getActivity().finish();
+                                                                    new clsMainActivity().showCustomToast(getActivity().getApplicationContext(),"Checkin success !", true);
+                                                                } catch (SQLException e) {
+                                                                    e.printStackTrace();
+                                                                }
+
+                                                            } catch (JSONException e) {
+                                                                e.printStackTrace();
+                                                            }
+                                                        }
+
+
+
+
+                                                    }else{
+                                                        new clsMainActivity().showCustomToast(context,"Checkin failed, Please try again !",false);
+                                                    }
+                                                }
+                                            });
+//                                        }
+//                                        Boolean pRes = true;
+//                                        if (_clsAbsenData == null) {
+//
+//                                            pRes = false;
+//
+//                                        } else {
+//                                            if ((_clsAbsenData.getTxtImg1() == null)
+//                                                    && (_clsAbsenData.getTxtImg2() == null)) {
+//
+//                                                pRes = false;
+//                                            }
+//                                        }
+//                                        if (pRes) {
+//                                            double latitude = Double.parseDouble(String.valueOf(lblLang.getText()));
+//                                            double longitude = Double.parseDouble(String.valueOf(lblLong.getText()));
+//                                            Location locationA = new Location("point A");
+//
+//                                            locationA.setLatitude(latitude);
+//                                            locationA.setLongitude(longitude);
+//
+//
+//                                            clsUserLogin checkLocation = new clsUserLoginRepo(context).getDataLogin(context);
+//                                            if (_clsAbsenData == null) {
+//                                                _clsAbsenData = new clsAbsenData();
+//                                            }
+//                                            clsAbsenData datatAbsenUserData = _clsAbsenData;
+//                                            clsUserLogin dataUserActive = new clsUserLoginRepo(context).getDataLogin(context);
+//                                            String idUserActive = String.valueOf(dataUserActive.getTxtUserID());
+//                                            clsDeviceInfo dataDeviceInfoUser = new clsDeviceInfoRepo(context).getDataDevice(context);
+//                                            clsAbsenData absenUserDatas = new clsAbsenData();
+//                                            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+//                                            Calendar cal = Calendar.getInstance();
+//                                            datatAbsenUserData.setDtCheckin(dateFormat.format(cal.getTime()));
+////                                            datatAbsenUserData.setIntId(txtHDId.getText().toString());
+//                                            datatAbsenUserData.setGuiId(GuiID);
+//                                            datatAbsenUserData.setIntSubmit("1");
+//                                            datatAbsenUserData.setSync("0");
+//                                            datatAbsenUserData.setTxtAbsen("0");
+//                                            datatAbsenUserData.setTxtLatitude(lblLang.getText().toString());
+//                                            datatAbsenUserData.setTxtLongitude(lblLong.getText().toString());
+//                                            datatAbsenUserData.setTxtDeviceId(dataDeviceInfoUser.getTxtDevice());
+//                                            datatAbsenUserData.setTxtUserId(idUserActive);
+//                                            datatAbsenUserData.setTxtGuiIdLogin(dataUserActive.getTxtGUI());
+//                                            datatAbsenUserData.setDtCheckout(null);
+//                                            try {
+//                                                new clsAbsenDataRepo(context).createOrUpdate(datatAbsenUserData);
+//                                            } catch (SQLException e) {
+//                                                e.printStackTrace();
+//                                            }
+//                                            imgPrevNoImg1.setClickable(false);
+//                                            imgPrevNoImg2.setClickable(false);
+//                                            btnRefreshMaps.setClickable(false);
+//                                            btnRefreshMaps.setVisibility(View.GONE);
+//
+//
+//                                            _clsMainActivity.showCustomToast(getContext(), "Saved", true);
+//                                            try {
+//                                                clazz = Class.forName(myClass);
+//                                                Intent myIntent = new Intent(getContext(), MainMenu.class);
+////                                                myIntent.putExtra(clsParameterPutExtra.MenuID, MenuID);
+////                                                myIntent.putExtra(clsParameterPutExtra.BranchCode, branchCode);
+////                                                myIntent.putExtra(clsParameterPutExtra.OutletCode, outletCode);
+//                                                getActivity().finish();
+//                                                startActivity(myIntent);
+//                                            } catch (ClassNotFoundException e) {
+//                                                // TODO Auto-generated catch block
+//                                                e.printStackTrace();
+//                                            }
+//
+//                                        } else {
+//                                            _clsMainActivity.showCustomToast(getContext(), "Please Photo at least 1 photo..", false);
+//                                        }
                                         }
-                                    }
-                                })
-                        .setNegativeButton("Cancel",
-                                new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog, int id) {
-                                        dialog.cancel();
-                                    }
-                                });
-                final AlertDialog alertD = alertDialogBuilder.create();
-                alertD.show();
+                                    })
+                            .setNegativeButton("Cancel",
+                                    new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int id) {
+                                            dialog.cancel();
+                                        }
+                                    });
+                    final AlertDialog alertD = alertDialogBuilder.create();
+                    alertD.show();
+                }
+
             }
 //					else{
 //						clazz = Class.forName(myClass);
@@ -955,7 +1139,9 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
             e.printStackTrace();
         }
         final String mRequestBody = json.toString();
-        new VolleyUtils().makeJsonObjectRequestOutlet(getActivity(), strLinkAPI, mRequestBody, "Getting Outlet Data", new VolleyResponseListener() {
+        SharedPreferences prefs = getActivity().getSharedPreferences(new clsHardCode().MY_PREFS_NAME, MODE_PRIVATE);
+        String token= prefs.getString("token", "No token defined");
+        new VolleyUtils().makeJsonObjectRequestOutlet(getActivity(), strLinkAPI, token, mRequestBody, "Getting Outlet Data", new VolleyResponseListener() {
             @Override
             public void onError(String response) {
 //                new clsMainActivity().showCustomToast(getActivity().getApplicationContext(), "Connection Lost, get latest data failed", false);
@@ -1065,6 +1251,7 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
 
 
     public Location getLocation() {
+
         try {
             LocationManager locationManager = (LocationManager) getActivity()
                     .getSystemService(LOCATION_SERVICE);
@@ -1097,6 +1284,9 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
                         location = locationManager
                                 .getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
                         if (location != null) {
+                            if (mLastLocation != null){
+                                mLastLocation.reset();
+                            }
                             mLastLocation = location;
                             double latitude = location.getLatitude();
                             double longitude = location.getLongitude();
@@ -1115,11 +1305,20 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
                         if (locationManager != null) {
                             location2 = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
                             if (location != null) {
-                                mLastLocation = location2;
+                                if (mLastLocation != null){
+                                    mLastLocation.reset();
+                                }
                                 double latitude = location.getLatitude();
                                 double longitude = location.getLongitude();
                             }else{
-                                new clsMainActivity().showCustomToast(context,"Your GPS off", false);
+                                if(mLastLocation!=null){
+                                    int intOs = Integer.valueOf(android.os.Build.VERSION.SDK);
+                                    if(intOs >=18){
+                                        mockStatus = mLastLocation.isFromMockProvider();
+                                    }
+                                }else{
+                                    new clsMainActivity().showCustomToast(context,"Your GPS off", false);
+                                }
                             }
                         }
                     }
@@ -1130,21 +1329,36 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
         } catch (Exception e) {
             e.printStackTrace();
         }
-        mockStatus = mLastLocation.isFromMockProvider();
-        if (mockStatus){
-            new clsMainActivity().showCustomToast(getActivity().getApplicationContext(), "Fake GPS detected, !", false);
-            Toast.makeText(context,"Please Turn Off Fake Location, And Restart Your Phone",Toast.LENGTH_LONG);
-            Vibrator v = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
-            // Vibrate for 500 milliseconds
-            v.vibrate(5000);
+        if(mLastLocation!=null){
+            int intOs = Integer.valueOf(android.os.Build.VERSION.SDK);
+            if(intOs >=18){
+                mockStatus = mLastLocation.isFromMockProvider();
+            }
         }
+
+
+
         return mLastLocation;
     }
 
 
     @SuppressWarnings("deprecation")
     private void displayLocation(Location mLastLocation) {
-
+        if(mLastLocation!=null){
+            int intOs = Integer.valueOf(android.os.Build.VERSION.SDK);
+            if(intOs >=18){
+                mockStatus = mLastLocation.isFromMockProvider();
+            }
+        }
+        if (mockStatus){
+            btnCheckIn.setClickable(false);
+            new clsMainActivity().showCustomToast(getActivity().getApplicationContext(), "Fake GPS detected, !", false);
+            new clsMainActivity().showCustomToast(getActivity().getApplicationContext(), "Please Turn Off Fake Location, And Restart Your Phone", false);
+//            Toast.makeText(context,"Please Turn Off Fake Location, And Restart Your Phone",Toast.LENGTH_LONG);
+            Vibrator v = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
+            // Vibrate for 500 milliseconds
+            v.vibrate(5000);
+        }
         if (mLastLocation != null) {
             double latitude = mLastLocation.getLatitude();
             double longitude = mLastLocation.getLongitude();
@@ -1189,7 +1403,6 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
         return distance;
     }
     private void buildGoogleApiClient() {
-        // TODO Auto-generated method stub
         mGoogleApiClient = new GoogleApiClient.Builder(getContext())
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
@@ -1199,7 +1412,6 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
 
     @SuppressWarnings("deprecation")
     private boolean checkPlayServices() {
-        // TODO Auto-generated method stub
         int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(getContext());
         if (resultCode != ConnectionResult.SUCCESS) {
             if (GooglePlayServicesUtil.isUserRecoverableError(resultCode)) {
@@ -1214,7 +1426,6 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
     @SuppressLint("NewApi")
     @SuppressWarnings("deprecation")
     private void initilizeMap() {
-        // TODO Auto-generated method stub
         if (mMap == null) {
 
             // check if map is created successfully or not
@@ -1227,7 +1438,6 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
 
     @Override
     public void onStart() {
-        // TODO Auto-generated method stub
         super.onStart();
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -1252,7 +1462,6 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
 
     @Override
     public void onResume() {
-        // TODO Auto-generated method stub
         super.onResume();
         initilizeMap();
         checkPlayServices();
@@ -1282,6 +1491,8 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
 
     protected void captureImage1() {
         uriImage = getOutputMediaFileUri();
+        StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
+        StrictMode.setVmPolicy(builder.build());
         Intent intentCamera1 = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         intentCamera1.putExtra(MediaStore.EXTRA_OUTPUT, uriImage);
         getActivity().startActivityForResult(intentCamera1, CAMERA_CAPTURE_IMAGE1_REQUEST_CODE);
@@ -1424,10 +1635,11 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
                                         bundleAbsen.putString(new clsHardCode().GUI,obj.getString("txtGUI_ID"));
                                         Fragment fragment = new FragmentInformation();
                                         fragment.setArguments(bundleAbsen);
-                                        Vibrator v = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
-                                        // Vibrate for 500 milliseconds
-                                        v.vibrate(500);
+//                                        Vibrator v = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
+//                                        // Vibrate for 500 milliseconds
+//                                        v.vibrate(500);
                                         startActivity(myIntent);
+                                        getActivity().finish();
                                         new clsMainActivity().showCustomToast(getActivity().getApplicationContext(),"Checkin success !", true);
                                     } catch (SQLException e) {
                                         e.printStackTrace();
@@ -1609,7 +1821,6 @@ public class FragmentAbsen extends Fragment implements ConnectionCallbacks, OnCo
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult result) {
-        // TODO Auto-generated method stub
         Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = "
                 + result.getErrorCode());
 

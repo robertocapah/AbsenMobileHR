@@ -210,11 +210,13 @@ public class FragmentPushData extends Fragment {
 //                                        new clsAbsenDataRepo(getActivity().getApplicationContext()).updateAllRowAbsen();
                                         new DatabaseHelper(context).clearAllDataInDatabase();
                                         startActivity(new Intent(getActivity(),Splash.class));
+                                        getActivity().finish();
 //                                        logout();
                                     }else if(StrFragmentFromMainMenu != null && StrFragmentFromMainMenu.equals("main_menu")){
                                         new clsMainActivity().showCustomToast(getActivity().getApplicationContext(),"Push Data Completed",true);
                                         new clsAbsenDataRepo(getActivity().getApplicationContext()).updateAllRowAbsen();
                                         startActivity(new Intent(getActivity(),MainMenu.class));
+                                        getActivity().finish();
                                     }
                                 }
                             }else{

@@ -59,8 +59,10 @@ public class clsmConfigRepo {
         clsmConfig data2 = new clsmConfig();
         data2.setIntId(2);
         data2.setTxtName("API_PRM");
-        data2.setTxtValue("http://prm.kalbenutritionals.web.id/VisitPlan/API/VisitPlanAPI/");
-        data2.setTxtDefaultValue("http://prm.kalbenutritionals.web.id/VisitPlan/API/VisitPlanAPI/");
+//        data2.setTxtValue("http://prm.kalbenutritionals.web.id/VisitPlan/API/VisitPlanAPI/");
+//        data2.setTxtDefaultValue("http://prm.kalbenutritionals.web.id/VisitPlan/API/VisitPlanAPI/");
+        data2.setTxtValue("https://prm.kalbenutritionals.com/VisitPlan/API/VisitPlanAPI/");
+        data2.setTxtDefaultValue("https://prm.kalbenutritionals.com/VisitPlan/API/VisitPlanAPI/");
 //        data2.setTxtValue("http://10.171.10.27/KN2015_PRM_V2.WEB/VisitPlan/API/VisitPlanAPI/");
 //        data2.setTxtDefaultValue("http://10.171.10.27/KN2015_PRM_V2.WEB/VisitPlan/API/VisitPlanAPI/");
         data2.setIntEditAdmin(1);
@@ -96,19 +98,19 @@ public class clsmConfigRepo {
         clsmConfig data7 = new clsmConfig();
         data7.setIntId(7);
         data7.setTxtName("API_EF");
-        data7.setTxtValue("http://10.171.10.40/APIEF2/api/");
-        data7.setTxtDefaultValue("http://10.171.10.40/APIEF2/api/");
-//        data7.setTxtValue("http://apiabsensi.kalbenutritionals.web.id/api/");
-//        data7.setTxtDefaultValue("http://apiabsensi.kalbenutritionals.web.id/api/");
+//        data7.setTxtValue("http://10.171.11.87/APIEF2/api/");
+//        data7.setTxtDefaultValue("http://10.171.11.87/APIEF2/api/");
+        data7.setTxtValue("https://apiabsensi.kalbenutritionals.com/api/");
+        data7.setTxtDefaultValue("https://apiabsensi.kalbenutritionals.com/api/");
         data7.setIntEditAdmin(1);
-        helper.getmConfigDao().createOrUpdate(data7);/*
+        helper.getmConfigDao().createOrUpdate(data7);
         clsmConfig data9 = new clsmConfig();
         data9.setIntId(9);
-        data9.setTxtName("API_PUSHDATA");
-        data9.setTxtValue("http://192.168.66.1/APIEF2/api/PushData/pushData2");
-        data9.setTxtDefaultValue("http://10.171.11.87/APIEF2/api/PushData/pushData2");
+        data9.setTxtName("API_WEBAbsen");
+        data9.setTxtValue("https://absensi.kalbenutritionals.com/user_data/files/apk/");
+        data9.setTxtDefaultValue("https://absensi.kalbenutritionals.com/user_data/files/apk/");
         data9.setIntEditAdmin(1);
-        helper.getmConfigDao().createOrUpdate(data9);*/
+        helper.getmConfigDao().createOrUpdate(data9);
         clsmConfig data8 = new clsmConfig();
         data8.setIntId(8);
         data8.setTxtName("WidthScreen");

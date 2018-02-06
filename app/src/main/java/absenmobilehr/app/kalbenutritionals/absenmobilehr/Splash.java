@@ -59,8 +59,8 @@ public class Splash extends AppCompatActivity {
     private void initDB()
     {
         DatabaseManager.init(this);
-        deviceInfoRepo = new clsDeviceInfoRepo(this);
-        loginRepo = new clsUserLoginRepo(this);
+//        deviceInfoRepo = new clsDeviceInfoRepo(this);
+//        loginRepo = new clsUserLoginRepo(this);
     }
 
     private void StartAnimations() {
@@ -77,7 +77,7 @@ public class Splash extends AppCompatActivity {
         anim = AnimationUtils.loadAnimation(this, R.anim.bounce);
         anim.reset();
         ImageView iv2 = (ImageView) findViewById(R.id.imageView2);
-        iv2.setBackgroundResource(R.mipmap.ic_kalbe_phonegap);
+//        iv2.setBackgroundResource(R.mipmap.ic_hris_kn_160);
         iv2.clearAnimation();
         iv2.startAnimation(anim);
     }
@@ -145,6 +145,12 @@ public class Splash extends AppCompatActivity {
                 clsStatusMenuStart _clsStatusMenuStart = null;
                 try {
                     _clsStatusMenuStart = new clsMainBL().checkUserActive(getApplicationContext());
+                    int intOs = Integer.valueOf(android.os.Build.VERSION.SDK);
+                    if (intOs >= 16){
+                        finishAffinity();
+                    }else{
+                        ActivityCompat.finishAffinity(Splash.this);
+                    }
                     if (_clsStatusMenuStart.get_intStatus() == enumStatusMenuStart.FormLogin) {
                         myIntent = new Intent(Splash.this, Login.class);
                     } else if (_clsStatusMenuStart.get_intStatus() == enumStatusMenuStart.UserActiveLogin) {

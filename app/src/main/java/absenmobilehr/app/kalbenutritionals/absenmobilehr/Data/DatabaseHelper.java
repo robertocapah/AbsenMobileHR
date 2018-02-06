@@ -116,7 +116,6 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
             Log.i(DatabaseHelper.class.getName(), "onUpgrade");
             TableUtils.dropTable(connectionSource, clsUserLogin.class, true);
             TableUtils.dropTable(connectionSource, clsDeviceInfo.class, true);
-            TableUtils.dropTable(connectionSource, clsDisplayPicture.class, true);
             TableUtils.dropTable(connectionSource, clsmVersionApp.class, true);
             TableUtils.dropTable(connectionSource, clsUserLogin.class, true);
             TableUtils.dropTable(connectionSource, clsUserJabatan.class, true);
@@ -144,7 +143,6 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
         try {
             TableUtils.clearTable(connectionSource, clsUserLogin.class);
             TableUtils.clearTable(connectionSource, clsDeviceInfo.class);
-            TableUtils.clearTable(connectionSource, clsDisplayPicture.class);
             TableUtils.clearTable(connectionSource, clsmVersionApp.class);
             TableUtils.clearTable(connectionSource, clsUserLogin.class);
             TableUtils.clearTable(connectionSource, clsUserJabatan.class);
@@ -171,7 +169,6 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     public void clearDataAfterLogout() {
         try {
             TableUtils.clearTable(connectionSource, clsUserLogin.class);
-            TableUtils.clearTable(connectionSource, clsDisplayPicture.class);
             TableUtils.clearTable(connectionSource, clsmVersionApp.class);
             TableUtils.clearTable(connectionSource, clsUserJabatan.class);
             TableUtils.clearTable(connectionSource, clsUserPegawai.class);

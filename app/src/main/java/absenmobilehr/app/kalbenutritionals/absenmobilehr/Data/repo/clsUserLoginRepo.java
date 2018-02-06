@@ -131,7 +131,10 @@ public class clsUserLoginRepo implements crud {
             e.printStackTrace();
         }
         for (clsUserLogin data : listData){
-            if (data.getDtLastLogin().equals(now)){
+//            if (data.getDtLastLogin().equals(now)){
+//                dataLogin = data;
+//            }
+            if (data.getTxtGUI()!=null && !data.getTxtGUI().equals("null")){
                 dataLogin = data;
             }
         }

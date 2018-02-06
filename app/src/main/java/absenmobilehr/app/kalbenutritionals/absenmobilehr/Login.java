@@ -6,6 +6,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -14,6 +15,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.FileProvider;
 import android.telephony.TelephonyManager;
@@ -89,17 +91,6 @@ import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.enumConfigDat
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Service.MyServiceNative;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Service.MyTrackingLocationService;
 
-//import bl.clsHelperBL;
-//import bl.clsMainBL;
-//import bl.tDeviceInfoUserBL;
-//import library.salesforce.common.linkAPI;
-//import library.salesforce.common.tDeviceInfoUserData;
-//import library.salesforce.dal.clsHardCode;
-//import library.salesforce.dal.enumConfigData;
-//import library.salesforce.dal.mconfigDA;
-//import library.salesforce.dal.tDeviceInfoUserDA;
-//import service.MyServiceNative;
-
 public class Login extends clsMainActivity {
     private String role = "Role";
     private String[] roles = new String[1];
@@ -161,8 +152,6 @@ public class Login extends clsMainActivity {
         alert.show();
     }
 
-//    private clsHardCode clsHardcode = new clsHardCode();
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -179,25 +168,6 @@ public class Login extends clsMainActivity {
         if (isMyServiceRunning(MyTrackingLocationService.class)) {
             stopService(new Intent(Login.this, MyTrackingLocationService.class));
         }
-//        Timer RunSplash = new Timer();
-//
-//        // Note: declare ProgressDialog progress as a field in your class.
-//
-//        progress = ProgressDialog.show(this, "",
-//                "Checking Version!!!", true);
-//
-//        TimerTask ShowSplash = new TimerTask() {
-//            @Override
-//            public void run() {
-//                //Intent myIntent = new Intent(Login.this, Login.class);
-//                // do the thing that takes a long time
-//                progress.dismiss();
-//                //finish();
-//                //startActivity(myIntent);
-//            }
-//        };
-//
-//        RunSplash.schedule(ShowSplash, Delay);
         TelephonyManager tm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
         String imeiNumber = tm.getDeviceId();
 //        new tDeviceInfoUserBL().SaveInfoDevice("", "", imeiNumber);
@@ -306,7 +276,7 @@ public class Login extends clsMainActivity {
 
                 intProcesscancel = 0;
                 if (txtLoginEmail.getText().length() == 0) {
-                    showCustomToast(Login.this, "Please input username", false);
+                    showCustomToast(Login.this, "Please input NIK", false);
 
                 } else {
                     txtEmail1 = txtLoginEmail.getText().toString();
@@ -314,7 +284,7 @@ public class Login extends clsMainActivity {
 //                        AsyncCallLogin task = new AsyncCallLogin();
 //                        task.execute();
                     List<clsmVersionApp> _clsmVersionApp = new ArrayList<clsmVersionApp>();
-                    userLogin();
+                    getToken();
                 }
             }
         });
@@ -335,7 +305,12 @@ public class Login extends clsMainActivity {
                 builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
 
                     public void onClick(DialogInterface dialog, int which) {
-                        finish();
+                        int intOs = Integer.valueOf(android.os.Build.VERSION.SDK);
+                        if (intOs >= 16) {
+                            finishAffinity();
+                        } else {
+                            ActivityCompat.finishAffinity(Login.this);
+                        }
                         System.exit(0);
                     }
                 });
@@ -429,6 +404,108 @@ public class Login extends clsMainActivity {
         return false;
     }
 
+    private void getToken() {
+        clsmConfig configData = null;
+        String linkPushData = "";
+        try {
+            configData = (clsmConfig) new clsmConfigRepo(getApplicationContext()).findById(enumConfigData.API_EF.getidConfigData());
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        String linkConvert = configData.getTxtValue().replace("api/", "");
+        String strLinkAPI = linkConvert + new clsHardCode().linkGetToken;
+
+        final String mRequestBody = "password";
+
+
+        List<clsmVersionApp> _clsmVersionApp = new ArrayList<>();
+        try {
+            _clsmVersionApp = (List<clsmVersionApp>) new clsmVersionAppRepo(getApplicationContext()).findAll();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        if (_clsmVersionApp.size() > 0) {
+            new VolleyUtils().makeJsonObjectRequestToken(this, strLinkAPI, mRequestBody, "Request Token, Please Wait", new VolleyResponseListener() {
+                @Override
+                public void onError(String message) {
+                    Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+                }
+
+                @Override
+                public void onResponse(String response, Boolean status, String strErrorMsg) {
+                    if (response != null) {
+                        try {
+                            JSONObject jsonObject = new JSONObject(response);
+                            SharedPreferences.Editor editor = getSharedPreferences(new clsHardCode().MY_PREFS_NAME, MODE_PRIVATE).edit();
+                            String token = jsonObject.getString("access_token");
+                            editor.putString("token", token);
+//                        editor.putInt("idName", 12);
+                            editor.apply();
+                            userLogin();
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            });
+        } else {
+            checkVersion();
+        }
+
+    }
+//    private void setPrefrence(String keyHeader, String keyDetail, String value){
+//
+//    }
+    private void getLinkAPK() {
+        clsmConfig configData = null;
+        String linkPushData = "";
+        try {
+            configData = (clsmConfig) new clsmConfigRepo(getApplicationContext()).findById(enumConfigData.API_EF.getidConfigData());
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        String strLinkAPI = configData.getTxtValue() + new clsHardCode().linkGetApkLink;
+        JSONObject resJson = new JSONObject();
+        String nameApp = new clsHardCode().name_app;
+        try {
+            resJson.put("TxtVersion", pInfo.versionName);
+            resJson.put("TxtNameApp", nameApp);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        String mRequestBody = resJson.toString();
+        new VolleyUtils().makeJsonObjectRequest(this, strLinkAPI, mRequestBody, "Configure Download App", new VolleyResponseListener() {
+            @Override
+            public void onError(String message) {
+                Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onResponse(String response, Boolean status, String strErrorMsg) {
+                if (response != null) {
+                    String linkDownload = response.replace("\"","");
+
+                    mProgressDialog = new ProgressDialog(Login.this);
+                    mProgressDialog.setMessage("Please Wait For Downloading File....");
+                    mProgressDialog.setIndeterminate(true);
+                    mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+                    mProgressDialog.setCancelable(false);
+
+                    // execute this when the downloader must be fired
+                    final DownloadTask downloadTask = new DownloadTask(Login.this);
+                    downloadTask.execute(linkDownload);
+
+                    mProgressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                        @Override
+                        public void onCancel(DialogInterface dialog) {
+                            downloadTask.cancel(true);
+                        }
+                    });
+                }
+            }
+        });
+    }
+
     private void userLogin() {
         clsmConfig configData = null;
         String linkPushData = "";
@@ -438,373 +515,392 @@ public class Login extends clsMainActivity {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        List<clsmVersionApp> _clsmVersionApp = new ArrayList<>();
+
+        RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
+        txtEmail1 = txtLoginEmail.getText().toString();
+        txtPassword1 = txtLoginPassword.getText().toString();
+
+        String strLinkAPI = configData.getTxtValue() + new clsHardCode().linkLogin;
+//        String nameRole = selectedRole;
+        JSONObject resJson = new JSONObject();
+        List<clsmVersionApp> dataInfo = new ArrayList<>();
+        List<clsDeviceInfo> dataDevice = new ArrayList<>();
         try {
-            _clsmVersionApp = (List<clsmVersionApp>) new clsmVersionAppRepo(getApplicationContext()).findAll();
+            dataInfo = (List<clsmVersionApp>) repoVersionApp.findAll();
+            dataDevice = (List<clsDeviceInfo>) repoDeviceInfo.findAll();
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        if (_clsmVersionApp.size() > 0) {
-            RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
-            txtEmail1 = txtLoginEmail.getText().toString();
-            txtPassword1 = txtLoginPassword.getText().toString();
-            String strLinkAPI = configData.getTxtValue() + new clsHardCode().linkLogin;
-//        String nameRole = selectedRole;
-            JSONObject resJson = new JSONObject();
-            List<clsmVersionApp> dataInfo = new ArrayList<>();
-            List<clsDeviceInfo> dataDevice = new ArrayList<>();
-            try {
-                dataInfo = (List<clsmVersionApp>) repoVersionApp.findAll();
-                dataDevice = (List<clsDeviceInfo>) repoDeviceInfo.findAll();
-            } catch (SQLException e) {
-                e.printStackTrace();
+        String versionName = "";
+        try {
+            versionName = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+        } catch (PackageManager.NameNotFoundException e2) {
+            // TODO Auto-generated catch block
+            e2.printStackTrace();
+        }
+        try {
+            resJson.put("TxtVersion", dataInfo.get(0).getTxtVersion());
+            resJson.put("TxtGUI_mVersionApp", dataInfo.get(0).getTxtGUI());
+            resJson.put("TxtPegawaiID", txtEmail1);
+            resJson.put("TxtPassword", txtPassword1);
+            resJson.put("versionName", versionName);
+            resJson.put("TxtModel", dataDevice.get(0).getTxtModel());
+            resJson.put("TxtDevice", dataDevice.get(0).getTxtDevice());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        final String mRequestBody = "[" + resJson.toString() + "]";
+        SharedPreferences prefs = getSharedPreferences(new clsHardCode().MY_PREFS_NAME, MODE_PRIVATE);
+        String token = prefs.getString("token", "No token defined");
+        new VolleyUtils().makeJsonObjectRequestWithToken(Login.this, strLinkAPI, token, mRequestBody, "Logging in, please wait !", new VolleyResponseListener() {
+            @Override
+            public void onError(String response) {
+                new clsMainActivity().showCustomToast(getApplicationContext(), response, false);
             }
 
-            try {
-                resJson.put("TxtVersion", dataInfo.get(0).getTxtVersion());
-                resJson.put("TxtGUI_mVersionApp", dataInfo.get(0).getTxtGUI());
-                resJson.put("TxtPegawaiID", txtEmail1);
-                resJson.put("TxtPassword", txtPassword1);
-                resJson.put("TxtModel", dataDevice.get(0).getTxtModel());
-                resJson.put("TxtDevice", dataDevice.get(0).getTxtDevice());
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-            final String mRequestBody = "[" + resJson.toString() + "]";
-            new VolleyUtils().makeJsonObjectRequest(Login.this, strLinkAPI, mRequestBody, "Logging in, please wait !", new VolleyResponseListener() {
-                @Override
-                public void onError(String response) {
-                    new clsMainActivity().showCustomToast(getApplicationContext(), response, false);
-                }
-
-                @Override
-                public void onResponse(String response, Boolean status, String strErrorMsg) {
-                    if (response != null) {
-                        try {
-                            JSONObject jsonObject1 = new JSONObject(response);
+            @Override
+            public void onResponse(String response, Boolean status, String strErrorMsg) {
+                if (response != null) {
+                    try {
+                        JSONObject jsonObject1 = new JSONObject(response);
 //                            JSONObject jsn = jsonObject1.getJSONObject("validJson");
-                            String warn = jsonObject1.getString("TxtWarn");
-                            String result = jsonObject1.getString("TxtResult");
-                            JSONObject jsonObject2 = null;
-                            String strTypeLeave = jsonObject1.getString("ltTypeLeave");
+                        String warn = jsonObject1.getString("TxtWarn");
+                        String result = jsonObject1.getString("TxtResult");
+                        JSONObject jsonObject2 = null;
+                        String strTypeLeave = jsonObject1.getString("ltTypeLeave");
 
-                            if (result.equals("1")) {
-                                jsonObject2 = jsonObject1.getJSONObject("TxtData");
-                                String strLatest = jsonObject1.getString("TxtLatestData");
-                                String bitMood = jsonObject1.getString("bitMood");
-                                String bitMoodId = jsonObject1.getString("bitMoodId");
+                        if (result.equals("1")) {
+                            jsonObject2 = jsonObject1.getJSONObject("TxtData");
+                            String strLatest = jsonObject1.getString("TxtLatestData");
+                            String bitMood = jsonObject1.getString("bitMood");
+                            String bitMoodId = jsonObject1.getString("bitMoodId");
 
-                                JSONObject jsonDataUserLogin = jsonObject2.getJSONObject("UserLogin");
-                                JSONArray jsonArrayBranchAccess = jsonObject2.getJSONArray("UserBranch");
-                                String strLeave = jsonObject1.getString("LeaveData");
-                                String nameApp = null;
+                            JSONObject jsonDataUserLogin = jsonObject2.getJSONObject("UserLogin");
+                            JSONArray jsonArrayBranchAccess = jsonObject2.getJSONArray("UserBranch");
+                            String strLeave = jsonObject1.getString("LeaveData");
+                            String nameApp = null;
 
 
-                                if (!strTypeLeave.equals("null")) {
-                                    JSONArray jArrayAll = jsonObject1.getJSONArray("ltTypeLeave");
-                                    if (jArrayAll.length() > 0) {
-                                        for (int a = 0; a < jArrayAll.length(); a++) {
-                                            JSONObject json_data = jArrayAll.getJSONObject(a);
-                                            String typeLeaveId = json_data.getString("typeLeaveId");
-                                            String typeLeaveCode = json_data.getString("txtleaveCode");
-                                            String typeLeaveName = json_data.getString("txtleaveName");
-                                            String typeLevaeKeterangan = json_data.getString("txtKeterangan");
-                                            String bitactive = json_data.getString("bitActive");
+                            if (!strTypeLeave.equals("null")) {
+                                JSONArray jArrayAll = jsonObject1.getJSONArray("ltTypeLeave");
+                                if (jArrayAll.length() > 0) {
+                                    for (int a = 0; a < jArrayAll.length(); a++) {
+                                        JSONObject json_data = jArrayAll.getJSONObject(a);
+                                        String typeLeaveId = json_data.getString("typeLeaveId");
+                                        String typeLeaveCode = json_data.getString("txtleaveCode");
+                                        String typeLeaveName = json_data.getString("txtleaveName");
+                                        String typeLevaeKeterangan = json_data.getString("txtKeterangan");
+                                        String bitactive = json_data.getString("bitActive");
 
-                                            clsTypeLeave dataLeave = new clsTypeLeave();
-                                            dataLeave.setIntLeaveID(Integer.parseInt(typeLeaveId));
-                                            dataLeave.setBitActive(Integer.parseInt(bitactive));
-                                            dataLeave.setTxtLeaveCode(typeLeaveCode);
-                                            dataLeave.setTxtKeterangan(typeLevaeKeterangan);
-                                            dataLeave.setTxtLeaveName(typeLeaveName);
-
-                                            try {
-                                                new clsTypeLeaveRepo(getApplicationContext()).createOrUpdate(dataLeave);
-                                            } catch (SQLException e) {
-                                                e.printStackTrace();
-                                            }
-                                        }
-                                    }
-                                }
-
-                                if (strLeave != null && !strLeave.equals("null")) {
-                                    JSONObject jsonLeave = jsonObject1.getJSONObject("LeaveData");
-                                    clsLeaveData dataLeave = new clsLeaveData();
-                                    dataLeave.setBitActive(1);
-                                    dataLeave.setLeaveId(Integer.parseInt(jsonLeave.getString("intLeaveId")));
-                                    dataLeave.setTxtNIK(jsonLeave.getString("txtNIK"));
-                                    dataLeave.setTxtTime(jsonLeave.getString("dtAbsenceDate"));
-                                    dataLeave.setTxtKeterangan(jsonLeave.getString("Description"));
-                                    try {
-                                        new clsLeaveDataRepo(getApplicationContext()).createOrUpdate(dataLeave);
-                                    } catch (SQLException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-
-                                if (jsonArrayBranchAccess.length() > 0) {
-                                    for (int j = 0; j < jsonArrayBranchAccess.length(); j++) {
-                                        JSONObject json_data = jsonArrayBranchAccess.getJSONObject(j);
-                                        String intBranchID = json_data.getString("IntBranchID");
-                                        String txtBranchCode = json_data.getString("TxtBranchCode");
-                                        String txtBranchName = json_data.getString("TxtBranchName");
-                                        String txtBranchSiteId = json_data.getString("TxtBranchSiteId");
-                                        String txtBranchCOA = json_data.getString("TxtBranchCOA");
-                                        String dtNonActive = json_data.getString("DtNonActive");
-
-                                        clsBranchAccess dataBranch = new clsBranchAccess();
-                                        dataBranch.setTxtBranchCode(txtBranchCode);
-                                        dataBranch.setIntBranchID(Integer.parseInt(intBranchID));
-                                        dataBranch.setDtNonActive(dtNonActive);
-                                        if (txtBranchCode.equals("HO")) {
-                                            dataBranch.setTxtBranchName("Head Office");
-                                        } else {
-                                            dataBranch.setTxtBranchName(txtBranchName);
-                                        }
-
-                                        dataBranch.setTxtBranchCOA(txtBranchCOA);
+                                        clsTypeLeave dataLeave = new clsTypeLeave();
+                                        dataLeave.setIntLeaveID(Integer.parseInt(typeLeaveId));
+                                        dataLeave.setBitActive(Integer.parseInt(bitactive));
+                                        dataLeave.setTxtLeaveCode(typeLeaveCode);
+                                        dataLeave.setTxtKeterangan(typeLevaeKeterangan);
+                                        dataLeave.setTxtLeaveName(typeLeaveName);
 
                                         try {
-                                            new clsBranchAccessRepo(getApplicationContext()).createOrUpdate(dataBranch);
+                                            new clsTypeLeaveRepo(getApplicationContext()).createOrUpdate(dataLeave);
                                         } catch (SQLException e) {
                                             e.printStackTrace();
                                         }
                                     }
                                 }
+                            }
 
+                            if (strLeave != null && !strLeave.equals("null")) {
+                                JSONObject jsonLeave = jsonObject1.getJSONObject("LeaveData");
+                                clsLeaveData dataLeave = new clsLeaveData();
+                                dataLeave.setBitActive(1);
+                                dataLeave.setLeaveId(Integer.parseInt(jsonLeave.getString("intLeaveId")));
+                                dataLeave.setTxtNIK(jsonLeave.getString("txtNIK"));
+                                dataLeave.setTxtTime(jsonLeave.getString("dtAbsenceDate"));
+                                dataLeave.setTxtKeterangan(jsonLeave.getString("Description"));
                                 try {
-                                    List<clsmVersionApp> appInfo = (List<clsmVersionApp>) repoVersionApp.findAll();
-                                    nameApp = appInfo.get(0).getTxtNameApp();
+                                    new clsLeaveDataRepo(getApplicationContext()).createOrUpdate(dataLeave);
                                 } catch (SQLException e) {
                                     e.printStackTrace();
                                 }
-                                String TxtGUI = jsonDataUserLogin.getString("TxtGUI");
-                                String TxtUserID = jsonDataUserLogin.getString("TxtUserID");
-                                String TxtJabatanID = jsonDataUserLogin.getString("TxtJabatanID");
-                                String TxtJabatanName = jsonDataUserLogin.getString("TxtJabatanName");
-                                String TxtUserName = jsonDataUserLogin.getString("TxtUserName");
-                                String TxtName = jsonDataUserLogin.getString("TxtName");
-                                String TxtEmail = jsonDataUserLogin.getString("TxtEmail");
-                                String TxtEmpID = jsonDataUserLogin.getString("TxtEmpID");
-                                String IntCabangID = jsonDataUserLogin.getString("IntCabangID");
-                                String TxtKodeCabang = jsonDataUserLogin.getString("TxtKodeCabang");
-                                String TxtNamaCabang = jsonDataUserLogin.getString("TxtNamaCabang");
-                                String DtLastLogin = jsonDataUserLogin.getString("DtLastLogin");
-                                String TxtDeviceId = jsonDataUserLogin.getString("TxtDeviceId");
-                                String TxtInsertedBy = jsonDataUserLogin.getString("TxtInsertedBy");
-                                clsUserLogin data = new clsUserLogin();
+                            }
 
-                                if (!bitMood.equals("null") && bitMood != null) {
-                                    int mood = Integer.parseInt(bitMood);
-                                    data.setBitMood(mood);
-                                    int moodId = Integer.parseInt(bitMoodId);
-                                    data.setIntMoodLogin(moodId);
-                                }
+                            if (jsonArrayBranchAccess.length() > 0) {
+                                for (int j = 0; j < jsonArrayBranchAccess.length(); j++) {
+                                    JSONObject json_data = jsonArrayBranchAccess.getJSONObject(j);
+                                    String intBranchID = json_data.getString("IntBranchID");
+                                    String txtBranchCode = json_data.getString("TxtBranchCode");
+                                    String txtBranchName = json_data.getString("TxtBranchName");
+                                    String txtBranchSiteId = json_data.getString("TxtBranchSiteId");
+                                    String txtBranchCOA = json_data.getString("TxtBranchCOA");
+                                    String dtNonActive = json_data.getString("DtNonActive");
 
-                                data.setTxtNameApp(nameApp);
-                                data.setTxtGUI(TxtGUI);
-                                data.setTxtUserID(TxtUserID);
-                                data.setJabatanId(TxtJabatanID);
-                                data.setJabatanName(TxtJabatanName);
-                                data.setIdUserLogin(1);
-                                data.setTxtUserName(TxtUserName);
-                                data.setTxtName(TxtName);
-                                data.setTxtEmail(TxtEmail);
-                                data.setEmployeeId(TxtEmpID);
-                                data.setIntCabangID(IntCabangID);
-                                data.setTxtKodeCabang(TxtKodeCabang);
-                                data.setTxtNamaCabang(TxtNamaCabang);
-                                DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-                                Calendar cal = Calendar.getInstance();
-                                data.setDtLastLogin(DtLastLogin);
-                                data.setTxtDeviceId(android.os.Build.MANUFACTURER + " " + android.os.Build.MODEL);
-                                data.setTxtInsertedBy(TxtInsertedBy);
-                                data.setDtInserted(dateFormat.format(cal.getTime()));
-
-                                repoLogin = new clsUserLoginRepo(getApplicationContext());
-                                int i = 0;
-                                i = repoLogin.createOrUpdate(data);
-                                if (i > -1) {
-                                    Log.d("Data info", "Data info berhasil di simpan");
-                                    Intent myIntent = new Intent(Login.this, MainMenu.class);
-                                    myIntent.putExtra("keyMainMenu", "login");
-                                    startActivity(myIntent);
-                                    finish();
-                                    if (!isMyServiceRunning(MyServiceNative.class)) {
-                                        startService(new Intent(Login.this, MyServiceNative.class));
+                                    clsBranchAccess dataBranch = new clsBranchAccess();
+                                    dataBranch.setTxtBranchCode(txtBranchCode);
+                                    dataBranch.setIntBranchID(Integer.parseInt(intBranchID));
+                                    dataBranch.setDtNonActive(dtNonActive);
+                                    if (txtBranchCode.equals("HO")) {
+                                        dataBranch.setTxtBranchName("Head Office");
+                                    } else {
+                                        dataBranch.setTxtBranchName(txtBranchName);
                                     }
-                                    boolean tes, tes2;
-                                    tes = isMyServiceRunning(MyServiceNative.class);
-                                }
-                                int done = -1;
-                                try {
-                                    if (!strLatest.equals("null") && strLatest != null) {
-                                        clsTrackingData trackingData = new clsTrackingData();
-                                        JSONObject jsonLatest = new JSONObject(strLatest);
-                                        if (!jsonLatest.getString("txtGuiIdLogin").equals("null") && jsonLatest.getString("txtGuiIdLogin") != null) {
-                                            trackingData.setGuiId(new clsMainActivity().GenerateGuid());
-                                            trackingData.setIntSubmit("1");
-                                            trackingData.setIntSync("0");
-                                            trackingData.setGuiIdLogin(jsonLatest.getString("txtGuiIdLogin"));
-                                            trackingData.setTxtBranchCode(jsonLatest.getString("txtBranchCode"));
-                                            int intSeq = Integer.parseInt(jsonLatest.getString("intSequence")) + 1;
-                                            trackingData.setIntSequence(intSeq);
-                                            trackingData.setTxtDeviceId(jsonLatest.getString("txtDeviceId"));
-                                            trackingData.setTxtTime(jsonLatest.getString("dtDate"));
-                                            trackingData.setTxtLatitude(jsonLatest.getString("txtLatitude"));
-                                            trackingData.setTxtLongitude(jsonLatest.getString("txtLongitude"));
-                                            trackingData.setTxtNIK(jsonLatest.getString("txtNIK"));
-                                            trackingData.setIntSync("1");
-                                            trackingData.setTxtUserId(jsonLatest.getString("txtUserId"));
-                                            trackingData.setTxtUsername(jsonLatest.getString("txtUsername"));
-                                            done = new clsTrackingDataRepo(getApplicationContext()).create(trackingData);
-                                        }
 
-                                        if (!jsonLatest.getString("ltAbsen").equals("null")) {
-                                            JSONArray jArray = jsonLatest.getJSONArray("ltAbsen");
-                                            int jACount = jArray.length();
-                                            if (jACount > 0) {
-                                                for (int a = 0; a < jArray.length(); a++) {
-                                                    JSONObject json_data = jArray.getJSONObject(a);
-                                                    String guiID = json_data.getString("txtGUI_ID");
-                                                    String outlet = json_data.getString("txtOutletName");
-                                                    String outletId = json_data.getString("txtOutletId");
-                                                    String dtCheckin = json_data.getString("dtCheckin");
-                                                    String dtCheckout = json_data.getString("dtCheckout");
-                                                    String intBitMoodIdlastCheckout = jsonLatest.getString("intBitMoodIdlastCheckout");
-                                                    clsLastCheckingData dataCheckin = new clsLastCheckingData();
-                                                    dataCheckin.setTxtGuiID(guiID);
-                                                    dataCheckin.setTxtOutletId(outletId);
-                                                    dataCheckin.setTxtOutletName(outlet);
-                                                    if (a==jArray.length()-1){
+                                    dataBranch.setTxtBranchCOA(txtBranchCOA);
+
+                                    try {
+                                        new clsBranchAccessRepo(getApplicationContext()).createOrUpdate(dataBranch);
+                                    } catch (SQLException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            }
+
+                            try {
+                                List<clsmVersionApp> appInfo = (List<clsmVersionApp>) repoVersionApp.findAll();
+                                nameApp = appInfo.get(0).getTxtNameApp();
+                            } catch (SQLException e) {
+                                e.printStackTrace();
+                            }
+                            String TxtGUI = jsonDataUserLogin.getString("TxtGUI");
+                            String TxtUserID = jsonDataUserLogin.getString("TxtUserID");
+                            String TxtJabatanID = jsonDataUserLogin.getString("TxtJabatanID");
+                            String TxtJabatanName = jsonDataUserLogin.getString("TxtJabatanName");
+                            String TxtUserName = jsonDataUserLogin.getString("TxtUserName");
+                            String TxtName = jsonDataUserLogin.getString("TxtName");
+                            String TxtEmail = jsonDataUserLogin.getString("TxtEmail");
+                            String TxtEmpID = jsonDataUserLogin.getString("TxtEmpID");
+                            String IntCabangID = jsonDataUserLogin.getString("IntCabangID");
+                            String TxtKodeCabang = jsonDataUserLogin.getString("TxtKodeCabang");
+                            String TxtNamaCabang = jsonDataUserLogin.getString("TxtNamaCabang");
+                            String DtLastLogin = jsonDataUserLogin.getString("DtLastLogin");
+                            String TxtDeviceId = jsonDataUserLogin.getString("TxtDeviceId");
+                            String TxtInsertedBy = jsonDataUserLogin.getString("TxtInsertedBy");
+                            clsUserLogin data = new clsUserLogin();
+
+                            if (!bitMood.equals("null") && bitMood != null) {
+                                int mood = Integer.parseInt(bitMood);
+                                data.setBitMood(mood);
+                                int moodId = Integer.parseInt(bitMoodId);
+                                data.setIntMoodLogin(moodId);
+                            }
+
+                            data.setTxtNameApp(nameApp);
+                            data.setTxtGUI(TxtGUI);
+                            data.setTxtUserID(TxtUserID);
+                            data.setJabatanId(TxtJabatanID);
+                            data.setJabatanName(TxtJabatanName);
+                            data.setIdUserLogin(1);
+                            data.setTxtUserName(TxtUserName);
+                            data.setTxtName(TxtName);
+                            data.setTxtEmail(TxtEmail);
+                            data.setEmployeeId(TxtEmpID);
+                            data.setIntCabangID(IntCabangID);
+                            data.setTxtKodeCabang(TxtKodeCabang);
+                            data.setTxtNamaCabang(TxtNamaCabang);
+                            DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+                            Calendar cal = Calendar.getInstance();
+                            data.setDtLastLogin(DtLastLogin);
+                            data.setTxtDeviceId(android.os.Build.MANUFACTURER + " " + android.os.Build.MODEL);
+                            data.setTxtInsertedBy(TxtInsertedBy);
+                            data.setDtInserted(dateFormat.format(cal.getTime()));
+
+                            repoLogin = new clsUserLoginRepo(getApplicationContext());
+                            int i = 0;
+                            i = repoLogin.createOrUpdate(data);
+                            if (i > -1) {
+                                Log.d("Data info", "Data info berhasil di simpan");
+                                Intent myIntent = new Intent(Login.this, MainMenu.class);
+                                myIntent.putExtra("keyMainMenu", "login");
+                                startActivity(myIntent);
+                                if (!isMyServiceRunning(MyServiceNative.class)) {
+                                    startService(new Intent(Login.this, MyServiceNative.class));
+                                }
+                                boolean tes, tes2;
+                                tes = isMyServiceRunning(MyServiceNative.class);
+                                finish();
+                            }
+                            int done = -1;
+                            try {
+                                if (!strLatest.equals("null") && strLatest != null) {
+                                    clsTrackingData trackingData = new clsTrackingData();
+                                    JSONObject jsonLatest = new JSONObject(strLatest);
+                                    if (!jsonLatest.getString("txtGuiIdLogin").equals("null") && jsonLatest.getString("txtGuiIdLogin") != null) {
+                                        trackingData.setGuiId(new clsMainActivity().GenerateGuid());
+                                        trackingData.setIntSubmit("1");
+                                        trackingData.setIntSync("0");
+                                        trackingData.setGuiIdLogin(jsonLatest.getString("txtGuiIdLogin"));
+                                        trackingData.setTxtBranchCode(jsonLatest.getString("txtBranchCode"));
+                                        int intSeq = Integer.parseInt(jsonLatest.getString("intSequence")) + 1;
+                                        trackingData.setIntSequence(intSeq);
+                                        trackingData.setTxtDeviceId(jsonLatest.getString("txtDeviceId"));
+                                        trackingData.setTxtTime(jsonLatest.getString("dtDate"));
+                                        trackingData.setTxtLatitude(jsonLatest.getString("txtLatitude"));
+                                        trackingData.setTxtLongitude(jsonLatest.getString("txtLongitude"));
+                                        trackingData.setTxtNIK(jsonLatest.getString("txtNIK"));
+                                        trackingData.setIntSync("1");
+                                        trackingData.setTxtUserId(jsonLatest.getString("txtUserId"));
+                                        trackingData.setTxtUsername(jsonLatest.getString("txtUsername"));
+                                        done = new clsTrackingDataRepo(getApplicationContext()).create(trackingData);
+                                    }
+
+                                    if (!jsonLatest.getString("ltAbsen").equals("null")) {
+                                        JSONArray jArray = jsonLatest.getJSONArray("ltAbsen");
+                                        int jACount = jArray.length();
+                                        if (jACount > 0) {
+                                            for (int a = 0; a < jArray.length(); a++) {
+                                                JSONObject json_data = jArray.getJSONObject(a);
+                                                String guiID = json_data.getString("txtGUI_ID");
+                                                String outlet = json_data.getString("txtOutletName");
+                                                String outletId = json_data.getString("txtOutletId");
+                                                String dtCheckin = json_data.getString("dtCheckin");
+                                                String dtCheckout = json_data.getString("dtCheckout");
+                                                String intBitMoodIdlastCheckout = jsonLatest.getString("intBitMoodIdlastCheckout");
+                                                clsLastCheckingData dataCheckin = new clsLastCheckingData();
+                                                dataCheckin.setTxtGuiID(guiID);
+                                                dataCheckin.setTxtOutletId(outletId);
+                                                dataCheckin.setTxtOutletName(outlet);
+                                                if (a == jArray.length() - 1) {
+                                                    if (!intBitMoodIdlastCheckout.equals("null") && intBitMoodIdlastCheckout != null) {
                                                         dataCheckin.setIntCheckoutMood(Integer.parseInt(intBitMoodIdlastCheckout));
                                                     }
-                                                    String dateString = "22/05/2014 11:49:00 AM";
-                                                    Date strdtCheckin = new Date();
-                                                    Date strdtCheckout = new Date();
-                                                    try {
-                                                        strdtCheckin = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").parse(dtCheckin);
-                                                        strdtCheckout= new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").parse(dtCheckout);
-                                                    } catch (ParseException e) {
-                                                        // TODO Auto-generated catch block
-                                                        e.printStackTrace();
-                                                    }
-
-                                                    dataCheckin.setDtCheckin(strdtCheckin);
-                                                    dataCheckin.setDtCheckout(strdtCheckout);
-                                                    dataCheckin.setBoolMoodCheckout("1");
-
-                                                    new clsLastCheckingDataRepo(getApplicationContext()).createOrUpdate(dataCheckin);
                                                 }
-                                            }
+                                                String dateString = "22/05/2014 11:49:00 AM";
+                                                Date strdtCheckin = new Date();
+                                                Date strdtCheckout = new Date();
+                                                try {
+                                                    if (!dtCheckin.equals("null")) {
+                                                        strdtCheckin = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").parse(dtCheckin);
+                                                    } else {
+                                                        strdtCheckin = null;
+                                                    }
+                                                    if (!dtCheckout.equals("null")) {
+                                                        strdtCheckout = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").parse(dtCheckout);
+                                                    } else {
+                                                        strdtCheckout = null;
+                                                    }
+                                                } catch (ParseException e) {
+                                                    // TODO Auto-generated catch block
+                                                    e.printStackTrace();
+                                                }
 
+                                                dataCheckin.setDtCheckin(strdtCheckin);
+                                                dataCheckin.setDtCheckout(strdtCheckout);
+                                                dataCheckin.setBoolMoodCheckout("1");
+
+                                                new clsLastCheckingDataRepo(getApplicationContext()).createOrUpdate(dataCheckin);
+                                            }
                                         }
-                                        if (!jsonLatest.getString("ltAbsenAll").equals("null")) {
-                                            JSONArray jArrayAll = jsonLatest.getJSONArray("ltAbsenAll");
-                                            if (jArrayAll.length() > 0) {
-                                                for (int a = 0; a < jArrayAll.length(); a++) {
-                                                    JSONObject json_data = jArrayAll.getJSONObject(a);
-                                                    String guiID = json_data.getString("txtGUI_ID");
-                                                    String outlet = json_data.getString("txtOutletName");
-                                                    String outletId = json_data.getString("txtOutletId");
-                                                    String dtCheckin = json_data.getString("dtCheckin");
-                                                    String dtCheckout = json_data.getString("dtCheckout");
-                                                    String txtLongitude = json_data.getString("txtLongitude");
-                                                    String txtLatitude = json_data.getString("txtLatitude");
-                                                    String txtDeviceId = json_data.getString("txtDeviceId");
-                                                    String txtDeviceName = json_data.getString("txtDeviceName");
-                                                    String txtUserId = json_data.getString("txtUserId");
+
+                                    }
+                                    if (!jsonLatest.getString("ltAbsenAll").equals("null")) {
+                                        JSONArray jArrayAll = jsonLatest.getJSONArray("ltAbsenAll");
+                                        if (jArrayAll.length() > 0) {
+                                            for (int a = 0; a < jArrayAll.length(); a++) {
+                                                JSONObject json_data = jArrayAll.getJSONObject(a);
+                                                String guiID = json_data.getString("txtGUI_ID");
+                                                String outlet = json_data.getString("txtOutletName");
+                                                String outletId = json_data.getString("txtOutletId");
+                                                String dtCheckin = json_data.getString("dtCheckin");
+                                                String dtCheckout = json_data.getString("dtCheckout");
+                                                String txtLongitude = json_data.getString("txtLongitude");
+                                                String txtLatitude = json_data.getString("txtLatitude");
+                                                String txtDeviceId = json_data.getString("txtDeviceId");
+                                                String txtDeviceName = json_data.getString("txtDeviceName");
+                                                String txtUserId = json_data.getString("txtUserId");
 
 //                                    String dateString = "22/05/2014 11:49:00 AM";
-                                                    SimpleDateFormat dateFormat2 = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
-                                                    Date convertedDate = new Date();
+                                                SimpleDateFormat dateFormat2 = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+                                                Date convertedDate = new Date();
 //                                                    try {
 //                                                        convertedDate = dateFormat.parse(dateString);
 //                                                    } catch (ParseException e) {
 //                                                        // TODO Auto-generated catch block
 //                                                        e.printStackTrace();
 //                                                    }
-                                                    Date dtCheckinD = null;
-                                                    if (!dtCheckin.equals("null")) {
-                                                        dtCheckinD = dateFormat2.parse(dtCheckin);
-                                                    }
-                                                    Date dtCheckoutD = null;
-                                                    if (!dtCheckout.equals("null")) {
-                                                        dtCheckoutD = dateFormat2.parse(dtCheckout);
-                                                    }
-                                                    clsReportData dataCheckin = new clsReportData();
-                                                    dataCheckin.setTxtGuiID(guiID);
-                                                    dataCheckin.setTxtOutletId(outletId);
-                                                    dataCheckin.setTxtOutletName(outlet);
-                                                    dataCheckin.setDtCheckin(dtCheckinD);
-                                                    dataCheckin.setDtCheckout(dtCheckoutD);
-                                                    dataCheckin.setTxtLongitude(txtLongitude);
-                                                    dataCheckin.setTxtLatitude(txtLatitude);
-                                                    dataCheckin.setTxtDeviceId(txtDeviceId);
-                                                    dataCheckin.setTxtDeviceName(txtDeviceName);
-                                                    dataCheckin.setTxtUserId(txtUserId);
-                                                    new clsReportDataRepo(getApplicationContext()).createOrUpdate(dataCheckin);
-
-
+                                                Date dtCheckinD = null;
+                                                if (!dtCheckin.equals("null")) {
+                                                    dtCheckinD = dateFormat2.parse(dtCheckin);
                                                 }
+                                                Date dtCheckoutD = null;
+                                                if (!dtCheckout.equals("null")) {
+                                                    dtCheckoutD = dateFormat2.parse(dtCheckout);
+                                                }
+                                                clsReportData dataCheckin = new clsReportData();
+                                                dataCheckin.setTxtGuiID(guiID);
+                                                dataCheckin.setTxtOutletId(outletId);
+                                                dataCheckin.setTxtOutletName(outlet);
+                                                dataCheckin.setDtCheckin(dtCheckinD);
+                                                dataCheckin.setDtCheckout(dtCheckoutD);
+                                                dataCheckin.setTxtLongitude(txtLongitude);
+                                                dataCheckin.setTxtLatitude(txtLatitude);
+                                                dataCheckin.setTxtDeviceId(txtDeviceId);
+                                                dataCheckin.setTxtDeviceName(txtDeviceName);
+                                                dataCheckin.setTxtUserId(txtUserId);
+                                                new clsReportDataRepo(getApplicationContext()).createOrUpdate(dataCheckin);
+
+
                                             }
                                         }
+                                    }
 
-
-                                        if (done > -1) {
-                                            new clsMainActivity().showCustomToast(getApplicationContext(), "Done", true);
-                                            if (!isMyServiceRunning(MyTrackingLocationService.class)) {
-                                                Intent a = new Intent(Login.this, MyTrackingLocationService.class);
-                                                startService(a);
-                                            }
-                                            if (!isMyServiceRunning(MyServiceNative.class)) {
-                                                Intent a = new Intent(Login.this, MyServiceNative.class);
-
-                                                startService(a);
-                                            }
-                                            boolean tes, tes2;
-                                            tes2 = isMyServiceRunning(MyTrackingLocationService.class);
-                                            // Reload current fragment
-                                            Fragment frg = null;
-//                                            frg = getFragmentManager().findFragmentByTag("FragmentInformation");
-//                                            final FragmentTransaction ft = getFragmentManager().beginTransaction();
-//
-// ft.detach(frg);
-//                                            ft.attach(frg);
-//                                            ft.commit();
-                                        }
-
-                                    } else {
+                                    done = 1;
+                                    if (done > -1) {
+                                        new clsMainActivity().showCustomToast(getApplicationContext(), "Done", true);
                                         if (!isMyServiceRunning(MyTrackingLocationService.class)) {
                                             Intent a = new Intent(Login.this, MyTrackingLocationService.class);
                                             startService(a);
                                         }
                                         if (!isMyServiceRunning(MyServiceNative.class)) {
                                             Intent a = new Intent(Login.this, MyServiceNative.class);
+
                                             startService(a);
                                         }
+                                        boolean tes, tes2;
+                                        tes2 = isMyServiceRunning(MyTrackingLocationService.class);
+                                        // Reload current fragment
+                                        Fragment frg = null;
+//                                            frg = getFragmentManager().findFragmentByTag("FragmentInformation");
+//                                            final FragmentTransaction ft = getFragmentManager().beginTransaction();
+//
+// ft.detach(frg);
+//                                            ft.attach(frg);
+//                                            ft.commit();
                                     }
-                                } catch (Exception ex) {
-                                    String a = "hihi";
+
+                                } else {
+                                    if (!isMyServiceRunning(MyTrackingLocationService.class)) {
+                                        Intent a = new Intent(Login.this, MyTrackingLocationService.class);
+                                        startService(a);
+                                    }
+                                    if (!isMyServiceRunning(MyServiceNative.class)) {
+                                        Intent a = new Intent(Login.this, MyServiceNative.class);
+                                        startService(a);
+                                    }
                                 }
-                            } else {
-                                new clsMainActivity().showCustomToast(getApplicationContext(), warn, false);
+                            } catch (Exception ex) {
+                                String a = "hihi";
+                                new clsMainActivity().showCustomToast(getApplicationContext(), ex.getMessage(), false);
+                                Intent homeIntent = new Intent(Intent.ACTION_MAIN);
+                                homeIntent.addCategory(Intent.CATEGORY_HOME);
+                                homeIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                startActivity(homeIntent);
                             }
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+                        } else {
+                            new clsMainActivity().showCustomToast(getApplicationContext(), warn, false);
                         }
+                    } catch (JSONException e) {
+                        new clsMainActivity().showCustomToast(getApplicationContext(), response, false);
+                        e.printStackTrace();
                     }
+                }
 //                if(!status){
 //                    new clsMainActivity().showCustomToast(getApplicationContext(), strErrorMsg, false);
 //                }
-                }
-            });
-        } else {
-            checkVersion();
-        }
+            }
+        });
+
 
     }
+
 
     public void checkVersion() {
         final ProgressDialog Dialog = new ProgressDialog(Login.this);
@@ -854,10 +950,11 @@ public class Login extends clsMainActivity {
                         clsmConfig configData = null;
 
                         try {
-                            configData = (clsmConfig) new clsmConfigRepo(getApplicationContext()).findById(enumConfigData.API_EF.getidConfigData());
-                            String linkOdd = configData.getTxtValue();
-                            String linkConvert = linkOdd.replace("api/","");
-                            linkDownload = linkConvert + new clsHardCode().linkDownloadApk;
+                            configData = (clsmConfig) new clsmConfigRepo(getApplicationContext()).findById(enumConfigData.API_AbsenWeb.getidConfigData());
+//                            String linkOdd = configData.getTxtValue();
+//                            String linkConvert = linkOdd.replace("api/","");
+//                            linkDownload = linkConvert + new clsHardCode().linkDownloadApk;
+                            linkDownload = configData.getTxtValue() + new clsHardCode().linkDownloadApk;
                         } catch (SQLException e) {
                             e.printStackTrace();
                         }
@@ -867,25 +964,26 @@ public class Login extends clsMainActivity {
                             String txtNameApp = jsonObject3.getString("TxtNameApp");
                             String txtVersion = jsonObject3.getString("TxtVersion");
                             String versionNow = pInfo.versionName;
-                            if  (!txtVersion.equals(versionNow)){
+                            if (!txtVersion.equals(versionNow)) {
                                 boolVersion = true;
-                                mProgressDialog = new ProgressDialog(Login.this);
-                                mProgressDialog.setMessage("Please Wait For Downloading File....");
-                                mProgressDialog.setIndeterminate(true);
-                                mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-                                mProgressDialog.setCancelable(false);
-
-                                // execute this when the downloader must be fired
-                                final DownloadTask downloadTask = new DownloadTask(Login.this);
-                                downloadTask.execute(linkDownload);
-
-                                mProgressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
-                                    @Override
-                                    public void onCancel(DialogInterface dialog) {
-                                        downloadTask.cancel(true);
-                                    }
-                                });
-                            }else {
+                                getLinkAPK();
+//                                mProgressDialog = new ProgressDialog(Login.this);
+//                                mProgressDialog.setMessage("Please Wait For Downloading File....");
+//                                mProgressDialog.setIndeterminate(true);
+//                                mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+//                                mProgressDialog.setCancelable(false);
+//
+//                                // execute this when the downloader must be fired
+//                                final DownloadTask downloadTask = new DownloadTask(Login.this);
+//                                downloadTask.execute(linkDownload);
+//
+//                                mProgressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+//                                    @Override
+//                                    public void onCancel(DialogInterface dialog) {
+//                                        downloadTask.cancel(true);
+//                                    }
+//                                });
+                            } else {
                                 String txtFile = jsonObject3.getString("TxtFile");
                                 String bitActive = jsonObject3.getString("BitActive");
                                 String txtInsertedBy = jsonObject3.getString("TxtInsertedBy");
@@ -910,7 +1008,7 @@ public class Login extends clsMainActivity {
                                 } catch (SQLException e) {
                                     e.printStackTrace();
                                 }
-                                if (i > -1 && j > -1 ) {
+                                if (i > -1 && j > -1) {
                                     Log.d("Data info", "Data info berhasil di simpan");
                                     status = true;
                                     GPSManager gps = new GPSManager(
@@ -931,13 +1029,13 @@ public class Login extends clsMainActivity {
                         e.printStackTrace();
                     }
                 }
-                if(!boolVersion){
+                if (!boolVersion) {
                     if (!status) {
                         new clsMainActivity().showCustomToast(getApplicationContext(), "Connection Failed, please check your network !", false);
                     } else {
                         new clsMainActivity().showCustomToast(getApplicationContext(), "Connected, you ready to login", true);
                     }
-                }else{
+                } else {
                     new clsMainActivity().showCustomToast(getApplicationContext(), "Updating App", true);
                 }
 
@@ -1025,6 +1123,7 @@ public class Login extends clsMainActivity {
                 // download the file
                 input = connection.getInputStream();
                 String txtPath = new clsHardCode().txtPathUserData;
+
                 File mediaStorageDir = new File(txtPath);
                 // Create the storage directory if it does not exist
                 if (!mediaStorageDir.exists()) {
@@ -1032,7 +1131,7 @@ public class Login extends clsMainActivity {
                         return null;
                     }
                 }
-                output = new FileOutputStream(txtPath + "kalbespgmobile.apk");
+                output = new FileOutputStream(txtPath + "KalbeNutritionalsHRIS.apk");
 
                 byte data[] = new byte[4096];
                 long total = 0;
@@ -1096,21 +1195,81 @@ public class Login extends clsMainActivity {
             if (result != null)
                 showToast(context, "Download error: " + result);
             else {
-                showToast(context, "File downloaded");
-                Intent intent = new Intent(Intent.ACTION_VIEW);
-                String txtPath = new clsHardCode().txtPathUserData + "kalbespgmobile.apk";
-                intent.setDataAndType(Uri.fromFile(new File(txtPath)), "application/vnd.android.package-archive");
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//                Intent intentFinal = null;
+//
+//                if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+//                    try {
+//                        Intent intent = new Intent(Intent.ACTION_INSTALL_PACKAGE);
+//                        String txtPath = new clsHardCode().txtPathUserData + "KalbeNutritionalsHRIS.apk";
+//                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+//
+//                        File file = new File(txtPath);
+//                        Uri uri = getUriForFile(context, BuildConfig.APPLICATION_ID + ".provider", file);
+//                        intent.setData(uri);
+//
+//                        intentFinal = intent;
+//                    } catch (Exception e) {
+//                        e.printStackTrace();
+//                    }
+//                } else {
+//                    Intent intent = new Intent(Intent.ACTION_VIEW);
+//                    String txtPath = new clsHardCode().txtPathUserData + "KalbeNutritionalsHRIS.apk";
+////                    String txtPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)+"/KalbeNutritionalsHRIS.apk";
+//                    intent.setDataAndType(Uri.fromFile(new File(txtPath)), "application/vnd.android.package-archive");
+//                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//                    intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+//
+//                    if (Build.VERSION.SDK_INT >= 24) {
+//                        intent.setDataAndType(getUriForFile(context, context.getApplicationContext().getPackageName() + ".provider", new File(txtPath)), "application/vnd.android.package-archive");
+//                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+//                    } else {
+//                        intent.setDataAndType(Uri.fromFile(new File(txtPath)), "application/vnd.android.package-archive");
+////                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+//                    }
+//                    intentFinal = intent;
+//                }
+//
+//                //intent.setDataAndType(Uri.fromFile(new File(txtPath)), "application/vnd.android.package-archive");
+//                if(intentFinal!=null){
+//                    startActivity(intentFinal);
+//                } else {
+//                    showToast(context, "Failed to Install");
+//                }
+//                //intent.setDataAndType(Uri.fromFile(new File(txtPath)), "application/vnd.android.package-archive");
+//
+//                startActivity(intentFinal);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    showToast(context, "File downloaded");
+                    try {
+                        Intent intent = new Intent(Intent.ACTION_INSTALL_PACKAGE);
+                        String txtPath = new clsHardCode().txtPathUserData + "KalbeNutritionalsHRIS.apk";
+                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
-                if (Build.VERSION.SDK_INT >= 24) {
-                    intent.setDataAndType(FileProvider.getUriForFile(context, context.getApplicationContext().getPackageName() + ".provider", new File(txtPath)), "application/vnd.android.package-archive");
-                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        File file = new File(txtPath);
+                        Uri uri = FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".provider", file);
+                        intent.setData(uri);
+
+                        startActivity(intent);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 } else {
+                    showToast(context, "File downloaded");
+                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                    String txtPath = new clsHardCode().txtPathUserData + "KalbeNutritionalsHRIS.apk";
                     intent.setDataAndType(Uri.fromFile(new File(txtPath)), "application/vnd.android.package-archive");
-                }
-                //intent.setDataAndType(Uri.fromFile(new File(txtPath)), "application/vnd.android.package-archive");
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
-                startActivity(intent);
+                    if (Build.VERSION.SDK_INT >= 24) {
+                        intent.setDataAndType(FileProvider.getUriForFile(context, context.getApplicationContext().getPackageName() + ".provider", new File(txtPath)), "application/vnd.android.package-archive");
+                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    } else {
+                        intent.setDataAndType(Uri.fromFile(new File(txtPath)), "application/vnd.android.package-archive");
+                    }
+                    //intent.setDataAndType(Uri.fromFile(new File(txtPath)), "application/vnd.android.package-archive");
+
+                    startActivity(intent);
+                }
             }
         }
     }

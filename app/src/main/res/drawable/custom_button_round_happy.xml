@@ -4,7 +4,7 @@
 
     <gradient
         android:angle="270"
-        android:endColor="@android:color/darker_gray"
+        android:endColor="@color/AliceBlue"
         android:startColor="@color/Gold" />
 
     <corners android:radius="10dp" />
@@ -17,6 +17,6 @@
 
     <stroke
         android:width="2dp"
-        android:color="@color/blue_btn_bg_color" />
+        android:color="@color/AntiqueWhite" />
 
 </shape>

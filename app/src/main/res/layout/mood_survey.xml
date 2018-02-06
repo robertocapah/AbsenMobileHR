@@ -33,18 +33,19 @@
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Sick"
-            android:id="@+id/btnSick"
-            android:background="@drawable/custom_button_round_sick"
-            android:layout_margin="5dp"
-            />
+            android:background="@drawable/custom_button_round_joy"
+            android:text="Excited"
+            android:id="@+id/btnCool"
+            android:layout_margin="5dp"/>
+
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/custom_button_round_lazy"
-            android:text="Lazy"
-            android:id="@+id/btnLazy"
+            android:background="@drawable/custom_button_round_happy"
+            android:text="Happy"
+            android:id="@+id/btnHappy"
             android:layout_margin="5dp"/>
+
 
 
     </LinearLayout>
@@ -58,24 +59,26 @@
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:background="@drawable/custom_button_round_lazy"
+            android:text="Satisfied"
+            android:id="@+id/btnLazy"
+            android:layout_margin="5dp"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tired"
+            android:id="@+id/btnSick"
+            android:background="@drawable/custom_button_round_sick"
+            android:layout_margin="5dp"
+            />
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:background="@drawable/custom_button_round_sad"
             android:text="Sad"
             android:id="@+id/btnSad"
             android:layout_margin="5dp"/>
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@drawable/custom_button_round_joy"
-            android:text="Cool"
-            android:id="@+id/btnCool"
-            android:layout_margin="5dp"/>
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@drawable/custom_button_round_happy"
-            android:text="Happy"
-            android:id="@+id/btnHappy"
-            android:layout_margin="5dp"/>
+
         </LinearLayout>
     <LinearLayout
         android:layout_width="wrap_content"

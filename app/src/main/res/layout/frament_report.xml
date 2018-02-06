@@ -27,6 +27,7 @@
                 android:hint="Start Date"
                 android:id="@+id/dtStart"
                 android:clickable="true"
+                android:focusable="false"
                 android:cursorVisible="false"
                 android:background="@drawable/bg_edtext"
                 android:layout_weight="2"
@@ -43,6 +44,7 @@
                 android:layout_height="wrap_content"
                 android:hint="End Date"
                 android:id="@+id/dtEnd"
+                android:focusable="false"
                 android:cursorVisible="false"
                 android:background="@drawable/bg_edtext"
                 android:layout_weight="2"/>
@@ -64,7 +66,8 @@
             android:id="@+id/lnOutlet"
             android:layout_below="@id/lnDate"
             android:layout_marginTop="10dp"
-            android:gravity="left">
+            android:gravity="left"
+            android:visibility="gone">
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -152,7 +155,6 @@
                     android:layout_gravity="center_horizontal"/>
             </TableRow>
             <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                android:id="@+id/tlResume"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/tlheader"
@@ -162,11 +164,12 @@
                     android:background="#ffffff"
                     android:padding="5dp">
                     <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Location"
-                        android:textStyle="bold"/>
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1.5"
+                    android:visibility="visible"
+                    android:text="Date"
+                    android:textStyle="bold"/>
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -179,6 +182,55 @@
                         android:layout_weight="1"
                         android:text="Time Check out"
                         android:textStyle="bold"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Keterangan"
+                        android:textStyle="bold"/>
+                    <!--<TextView-->
+                    <!--android:layout_width="wrap_content"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:layout_weight="1"-->
+                    <!--android:text="Longitude"-->
+                    <!--android:textStyle="bold"/>-->
+                    <!--<TextView-->
+                    <!--android:layout_width="wrap_content"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:layout_weight="1"-->
+                    <!--android:text="Latitude"-->
+                    <!--android:textStyle="bold"/>-->
+                </TableRow>
+            </TableLayout>
+            <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:id="@+id/tlResume"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/tlheader"
+                android:background="@drawable/bg_rounded_normal">
+
+                <TableRow
+                    android:background="#ffffff"
+                    android:padding="5dp">
+                    <!--<TextView-->
+                        <!--android:layout_width="wrap_content"-->
+                        <!--android:layout_height="wrap_content"-->
+                        <!--android:layout_weight="1"-->
+                        <!--android:visibility="gone"-->
+                        <!--android:text="Location"-->
+                        <!--android:textStyle="bold"/>-->
+                    <!--<TextView-->
+                        <!--android:layout_width="wrap_content"-->
+                        <!--android:layout_height="wrap_content"-->
+                        <!--android:layout_weight="1"-->
+                        <!--android:text="Time Check in"-->
+                        <!--android:textStyle="bold"/>-->
+                    <!--<TextView-->
+                        <!--android:layout_width="wrap_content"-->
+                        <!--android:layout_height="wrap_content"-->
+                        <!--android:layout_weight="1"-->
+                        <!--android:text="Time Check out"-->
+                        <!--android:textStyle="bold"/>-->
                     <!--<TextView-->
                         <!--android:layout_width="wrap_content"-->
                         <!--android:layout_height="wrap_content"-->

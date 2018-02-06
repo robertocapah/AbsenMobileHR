@@ -13,7 +13,7 @@ ext {
 android {
 
     compileSdkVersion 24
-    buildToolsVersion '24.0.1'
+    buildToolsVersion '26.0.2'
     defaultConfig {
         minSdkVersion 10
         targetSdkVersion 24
@@ -26,6 +26,7 @@ android {
     }
     lintOptions {
         abortOnError false
+        disable 'MissingTranslation'
     }
 }
 
@@ -48,5 +49,6 @@ publishing {
 
 dependencies {
     compile 'com.android.support:appcompat-v7:24.1.1'
+    compile project(':zXingLib')
 }
 

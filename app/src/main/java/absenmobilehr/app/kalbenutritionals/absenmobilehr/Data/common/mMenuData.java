@@ -64,7 +64,6 @@ public class mMenuData {
 
 	public mMenuData() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 	private Long _IntOrder;
 	private Long _IntParentID;

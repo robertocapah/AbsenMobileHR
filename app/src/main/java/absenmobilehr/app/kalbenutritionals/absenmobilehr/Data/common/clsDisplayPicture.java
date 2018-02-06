@@ -11,7 +11,7 @@ import java.io.Serializable;
  */
 @DatabaseTable
 public class clsDisplayPicture implements Serializable {
-    @DatabaseField(columnName = "id")
+    @DatabaseField(columnName = "id", id = true)
     private int id;
 
     @DatabaseField(columnName = "image", dataType = DataType.BYTE_ARRAY)

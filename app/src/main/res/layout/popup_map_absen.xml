@@ -35,6 +35,30 @@
                 android:layout_alignParentEnd="true"
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentStart="true" />
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/lnLegend"
+                android:orientation="vertical"
+                android:visibility="gone">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Outlet"
+                    android:visibility="gone"
+                    android:drawableLeft="@drawable/green_square"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="First Checkin"
+                    android:drawableLeft="@drawable/cyan_square"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Last Checkin"
+                    android:drawableLeft="@drawable/violet_square"/>
+            </LinearLayout>
+
         </RelativeLayout>
     </addons.maps.MyMapFragmentContainer>
 </RelativeLayout>

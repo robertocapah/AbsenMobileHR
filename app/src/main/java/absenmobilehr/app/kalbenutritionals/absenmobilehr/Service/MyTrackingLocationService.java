@@ -26,9 +26,11 @@ import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Timer;
 
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.GpsManager.LocationHelper;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.clsHardCode;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsTrackingData;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsUserLogin;
@@ -47,7 +49,8 @@ import static com.android.volley.VolleyLog.TAG;
 
 public class MyTrackingLocationService extends Service implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
     List<clsUserLogin> dtLogin;
-
+    private LocationHelper locationHelper;
+    boolean mockStatus = false;
     public MyTrackingLocationService() {
 
     }
@@ -76,7 +79,7 @@ public class MyTrackingLocationService extends Service implements GoogleApiClien
 
     private Location mLastLocation;
     Handler mHandler = new Handler();
-    private final static int INTERVAL = 1000 * 60; //2 minutes
+    private final static int INTERVAL = 120000;
     private static long UPDATE_INTERVAL = 1 * 360 * 1000;
     ;  //default
     private static long UPDATE_INTERVAL_TESTING = /*1000 * 60 * 2*/3000; //2 minutes
@@ -89,12 +92,16 @@ public class MyTrackingLocationService extends Service implements GoogleApiClien
     private void startService() throws JSONException {
         try {
             doService();
+            Date currentTime = Calendar.getInstance().getTime();
+            Log.i(TAG, "Tracking Do Service Run time : - " + currentTime.toString());
         } catch (JSONException e) {
             e.printStackTrace();
         }
     }
 
     private void doService() throws JSONException {
+        locationHelper = new LocationHelper(this);
+        mLastLocation = getLocation();
         SQLiteDatabase db;
         String versionName = "";
         try {
@@ -131,10 +138,13 @@ public class MyTrackingLocationService extends Service implements GoogleApiClien
         }
 //        db.close();
     }
-
-    public Location trackingLocation() {
+    public Location getLocation() {
+        locationHelper.getLocation();
+        Location location2 = null;
+        Location location = null;
         try {
-            LocationManager locationManager = (LocationManager) this.getSystemService(LOCATION_SERVICE);
+            LocationManager locationManager = (LocationManager) this
+                    .getSystemService(LOCATION_SERVICE);
 
             // getting GPS status
             boolean isGPSEnabled = locationManager
@@ -144,15 +154,16 @@ public class MyTrackingLocationService extends Service implements GoogleApiClien
             boolean isNetworkEnabled = locationManager
                     .isProviderEnabled(LocationManager.NETWORK_PROVIDER);
             boolean canGetLocation = false;
-            Location location = null;
+
 
             if (!isGPSEnabled && !isNetworkEnabled) {
                 // no network provider is enabled
-                new clsMainActivity().showCustomToast(getApplicationContext(), "no network provider is enabled", false);
+                new clsMainActivity().showCustomToast(this, "no network provider is enabled", false);
             } else {
                 canGetLocation = true;
+
                 if (isNetworkEnabled) {
-                    if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                     }
                     locationManager.requestLocationUpdates(
                             LocationManager.NETWORK_PROVIDER,
@@ -160,9 +171,13 @@ public class MyTrackingLocationService extends Service implements GoogleApiClien
                             0, this);
                     Log.d("Network", "Network Enabled");
                     if (locationManager != null) {
-                        mLastLocation = locationManager
+                        location = locationManager
                                 .getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
                         if (location != null) {
+                            /*if (mLastLocation != null){
+                                mLastLocation.reset();
+                            }*/
+                            mLastLocation = location;
                             double latitude = location.getLatitude();
                             double longitude = location.getLongitude();
                         }
@@ -170,27 +185,112 @@ public class MyTrackingLocationService extends Service implements GoogleApiClien
                 }
                 // if GPS Enabled get lat/long using GPS Services
                 if (isGPSEnabled) {
-                    if (mLastLocation == null) {
-                        locationManager.requestLocationUpdates(
-                                LocationManager.GPS_PROVIDER,
-                                1000,
-                                0, this);
-                        Log.d("GPS", "GPS Enabled");
-                        if (locationManager != null) {
-                            location = locationManager
-                                    .getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                            if (location != null) {
-                                double latitude = location.getLatitude();
-                                double longitude = location.getLongitude();
+
+                    if (location != null) {
+//                        if (mLastLocation != null){
+//                            mLastLocation.reset();
+                            mLastLocation = location;
+//                        }
+                    }else{
+                        if (mLastLocation == null) {
+                            locationManager.requestLocationUpdates(
+                                    LocationManager.GPS_PROVIDER,
+                                    1000,
+                                    0, this);
+                            Log.d("GPS", "GPS Enabled");
+                            if (locationManager != null) {
+                                location2 = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                                if (location2 != null){
+                                    mLastLocation = location2;
+                                }else{
+//                                    new clsMainActivity().showCustomToast(this,"Your GPS off", false);
+                                }
+
                             }
                         }
                     }
+
+                }else{
+                    new clsMainActivity().showCustomToast(this,"Your GPS off", false);
                 }
+                if (location == null && location2 == null){
+//                    new clsMainActivity().showCustomToast(this,"No Location, please restart your phone", false);
+                    locationHelper.getLocation();
+                }
+
             }
 
         } catch (Exception e) {
             e.printStackTrace();
         }
+        if(mLastLocation!=null){
+            int intOs = Integer.valueOf(android.os.Build.VERSION.SDK);
+            if(intOs >=18){
+                mockStatus = mLastLocation.isFromMockProvider();
+            }
+        }
+        return mLastLocation;
+    }
+    public Location trackingLocation() {
+//        try {
+//            LocationManager locationManager = (LocationManager) this.getSystemService(LOCATION_SERVICE);
+//
+//            // getting GPS status
+//            boolean isGPSEnabled = locationManager
+//                    .isProviderEnabled(LocationManager.GPS_PROVIDER);
+//
+//            // getting network status
+//            boolean isNetworkEnabled = locationManager
+//                    .isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+//            boolean canGetLocation = false;
+//            Location location = null;
+//
+//            if (!isGPSEnabled && !isNetworkEnabled) {
+//                // no network provider is enabled
+//                new clsMainActivity().showCustomToast(getApplicationContext(), "no network provider is enabled", false);
+//            } else {
+//                canGetLocation = true;
+//                if (isNetworkEnabled) {
+//                    if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+//                    }
+//                    locationManager.requestLocationUpdates(
+//                            LocationManager.NETWORK_PROVIDER,
+//                            1000,
+//                            0, this);
+//                    Log.d("Network", "Network Enabled");
+//                    if (locationManager != null) {
+//                        mLastLocation = locationManager
+//                                .getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+//                        if (location != null) {
+//                            double latitude = location.getLatitude();
+//                            double longitude = location.getLongitude();
+//                        }
+//                    }
+//                }
+//                // if GPS Enabled get lat/long using GPS Services
+//                if (isGPSEnabled) {
+//                    if (mLastLocation == null) {
+//                        locationManager.requestLocationUpdates(
+//                                LocationManager.GPS_PROVIDER,
+//                                1000,
+//                                0, this);
+//                        Log.d("GPS", "GPS Enabled");
+//                        if (locationManager != null) {
+//                            location = locationManager
+//                                    .getLastKnownLocation(LocationManager.GPS_PROVIDER);
+//                            if (location != null) {
+//                                double latitude = location.getLatitude();
+//                                double longitude = location.getLongitude();
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+
 
         clsTrackingData dataLocation = new clsTrackingData();
         clsUserLogin dataUserActive = new clsUserLoginRepo(getApplicationContext()).getDataLogin(getApplicationContext());
@@ -230,7 +330,7 @@ public class MyTrackingLocationService extends Service implements GoogleApiClien
                     if (dataUserActive.getTxtGUI() != null){
                         try{
                             new clsTrackingDataRepo(getApplicationContext()).create(dataLocation);
-                            Log.i(TAG, "Tracking jam : - " + dataLocation.getTxtTime() +" sequence ke "+dataLocation.getIntSequence()+".. baper gw ");
+                            Log.i(TAG, "Tracking jam : - " + dataLocation.getTxtTime() +" sequence ke "+dataLocation.getIntSequence()+".. yes ");
                         }catch (SQLException e){
                             e.printStackTrace();
                         }
@@ -262,7 +362,7 @@ public class MyTrackingLocationService extends Service implements GoogleApiClien
                     if (dataUserActive.getTxtGUI() != null){
                         try{
                             new clsTrackingDataRepo(getApplicationContext()).create(dataLocation);
-                            Log.i(TAG, "Tracking jam : - " + dataLocation.getTxtTime() +" sequence ke "+dataLocation.getIntSequence()+".. baper gw ");
+                            Log.i(TAG, "Tracking jam : - " + dataLocation.getTxtTime() +" sequence ke "+dataLocation.getIntSequence()+".. Semangat kk ");
                         }catch (SQLException e){
                             e.printStackTrace();
                         }
@@ -342,7 +442,11 @@ public class MyTrackingLocationService extends Service implements GoogleApiClien
 
     @Override
     public void onLocationChanged(Location location) {
-        mLastLocation = location;
+        if (location != null){
+            mLastLocation = location;
+            Log.i("latitude,longitude",location.getLatitude()+","+location.getLongitude());
+        }
+
     }
 
     @Override

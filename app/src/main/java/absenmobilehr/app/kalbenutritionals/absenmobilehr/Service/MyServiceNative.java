@@ -122,7 +122,7 @@ public class MyServiceNative extends Service {
                     public void onResponse(String response, Boolean status, String strErrorMsg) {
                         String res = response;
 
-                        Log.i(TAG, "balikan data push dari server : - " + response +".. jangan baper ya ");
+                        Log.i(TAG, "balikan data push dari server : - " + response +".. Ganteng banget ! ");
                         clsAbsenData absenData = new clsAbsenData();
                         clsTrackingData trackingData = new clsTrackingData();
 //                clsUserLogin userLogin = new clsUserLogin();

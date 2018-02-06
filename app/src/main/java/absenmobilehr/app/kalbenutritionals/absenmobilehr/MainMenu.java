@@ -2,22 +2,31 @@ package absenmobilehr.app.kalbenutritionals.absenmobilehr;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
+import android.app.Activity;
 import android.app.ActivityManager;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Vibrator;
+import android.os.Environment;
+import android.os.StrictMode;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
@@ -31,6 +40,7 @@ import android.view.SubMenu;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.StringRequest;
@@ -43,18 +53,26 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.DatabaseHelper;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.DatabaseManager;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.GpsManager.LocationHelper;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.VolleyResponseListener;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.VolleyUtils;
+import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.bl.clsActivity;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.clsHardCode;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.clsHelper;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.common.clsAbsenData;
@@ -85,6 +103,7 @@ import absenmobilehr.app.kalbenutritionals.absenmobilehr.Service.MyServiceNative
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.Service.MyTrackingLocationService;
 import cn.pedant.SweetAlert.SweetAlertDialog;
 import de.hdodenhof.circleimageview.CircleImageView;
+import gun0912.tedbottompicker.TedBottomPicker;
 
 import static com.android.volley.VolleyLog.TAG;
 
@@ -94,23 +113,28 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
     private DrawerLayout drawerLayout;
     private clsUserLogin dttAbsenUserData;
     SweetAlertDialog pDialog;
-
+    clsDisplayPictureRepo displayPictureRepo;
+    List<clsDisplayPicture> dataImageProfile = null;
     private TextView tvUsername, tvEmail;
     private CircleImageView ivProfile;
-    private List<clsDisplayPicture> tDisplayPictureData;
-
+    private static byte[] phtProfile;
+    private static Bitmap photoProfile, mybitmapImageProfile;
     PackageInfo pInfo = null;
-
+    private Uri uriImage, selectedImage;
+    final int PIC_CROP_PROFILE = 5;
     int selectedId;
+    private static ByteArrayOutputStream output = new ByteArrayOutputStream();
     private static int menuId = 0;
     Boolean isSubMenu = false;
-
+    private static final int CAMERA_REQUEST_PROFILE = 120;
+    private static final String IMAGE_DIRECTORY_NAME = "Image Personal";
+    final int SELECT_FILE_PROFILE = 6;
     clsMainActivity _clsMainActivity = new clsMainActivity();
     List<clsUserLogin> dataLogin= null;
     List<clsmVersionApp> dataInfo = null;
     String[] listMenu;
     String[] linkMenu;
-
+    private LocationHelper locationHelper;
     private GoogleApiClient client;
 
     String i_view = null;
@@ -146,6 +170,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        locationHelper = new LocationHelper(this);
         selectedId = 0;
         pDialog = new SweetAlertDialog(this, SweetAlertDialog.PROGRESS_TYPE);
         if(new DeviceUtils().isDeviceRooted(getApplicationContext())){
@@ -184,6 +209,15 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         tvEmail = (TextView) vwHeader.findViewById(R.id.email);
         clsUserLoginRepo repo = new clsUserLoginRepo(getApplicationContext());
         clsmVersionAppRepo repoVersionInfo = new clsmVersionAppRepo(getApplicationContext());
+
+        phtProfile = null;
+
+        if (photoProfile != null) {
+            ivProfile.setImageBitmap(photoProfile);
+            photoProfile.compress(Bitmap.CompressFormat.PNG, 100, output);
+            phtProfile = output.toByteArray();
+        }
+
         try {
             dataLogin = (List<clsUserLogin>) repo.findAll();
             dataInfo = (List<clsmVersionApp>) repoVersionInfo.findAll();
@@ -196,10 +230,28 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         }
 
         try {
-            tDisplayPictureData = (List<clsDisplayPicture>) new clsDisplayPictureRepo(getApplicationContext()).findAll();
+            dataImageProfile = (List<clsDisplayPicture>) new clsDisplayPictureRepo(getApplicationContext()).findAll();
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        try {
+            displayPictureRepo = new clsDisplayPictureRepo(getApplicationContext());
+            dataImageProfile = (List<clsDisplayPicture>) displayPictureRepo.findAll();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        if (dataImageProfile.size() > 0) {
+            viewImageProfile();
+        }
+        ivProfile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //selectImageProfile();
+                tedChooserPicture();
+            }
+        });
+
 //        if (tDisplayPictureData.size() > 0 && tDisplayPictureData.get(0).getImage() != null) {
 //            Bitmap bitmap = BitmapFactory.decodeByteArray(tDisplayPictureData.get(0).getImage(), 0, tDisplayPictureData.get(0).getImage().length);
 //            ivProfile.setImageBitmap(bitmap);
@@ -459,6 +511,13 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
 //                                        clsDeviceInfo dataDeviceInfoUser = new clsDeviceInfoRepo(context).getDataDevice(context);
                                         clsAbsenOnline dataAbsenOnline = new clsAbsenOnlineRepo(getApplicationContext()).getDataCheckinActive(getApplicationContext());
                                         String strLinkAPI = linkCheckinData;
+                                        String versionName = "";
+                                        try {
+                                            versionName = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+                                        } catch (PackageManager.NameNotFoundException e2) {
+                                            // TODO Auto-generated catch block
+                                            e2.printStackTrace();
+                                        }
                                         JSONObject resJson = new JSONObject();
                                         try {
                                             DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
@@ -467,6 +526,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
 
                                             resJson.put("txtTime", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cal.getTime()));
                                             resJson.put("guiId",dataAbsenOnline.getTxtGuiId());
+                                            resJson.put("versionName",versionName);
                                             resJson.put("guiIdLogin",dataAbsenOnline.getTxtGuiIdLogin());
                                             resJson.put(dataUserActive.Property_employeeId,dataUserActive.getEmployeeId());
                                             resJson.put(dataUserActive.Property_txtUserName,dataUserActive.getTxtUserName());
@@ -493,6 +553,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                                             JSONObject obj = new JSONObject(response);
 
                                                             String txtGUI_ID = obj.getString("txtGUI_ID");
+                                                            String dtInserted = obj.getString("dtInserted");
                                                             data.setTxtGuiId(obj.getString("txtGUI_ID"));
                                                             data.setTxtGuiIdLogin(obj.getString("txtGuiIdLogin"));
                                                             data.setSync("1");
@@ -502,14 +563,21 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                                             Calendar cal = Calendar.getInstance();
                                                             data.setDtCheckout(dateFormat.format(cal.getTime()));
                                                             clsLastCheckingData dataChekin = null;
+                                                            SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+                                                            Date date = null;
+                                                            try {
+                                                                date= sdf2.parse(dtCheckout);
+                                                            } catch (ParseException e) {
+                                                                e.printStackTrace();
+                                                            }
                                                             try {
                                                                 dataChekin = new clsLastCheckingDataRepo(getApplicationContext()).findByGUIId(txtGUI_ID);
                                                                 dataChekin.setTxtGuiID(obj.getString("txtGUI_ID"));
-                                                                dataChekin.setDtCheckout(cal.getTime());
+                                                                dataChekin.setDtCheckout(date);
                                                                 new clsLastCheckingDataRepo(getApplicationContext()).update(dataChekin);
-                                                                Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-                                                                // Vibrate for 500 milliseconds
-                                                                v.vibrate(500);
+//                                                                Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+//                                                                // Vibrate for 500 milliseconds
+//                                                                v.vibrate(500);
                                                             } catch (SQLException e) {
                                                                 e.printStackTrace();
                                                             }
@@ -520,6 +588,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
                                                                 myIntent.putExtra("checkout","true");
                                                                 myIntent.putExtra("GUI",txtGUI_ID);
                                                                 startActivity(myIntent);
+                                                                finish();
                                                                 new clsMainActivity().showCustomToast(getApplicationContext(),"Checkout success !", true);
                                                             } catch (SQLException e) {
                                                                 e.printStackTrace();
@@ -584,10 +653,303 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         actionBarDrawerToggle.syncState();
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
+
+//    @Override
+//    protected void onResume() {
+//        locationHelper.register();
+//    }
+//
+//    @Override
+//    protected void onPause() {
+//        locationHelper.unregister();
+//    }
+
+    private void selectImageProfile() {
+
+        final CharSequence[] items = { "Ambil Foto", "Pilih dari Galeri",
+                "Batal" };
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Add Photo");
+        builder.setItems(items, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int item) {
+                boolean result= Utility.checkPermission(MainMenu.this);
+                if (items[item].equals("Ambil Foto")) {
+                    if(result)
+                        captureImageProfile();
+                } else if (items[item].equals("Pilih dari Galeri")) {
+                    if(result)
+                        galleryIntentProfile();
+                } else if (items[item].equals("Batal")) {
+                    dialog.dismiss();
+                }
+            }
+        });
+        builder.show();
+    }
+    private void performCropProfile(){
+        try {
+            //call the standard crop action intent (the user device may not support it)
+            Intent cropIntent = new Intent("com.android.camera.action.CROP");
+            //indicate image type and Uri
+            cropIntent.setDataAndType(uriImage, "image/*");
+
+
+//            List<ResolveInfo> list = getPackageManager().queryIntentActivities(intent, 0);
+//            int size = list.size();
+            //set crop properties
+            cropIntent.putExtra("crop", "true");
+            //indicate aspect of desired crop
+            cropIntent.putExtra("aspectX", 1);
+            cropIntent.putExtra("aspectY", 1);
+            //indicate output X and Y
+            cropIntent.putExtra("outputX", 256);
+            cropIntent.putExtra("outputY", 256);
+            //retrieve data on return
+            cropIntent.putExtra("return-data", true);
+            cropIntent.putExtra(MediaStore.EXTRA_OUTPUT, uriImage);
+            //start the activity - we handle returning in onActivityResult
+            startActivityForResult(cropIntent, PIC_CROP_PROFILE);
+        }
+        catch(ActivityNotFoundException anfe){
+            //display an error message
+            String errorMessage = "Whoops - your device doesn't support the crop action!";
+            Toast toast = Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT);
+            toast.show();
+        }
+    }
+    private Bitmap decodeUriAsBitmap(Uri uri){
+        Bitmap bitmap = null;
+        try {
+            bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(uri));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        }
+        return bitmap;
+    }
+    protected void viewImageProfile() {
+        try {
+            displayPictureRepo = new clsDisplayPictureRepo(getApplicationContext());
+            dataImageProfile = (List<clsDisplayPicture>) displayPictureRepo.findAll();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        File folder = new File(Environment.getExternalStorageDirectory().toString() + "/data/data/KalbeAbsenHR/tempdata/Foto_Profil");
+        folder.mkdir();
+
+        for (clsDisplayPicture imgDt : dataImageProfile){
+            final byte[] imgFile = imgDt.getImage();
+            if (imgFile != null) {
+                mybitmapImageProfile = BitmapFactory.decodeByteArray(imgFile, 0, imgFile.length);
+                Bitmap bitmap = Bitmap.createScaledBitmap(mybitmapImageProfile, 150, 150, true);
+                ivProfile.setImageBitmap(bitmap);
+            }
+        }
+    }
+    private void previewCaptureImageProfile(Bitmap photo){
+        try {
+            Bitmap bitmap = new clsActivity().resizeImageForBlob(photo);
+            ivProfile.setVisibility(View.VISIBLE);
+            output = null;
+            try {
+                output = new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.PNG, 0, output);
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    if (output != null){
+                        output.close();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            Bitmap photo_view = Bitmap.createScaledBitmap(bitmap, 150, 150, true);
+            phtProfile = output.toByteArray();
+            ivProfile.setImageBitmap(photo_view);
+
+            saveImageProfile();
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+        }
+    }
+
+    protected void saveImageProfile() {
+        try {
+            displayPictureRepo = new clsDisplayPictureRepo(getApplicationContext());
+            dataImageProfile = (List<clsDisplayPicture>) displayPictureRepo.findAll();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        clsDisplayPicture data = new clsDisplayPicture();
+        data.setId(1);
+        data.setImage(phtProfile);
+//        new VolleyUtils().makeJsonObjectRequestPushData(getApplicationContext(), linkPushData, dtJson, new VolleyResponseListener() {
+//            @Override
+//            public void onError(String message) {
+//                String error;
+//            }
+//
+//            @Override
+//            public void onResponse(String response, Boolean status, String strErrorMsg) {
+//                String res = response;
+//
+//                Log.i(TAG, "Ski data from server - " + response);
+//                clsAbsenData absenData = new clsAbsenData();
+//                clsTrackingData trackingData = new clsTrackingData();
+////                clsUserLogin userLogin = new clsUserLogin();
+//
+//                try {
+//                    JSONArray jsonArray1 = new JSONArray(response);
+//                    for (int i = 0; i < jsonArray1.length(); i++) {
+//                        JSONObject method = jsonArray1.getJSONObject(i);
+//                        String listMethod = method.getString("PstrMethodRequest");
+//                        if (listMethod.equals(trackingData.Property_ListOftrackingLocation)) {
+//                            if (method.getString("pBoolValid").equals("1")) {
+//                                new clsTrackingDataRepo(getApplicationContext()).updateAllRowTracking();
+//                                result[0] = true;
+//                            }
+//                        }
+////                                if (listMethod.equals(absenData.Property_ListOftAbsenUser)) {
+////                                    if (method.getString("pBoolValid").equals("1")) {
+////                                        new clsAbsenDataRepo(getApplicationContext()).updateAllRowAbsen();
+////                                        result[0] = true;
+////                                    }
+////                                }
+//                        if (result[0]){
+//                            logout();
+//                        }
+//                    }
+//                    /*for(Object data : jsonObject1){
+//
+//                    }*/
+//                } catch (JSONException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        });
+
+        try {
+            int i = new clsDisplayPictureRepo(getApplicationContext()).createOrUpdate(data);
+            finish();
+            startActivity(new Intent(this, MainMenu.class));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        Toast.makeText(getApplicationContext(), "Image Profile Saved", Toast.LENGTH_SHORT).show();
+    }
+    private void galleryIntentProfile() {
+        Intent pickPhoto = new Intent(Intent.ACTION_PICK,
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        startActivityForResult(pickPhoto , SELECT_FILE_PROFILE);//one can be replaced with any action code
+    }
+    protected void captureImageProfile() {
+        uriImage = getOutputMediaFileUri();
+        StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
+        StrictMode.setVmPolicy(builder.build());
+        Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, uriImage);
+        startActivityForResult(cameraIntent, CAMERA_REQUEST_PROFILE);
+    }
+    protected void tedChooserPicture(){
+        TedBottomPicker tedBottomPicker = new TedBottomPicker.Builder(MainMenu.this)
+                .setOnImageSelectedListener(new TedBottomPicker.OnImageSelectedListener() {
+                    @Override
+                    public void onImageSelected(Uri uri) {
+                        // here is selected uri
+                        uriImage = uri;
+                        StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
+                        StrictMode.setVmPolicy(builder.build());
+                        performCropProfile();
+//                        Bitmap bitmap;
+//                        BitmapFactory.Options bitmapOptions = new BitmapFactory.Options();
+//                        bitmap = BitmapFactory.decodeFile(uri2, bitmapOptions);
+//
+//                        performCropProfile();
+                    }
+                })
+                .create();
+
+        tedBottomPicker.show(getSupportFragmentManager());
+    }
     @Override
     @SuppressLint({"NewApi"})
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == CAMERA_REQUEST_PROFILE) {
+            if (resultCode == -1) {
+                try {
+                    Bitmap bitmap;
+                    BitmapFactory.Options bitmapOptions = new BitmapFactory.Options();
+                    String uri = uriImage.getPath().toString();
+
+                    bitmap = BitmapFactory.decodeFile(uri, bitmapOptions);
+
+                    performCropProfile();
+
+//                    previewCaptureImage2(bitmap);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            else if (resultCode == 0) {
+                Toast.makeText(getApplicationContext(), "User cancel take image", Toast.LENGTH_SHORT).show();
+            }  else {
+                try {
+                    photoProfile = MediaStore.Images.Media.getBitmap(this.getContentResolver(), data.getData());
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        else if (requestCode == PIC_CROP_PROFILE) {
+            if (resultCode == -1) {
+                //get the returned data
+                Bundle extras = data.getExtras();
+                //get the cropped bitmap
+                Bitmap thePic = null;
+//                if  (extras != null){
+//                    thePic = extras.getParcelable("data");
+//                }else{
+//                    Uri uri = data.getData();
+//                    thePic = decodeUriAsBitmap(uri);
+//                }
+                Uri uri = data.getData();
+                if (uri != null){
+                    thePic = decodeUriAsBitmap(uri);
+                }
+                if  (extras != null){
+                    Bitmap tempBitm = extras.getParcelable("data");
+                    if (tempBitm != null){
+                        thePic = tempBitm;
+                    }
+                }
+                previewCaptureImageProfile(thePic);
+            } else if (resultCode == 0) {
+                Toast.makeText(getApplicationContext(), "User cancel take image", Toast.LENGTH_SHORT).show();
+            }
+        }
+        else if (requestCode == SELECT_FILE_PROFILE) {
+            if(resultCode == RESULT_OK){
+                try {
+                    Bitmap bitmap;
+                    BitmapFactory.Options bitmapOptions = new BitmapFactory.Options();
+                    selectedImage = data.getData();
+                    String uri = selectedImage.getPath().toString();
+                    bitmap = BitmapFactory.decodeFile(uri, bitmapOptions);
+
+                    performCropGalleryProfile();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
 
         if (requestCode == CropImage.PICK_IMAGE_CHOOSER_REQUEST_CODE && resultCode == AppCompatActivity.RESULT_OK) {
             Uri imageUri = CropImage.getPickImageResultUri(this, data);
@@ -682,6 +1044,91 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
             }
         }
         return result[0];
+    }
+    private void performCropGalleryProfile(){
+        try {
+            //call the standard crop action intent (the user device may not support it)
+            Intent cropIntent = new Intent("com.android.camera.action.CROP");
+            //indicate image type and Uri
+            cropIntent.setDataAndType(selectedImage, "image/*");
+            //set crop properties
+            cropIntent.putExtra("crop", "true");
+            //indicate aspect of desired crop
+            cropIntent.putExtra("aspectX", 1);
+            cropIntent.putExtra("aspectY", 1);
+            //indicate output X and Y
+            cropIntent.putExtra("outputX", 256);
+            cropIntent.putExtra("outputY", 256);
+            //retrieve data on return
+            cropIntent.putExtra("return-data", true);
+            //start the activity - we handle returning in onActivityResult
+            startActivityForResult(cropIntent, PIC_CROP_PROFILE);
+        }
+        catch(ActivityNotFoundException anfe){
+            //display an error message
+            String errorMessage = "Whoops - your device doesn't support the crop action!";
+            Toast toast = Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT);
+            toast.show();
+        }
+    }
+    private Uri getOutputMediaFileUri() {
+        return Uri.fromFile(getOutputMediaFile());
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) { //use this if Lollipop_Mr1 (API 22) or above
+//            return FileProvider.getUriForFile(this,getPackageName()+".provider", getOutputMediaFile());
+//        } else {
+//            return Uri.fromFile(getOutputMediaFile());
+//        }
+    }
+    private File getOutputMediaFile() {
+        // External sdcard location
+
+        File mediaStorageDir = new File(new clsHardCode().txtFolderData + File.separator);
+        // Create the storage directory if it does not exist
+        if (!mediaStorageDir.exists()) {
+            if (!mediaStorageDir.mkdirs()) {
+                Log.d(IMAGE_DIRECTORY_NAME, "Failed create " + IMAGE_DIRECTORY_NAME + " directory");
+                return null;
+            }
+        }
+        // Create a media file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+        File mediaFile;
+        mediaFile = new File(mediaStorageDir.getPath() + File.separator + "tmp_act"  + ".png");
+        return mediaFile;
+    }
+    public static class Utility {
+        public static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 123;
+        @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+        public static boolean checkPermission(final Context context)
+        {
+            int currentAPIVersion = Build.VERSION.SDK_INT;
+            if(currentAPIVersion>= Build.VERSION_CODES.M)
+            {
+                if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                    if (ActivityCompat.shouldShowRequestPermissionRationale((Activity) context, Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                        AlertDialog.Builder alertBuilder = new AlertDialog.Builder(context);
+                        alertBuilder.setCancelable(true);
+                        alertBuilder.setTitle("Permission necessary");
+                        alertBuilder.setMessage("External storage permission is necessary");
+                        alertBuilder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                            @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+                            public void onClick(DialogInterface dialog, int which) {
+                                ActivityCompat.requestPermissions((Activity) context, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
+                            }
+                        });
+                        AlertDialog alert = alertBuilder.create();
+                        alert.show();
+                    } else {
+                        ActivityCompat.requestPermissions((Activity) context, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
+                    }
+                    return false;
+                } else {
+                    return true;
+                }
+            } else {
+                return true;
+            }
+        }
     }
 
     private void pushData2() {
@@ -791,7 +1238,13 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
+        String versionName = "";
+        try {
+            versionName = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+        } catch (PackageManager.NameNotFoundException e2) {
+            // TODO Auto-generated catch block
+            e2.printStackTrace();
+        }
         String strLinkAPI = linkPushData;
 //        String nameRole = selectedRole;
         final JSONObject resJson = new JSONObject();
@@ -801,6 +1254,7 @@ public class MainMenu extends AppCompatActivity implements View.OnClickListener 
         try {
             resJson.put("TxtGUI_trUserLogin", dataLogin.get(0).getTxtGUI());
             resJson.put("TxtUserID", dataLogin.get(0).getTxtUserID());
+            resJson.put("versionName",versionName);
             resJson.put("TxtGUI_mVersionApp", dataInfo.get(0).getTxtVersion());
             resJson.put("IntCabangID", dataLogin.get(0).getIntCabangID());
             resJson.put("TxtTime", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cal.getTime()));

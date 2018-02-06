@@ -22,11 +22,13 @@ public class clsHardCode {
     public String linkLogin = "LoginAPI/Login";
     public String linkLeave = "LeaveAbsen/setLeaveData";
     public String linkCheckVersion = "CheckVersionApp_J";
+    public String linkGetLinkApk = "getLinkDownloadApk";
     public String linkPushData = "PushData/pushData2";
     public String linkGetOutlet = "TrackingDataAPI/getOutlet";
     public String linkGetOutletReporting = "ReportingMobile/getOutlet";
     public String linkGetReport = "ReportingMobile/getReportPeriode";
     public String linkAbsen = "AbsenAPI/AbsenOnline";
+    public String linkGetApkLink = "UpdateMobileApp/getLinkAPK";
     public String linkMoodSurveyCheckin ="LoginAPI/moodSurvey";
     public String linkMoodSurveyCheckout ="AbsenAPI/moodSurveyCheckout";
     public String linkCheckoutAbsen = "AbsenAPI/AbsenCheckoutOnline";
@@ -35,7 +37,11 @@ public class clsHardCode {
     public String leave_sick = "SICK";
     public String leave_trn = "TRAINING";
     public String name_app = "Android - HR Mobile";
+    public String txtFolderData = Environment.getExternalStorageDirectory()+ File.separator+"Android"+File.separator+"data"+File.separator+"KalbeAbsenHR"+File.separator+"image_Person"+File.separator;
     public String linkLogout = "LoginAPI/Logout";
     public String apkName = "absenMobileHR.apk";
-    public String linkDownloadApk = "files/KalbeNutritionalsHRIS.apk";
+//    public String linkDownloadApk = "files/HRISMobileKN.apk";
+    public String linkDownloadApk = "HRISMobileKN.apk";
+    public String linkGetToken = "Token";
+    public String MY_PREFS_NAME = "token_available";
 }

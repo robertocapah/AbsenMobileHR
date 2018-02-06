@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -16,6 +17,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TableLayout;
 import android.widget.TableRow;
@@ -32,7 +34,6 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.gson.Gson;
 
@@ -67,6 +68,8 @@ import absenmobilehr.app.kalbenutritionals.absenmobilehr.Data.repo.enumConfigDat
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.R;
 import absenmobilehr.app.kalbenutritionals.absenmobilehr.clsMainActivity;
 import cn.pedant.SweetAlert.SweetAlertDialog;
+
+import static android.content.Context.MODE_PRIVATE;
 
 /**
  * Created by Robert on 29/09/2017.
@@ -195,12 +198,12 @@ public class FragmentReport extends Fragment {
                 dataLogin = new clsUserLoginRepo(getActivity().getApplicationContext()).getDataLogin(getActivity().getApplicationContext());
                 String startDate = edDtStart.getText().toString();
                 String endDate = edDtEnd.getText().toString();
-                String spnResult = spnOutlet.getSelectedItem().toString();
-                String aa = HMoutletId.get(spnResult);
+//                String spnResult = spnOutlet.getSelectedItem().toString();
+//                String aa = HMoutletId.get(spnResult);
                 int outletId=0;
-                if (aa != null){
-                    outletId = Integer.parseInt(aa);
-                }
+//                if (aa != null){
+//                    outletId = Integer.parseInt(aa);
+//                }
                 int dateStatus = compareDates(startDate, endDate);
 
                 clsmConfig configData = null;
@@ -231,7 +234,7 @@ public class FragmentReport extends Fragment {
                 final String mRequestBody = json.toString();
 
                 if (dateStatus == 1) {
-                    new clsMainActivity().showCustomToast(context, "Date period empty !", false);
+                    new clsMainActivity().showCustomToast(context, "Invalid date period", false);
                 } else if (startDate.equals("") ) {
                     new clsMainActivity().showCustomToast(context, "Please,complete start date!", false);
                 }else if(endDate.equals("")){
@@ -271,10 +274,12 @@ public class FragmentReport extends Fragment {
                                     for (int j = 0; j < array.length(); j++) {
                                         JSONObject json_data = array.getJSONObject(j);
                                         String outletName = json_data.getString("outletName").toUpperCase();
+                                        String date = json_data.getString("date");
                                         String timeCheckin = json_data.getString("strTimeCheckin");
                                         String timecheckout = json_data.getString("strTimeCheckout");
                                         String strLong = json_data.getString("longitude");
                                         String strLat = json_data.getString("latitude");
+                                        String keterangan = json_data.getString("keterangan");
                                         Double longitude = null;
                                         Double latitude = null;
 
@@ -283,8 +288,14 @@ public class FragmentReport extends Fragment {
                                         TextView TxtLocation = new TextView(getActivity());
                                         TextView txtDateCheckin = new TextView(getActivity());
                                         TextView txtDateCheckout = new TextView(getActivity());
+                                        TextView tvDate = new TextView(getActivity());
+                                        TextView tvKeterangan = new TextView(getActivity());
+
 
                                         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss");
+                                        tvDate.setPadding(5, 5, 5, 5);
+                                        tvDate.setText(date);
+                                        tvDate.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 1f));
                                         TxtLocation.setPadding(5, 5, 5, 5);
                                         TxtLocation.setText(outletName);
                                         TxtLocation.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 1f));
@@ -294,27 +305,32 @@ public class FragmentReport extends Fragment {
                                         txtDateCheckout.setText(timecheckout);
                                         txtDateCheckout.setPadding(5, 5, 5, 5);
                                         txtDateCheckout.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 1f));
+                                        tvKeterangan.setText(keterangan);
+                                        tvKeterangan.setPadding(5, 5, 5, 5);
+                                        tvKeterangan.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 1f));
 
-                                        tr.addView(TxtLocation);
+//                                        tr.addView(TxtLocation);
+                                        tr.addView(tvDate);
                                         tr.addView(txtDateCheckin);
                                         tr.addView(txtDateCheckout);
+                                        tr.addView(tvKeterangan);
                                         tlReport.addView(tr, new TableLayout.LayoutParams(TableLayout.LayoutParams.FILL_PARENT, TableLayout.LayoutParams.WRAP_CONTENT));
 
                                         Boolean valid = true;
-                                        try {
-                                            if (strLong != null || !strLong.equals("null")) ;
-                                            {
-                                                longitude = Double.parseDouble(strLong);
-                                            }
-                                            if (strLat != null || !strLat.equals("null")) {
-                                                latitude = Double.parseDouble(strLat);
-                                            }
-                                        } catch (Exception ex) {
-                                            valid = false;
-                                            new clsMainActivity().showCustomToast(getContext(), "Your location not found", false);
-                                        }
-                                        MarkerOptions marker = new MarkerOptions().position(new LatLng(latitude, longitude)).title(outletName);
-                                        marker.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
+//                                        try {
+//                                            if (strLong != null && !strLong.equals("null")) ;
+//                                            {
+//                                                longitude = Double.parseDouble(strLong);
+//                                            }
+//                                            if (strLat != null && !strLat.equals("null")) {
+//                                                latitude = Double.parseDouble(strLat);
+//                                            }
+//                                        } catch (Exception ex) {
+//                                            valid = false;
+//                                            new clsMainActivity().showCustomToast(getContext(), "Your location not found", false);
+//                                        }
+//                                        MarkerOptions marker = new MarkerOptions().position(new LatLng(latitude, longitude)).title(outletName);
+//                                        marker.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
 
 //                                        mMap.addMarker(marker);
 //                                        PolylineOptions rectOptions = new PolylineOptions().add(new LatLng(latitude, longitude))
@@ -340,12 +356,12 @@ public class FragmentReport extends Fragment {
                         dataLogin = new clsUserLoginRepo(getActivity().getApplicationContext()).getDataLogin(getActivity().getApplicationContext());
                         String startDate = edDtStart.getText().toString();
                         String endDate = edDtEnd.getText().toString();
-                        String spnResult = spnOutlet.getSelectedItem().toString();
-                        String aa = HMoutletId.get(spnResult);
+//                        String spnResult = spnOutlet.getSelectedItem().toString();
+//                        String aa = HMoutletId.get(spnResult);
                         int outletId=0;
-                        if (aa != null){
-                            outletId = Integer.parseInt(aa);
-                        }
+//                        if (aa != null){
+//                            outletId = Integer.parseInt(aa);
+//                        }
                         int dateStatus = compareDates(startDate, endDate);
 
                         clsmConfig configData = null;
@@ -407,6 +423,8 @@ public class FragmentReport extends Fragment {
                                         LayoutInflater layoutInflater = LayoutInflater.from(getContext());
                                         View promptView = layoutInflater.inflate(R.layout.popup_map_absen, null);
                                         GoogleMap mMap;
+                                        LinearLayout lnLegend =(LinearLayout) promptView.findViewById(R.id.lnLegend);
+                                        lnLegend.setVisibility(View.VISIBLE);
                                         mMap = ((MapFragment) (getActivity()).getFragmentManager().findFragmentById(R.id.map)).getMap();
 //                                        mMap = ((MapFragment) (getActivity()).getFragmentManager().findFragmentById(R.id.map)).getMap();
 
@@ -420,11 +438,11 @@ public class FragmentReport extends Fragment {
                                             JSONArray array = new JSONArray(response);
                                             for (int j = 0; j < array.length(); j++) {
                                                 JSONObject json_data = array.getJSONObject(j);
-                                                String outletName = json_data.getString("outletName");
+//                                                String outletName = json_data.getString("outletName");
                                                 String timeCheckin = json_data.getString("strTimeCheckin");
                                                 String timecheckout = json_data.getString("strTimeCheckout");
-                                                String strLong = json_data.getString("longitude");
-                                                String strLat = json_data.getString("latitude");
+//                                                String strLong = json_data.getString("longitude");
+//                                                String strLat = json_data.getString("latitude");
                                                 String strLongHuman = json_data.getString("longitudeHuman");
                                                 String strLatHuman = json_data.getString("latitudeHuman");
                                                 Double longHuman = null;
@@ -434,13 +452,13 @@ public class FragmentReport extends Fragment {
 
                                                 Boolean valid = true;
                                                 try {
-                                                    if (strLong != null || !strLong.equals("null"))
-                                                    {
-                                                        longitude = Double.parseDouble(strLong);
-                                                    }
-                                                    if (strLat != null || !strLat.equals("null")) {
-                                                        latitude = Double.parseDouble(strLat);
-                                                    }
+//                                                    if (strLong != null || !strLong.equals("null"))
+//                                                    {
+//                                                        longitude = Double.parseDouble(strLong);
+//                                                    }
+//                                                    if (strLat != null || !strLat.equals("null")) {
+//                                                        latitude = Double.parseDouble(strLat);
+//                                                    }
                                                     if (strLongHuman != null || !strLongHuman.equals("null")) {
                                                         longHuman = Double.parseDouble(strLongHuman);
                                                     }
@@ -453,19 +471,27 @@ public class FragmentReport extends Fragment {
                                                     valid = false;
                                                     new clsMainActivity().showCustomToast(getContext(), "Your location not found", false);
                                                 }
-                                                MarkerOptions marker = new MarkerOptions().position(new LatLng(latitude, longitude)).title(outletName);
-                                                marker.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
-                                                builder.include(marker.getPosition());
-                                                mMap.addMarker(marker);
+//                                                MarkerOptions marker = new MarkerOptions().position(new LatLng(latitude, longitude)).title(outletName);
+//                                                marker.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
 
-                                                MarkerOptions marker2 = new MarkerOptions().position(new LatLng(latHuman, longHuman)).title("Posisi Anda ketika absen di :"+outletName).snippet("Time :"+timeCheckin);
-                                                marker.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN));
+//                                                builder.include(marker.getPosition());
+//                                                mMap.addMarker(marker);
+
+                                                MarkerOptions marker2 = new MarkerOptions().position(new LatLng(latHuman, longHuman)).title("Time Checkin:").snippet(""+timeCheckin);
+                                                if (j==0){
+                                                    marker2.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN));
+                                                }else if(j==array.length()-1){
+                                                    marker2.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET));
+                                                }else{
+                                                    marker2.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
+                                                }
+
                                                 builder.include(marker2.getPosition());
                                                 mMap.addMarker(marker2);
 
-                                                rectOptions.add(new LatLng(latitude, longitude));
-                                                Polyline polyline = mMap.addPolyline(rectOptions);
-                                                Polyline polyline2 = mMap.addPolyline(rectOptions2);
+//                                                rectOptions.add(new LatLng(latitude, longitude));
+//                                                Polyline polyline = mMap.addPolyline(rectOptions);
+//                                                Polyline polyline2 = mMap.addPolyline(rectOptions2);
                                             }
 
                                             LatLngBounds bounds = builder.build();
@@ -482,6 +508,7 @@ public class FragmentReport extends Fragment {
                                             });
                                             android.support.v7.app.AlertDialog.Builder alertDialogBuilder = new android.support.v7.app.AlertDialog.Builder(getContext());
                                             alertDialogBuilder.setView(promptView);
+
                                             alertDialogBuilder
                                                     .setCancelable(false)
                                                     .setPositiveButton("OK",
@@ -512,7 +539,7 @@ public class FragmentReport extends Fragment {
 
             }
         });
-        getOutlet();
+//        getOutlet();
         return v;
     }
 
@@ -590,7 +617,9 @@ public class FragmentReport extends Fragment {
             e.printStackTrace();
         }
         final String mRequestBody = json.toString();
-        new VolleyUtils().makeJsonObjectRequestOutlet(getActivity(), strLinkAPI, mRequestBody, "Getting Outlet Data", new VolleyResponseListener() {
+        SharedPreferences prefs = getActivity().getSharedPreferences(new clsHardCode().MY_PREFS_NAME, MODE_PRIVATE);
+        String token= prefs.getString("token", "No token defined");
+        new VolleyUtils().makeJsonObjectRequestOutlet(getActivity(), strLinkAPI, token, mRequestBody, "Getting Outlet Data", new VolleyResponseListener() {
             @Override
             public void onError(String response) {
 //                new clsMainActivity().showCustomToast(getActivity().getApplicationContext(), "Connection Lost, get latest data failed", false);
@@ -618,7 +647,7 @@ public class FragmentReport extends Fragment {
                 if(!a.equals("")){
                     try {
                         JSONObject object = new JSONObject(a);
-                        JSONArray result = object.getJSONArray("listOutlet");
+                        JSONArray result = object.getJSONArray("listOutletReport");
                         arrData = new ArrayList<>();
                         arrData.add(0, "ALL");
                         for(int i = 0; i<result.length();i++ ){

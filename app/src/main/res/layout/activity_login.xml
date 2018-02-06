@@ -35,7 +35,6 @@ android:fillViewport="true">
         <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="number"
             android:hint="NIK"
             android:ems="10"
             android:maxLines="1"
@@ -130,6 +129,7 @@ android:fillViewport="true">
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Ping"
+            android:visibility="gone"
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp"
             android:textStyle="bold"

@@ -139,11 +139,11 @@ public class FragmentLeave extends Fragment implements View.OnClickListener,Loca
                     DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
                     Calendar cal = Calendar.getInstance();
                     String now = dateFormat.format(cal.getTime());
-                    String longitude = String.valueOf(mLastLocation.getLongitude());
-                    String latitude = String.valueOf(mLastLocation.getLatitude());
+//                    String longitude = String.valueOf(mLastLocation.getLongitude());
+//                    String latitude = String.valueOf(mLastLocation.getLatitude());
                     final String GuiID = new clsMainBL().GenerateGuid();
-                    resJson.put("longitude",longitude);
-                    resJson.put("latitude",latitude);
+                    resJson.put("longitude",null);
+                    resJson.put("latitude",null);
                     resJson.put("txtTime", now);
                     resJson.put("guiId",GuiID);
                     resJson.put("guiIdLogin",dataUserActive.getTxtGUI());
@@ -176,7 +176,7 @@ public class FragmentLeave extends Fragment implements View.OnClickListener,Loca
                         if (response != null) {
                             if (response.equals("1")){
                                 new clsMainActivity().showCustomToast(getActivity().getApplicationContext(), "Your status is leaved now", true);
-                                startActivity(new Intent(getActivity(), MainMenu.class));
+//                                startActivity(new Intent(getActivity(), MainMenu.class));
                                 clsLeaveData dataLeave = new clsLeaveData();
                                 dataLeave.setBitActive(1);
                                 dataLeave.setLeaveId(HMLeaveID.get(typeLeave));
@@ -185,7 +185,8 @@ public class FragmentLeave extends Fragment implements View.OnClickListener,Loca
                                 dataLeave.setTxtKeterangan(txtAlasan);
                                 try {
                                     new clsLeaveDataRepo(context).createOrUpdate(dataLeave);
-                                    startActivity(new Intent(getActivity(),MainMenu.class));
+                                    startActivity(new Intent(getActivity().getApplicationContext(),MainMenu.class));
+                                    getActivity().finish();
                                 } catch (SQLException e) {
                                     e.printStackTrace();
                                 }

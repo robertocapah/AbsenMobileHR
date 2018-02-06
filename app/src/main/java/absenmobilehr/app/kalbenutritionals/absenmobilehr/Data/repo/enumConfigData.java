@@ -8,7 +8,8 @@ public enum enumConfigData {
 	TextFooter   (5),
 	BackGroundServiceOnline   (6),
 	API_EF(7),
-	LIVE   (8)
+	LIVE   (8),
+	API_AbsenWeb(9)
 	;
 	enumConfigData(int idConfigData) {
 		this.idConfigData = idConfigData;

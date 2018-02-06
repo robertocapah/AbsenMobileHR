@@ -67,6 +67,15 @@
     <color name="switch_thumb_disabled_material_light">#ffbdbdbd</color>
     <color name="switch_thumb_normal_material_dark">#ffbdbdbd</color>
     <color name="switch_thumb_normal_material_light">#fff1f1f1</color>
+    <color name="zxinglib_possible_result_points">#c0ffff00</color>
+    <color name="zxinglib_result_image_border">#ffffffff</color>
+    <color name="zxinglib_result_points">#c000ff00</color>
+    <color name="zxinglib_result_view">#b0000000</color>
+    <color name="zxinglib_status_text">#ffffffff</color>
+    <color name="zxinglib_transparent">#00000000</color>
+    <color name="zxinglib_viewfinder_frame">#ff000000</color>
+    <color name="zxinglib_viewfinder_laser">#ffff0000</color>
+    <color name="zxinglib_viewfinder_mask">#60000000</color>
     <declare-styleable name="ActionBar"><attr name="navigationMode">
             
             <enum name="normal" value="0"/>
@@ -301,6 +310,12 @@
     <item name="progress_horizontal" type="id"/>
     <item name="split_action_bar" type="id"/>
     <item name="up" type="id"/>
+    <item name="zxinglib_auto_focus" type="id"/>
+    <item name="zxinglib_decode" type="id"/>
+    <item name="zxinglib_decode_failed" type="id"/>
+    <item name="zxinglib_decode_succeeded" type="id"/>
+    <item name="zxinglib_quit" type="id"/>
+    <item name="zxinglib_return_scan_result" type="id"/>
     <integer name="abc_config_activityDefaultDur">220</integer>
     <integer name="abc_config_activityShortDur">150</integer>
     <integer name="cancel_button_image_alpha">127</integer>
@@ -342,6 +357,8 @@
     <string name="crop_image_menu_rotate_right">Rotate</string>
     <string name="pick_image_intent_chooser_title">Select source</string>
     <string name="status_bar_notification_info_overflow">999+</string>
+    <string name="zxinglib_app_name">ZXingLib</string>
+    <string name="zxinglib_msg_default_status">Place a barcode inside the viewfinder rectangle to scan it. </string>
     <style name="AlertDialog.AppCompat" parent="Base.AlertDialog.AppCompat"/>
     <style name="AlertDialog.AppCompat.Light" parent="Base.AlertDialog.AppCompat.Light"/>
     <style name="Animation.AppCompat.Dialog" parent="Base.Animation.AppCompat.Dialog"/>

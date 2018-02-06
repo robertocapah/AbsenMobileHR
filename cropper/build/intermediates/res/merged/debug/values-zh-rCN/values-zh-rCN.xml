@@ -20,4 +20,6 @@
     <string msgid="7165123711973476752" name="abc_shareactionprovider_share_with_application">"通过%s分享"</string>
     <string msgid="1603543279005712093" name="abc_toolbar_collapse_description">"收起"</string>
     <string msgid="2869576371154716097" name="status_bar_notification_info_overflow">"999+"</string>
+    <string name="zxinglib_app_name">ZXingLib</string>
+    <string name="zxinglib_msg_default_status">请将条码置于取景框内扫描。  </string>
 </resources>
